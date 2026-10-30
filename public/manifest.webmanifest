@@ -1,0 +1,35 @@
+{
+  "id": "./",
+  "name": "Bit24 AI Auto Trader + Gold | پلتفرم هوشمند بیت‌۲۴ و طلا",
+  "short_name": "Bit24 AI + Gold",
+  "description": "پلتفرم هوشمند تحلیل و معامله خودکار ارز دیجیتال اسپات و طلای دیجیتال (PAXG / XAUT) متصل به صرافی بیت‌۲۴ با مدیریت ریسک سخت‌گیرانه",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#090D16",
+  "theme_color": "#090D16",
+  "categories": ["finance", "business", "productivity"],
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
