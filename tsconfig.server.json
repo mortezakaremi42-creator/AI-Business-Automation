@@ -10,5 +10,5 @@
     "skipLibCheck": true,
     "resolveJsonModule": true
   },
-  "include": ["src/server/**/*", "src/core/**/*", "src/shared/**/*"]
+  "include": ["src/server/**/*", "src/engine/**/*", "src/shared/**/*"]
 }

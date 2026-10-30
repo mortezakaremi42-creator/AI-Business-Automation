@@ -1,9 +1,9 @@
 {
-  "name": "bit24-ai-auto-trader-gold",
-  "version": "2.0.0",
+  "name": "bit24-ai-trader-pro",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "پلتفرم حرفه‌ای تحلیل هوشمند و معامله خودکار ارز دیجیتال اسپات و طلای دیجیتال (PAXG / XAUT) متصل به صرافی بیت‌۲۴",
+  "description": "BIT24 AI TRADER PRO — ربات هوشمند معامله‌گر ارز دیجیتال و طلای دیجیتال اختصاصی صرافی بیت۲۴",
   "scripts": {
     "dev": "tsx src/server/index.ts",
     "build:client": "vite build",
@@ -11,7 +11,8 @@
     "build": "vite build && tsc -p tsconfig.server.json",
     "start": "NODE_ENV=production node dist/server/server/index.js",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "android:apk": "bash scripts/build-android-apk.sh"
   },
   "dependencies": {
     "@fontsource/vazirmatn": "^5.1.0",

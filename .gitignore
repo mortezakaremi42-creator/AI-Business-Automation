@@ -1,21 +1,14 @@
-# Dependencies
 node_modules/
-
-# Build output
 dist/
 build/
-
-# Sensitive wallet vaults & runtime data (NEVER COMMIT PRIVATE KEYS!)
 data/
 *.enc
 *.enc.json
-.bit24-vault.enc
+.bit24-pro-vault.enc
 *.key
 .env
 .env.local
 .env.*.local
-
-# Logs & caches
 *.log
 npm-debug.log*
 .vite/
