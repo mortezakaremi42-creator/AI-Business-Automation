@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" fill="none" role="img" aria-label="ALVARO FASHION Logo">
+  <defs>
+    <linearGradient id="alvaroGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#E5C785"/>
+      <stop offset="50%" stop-color="#C5A059"/>
+      <stop offset="100%" stop-color="#9A7836"/>
+    </linearGradient>
+  </defs>
+  <!-- Luxury Diamond Monogram Frame -->
+  <rect x="10" y="10" width="44" height="44" rx="2" transform="rotate(45 32 32)" stroke="url(#alvaroGold)" stroke-width="1.8"/>
+  <rect x="15" y="15" width="34" height="34" rx="1" transform="rotate(45 32 32)" stroke="url(#alvaroGold)" stroke-width="0.7" opacity="0.65"/>
+  <!-- Stylized AF Couture Monogram -->
+  <path d="M24 41L30.5 22H33.5L40 41H37.1L35.5 36H28.5L26.9 41H24ZM29.4 33.4H34.6L32 25.3L29.4 33.4Z" fill="url(#alvaroGold)"/>
+  <!-- Brand Wordmark -->
+  <text x="72" y="31" font-family="Georgia, 'Times New Roman', serif" font-size="21" font-weight="700" letter-spacing="4.2" fill="#0D0D0F">ALVARO</text>
+  <line x1="72" y1="38" x2="244" y2="38" stroke="url(#alvaroGold)" stroke-width="0.9"/>
+  <text x="73" y="50" font-family="Arial, Helvetica, sans-serif" font-size="9.5" font-weight="600" letter-spacing="6.5" fill="#9A7836">FASHION HOUSE</text>
+</svg>
