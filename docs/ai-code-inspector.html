@@ -1,0 +1,4223 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<title>ALVARO FASHION — Full Source Code & Architecture Inspection Page</title></head><body>
+<h1>ALVARO FASHION — Complete Project Source Code (For AI Inspection)</h1>
+<p>This page contains the full manifest and source code of the ALVARO FASHION standalone Persian RTL e-commerce project.</p>
+<hr><h2>FILE: PROJECT-MANIFEST.md (3040 chars)</h2>
+<pre><code># ALVARO FASHION — Technical &amp; Functional Manifest (For AI &amp; Developer Review)
+
+## 1. Project Identity
+- **Brand Name:** `ALVARO FASHION`
+- **Project Type:** Complete Standalone Persian (`fa-IR`, `RTL`) Luxury Women&#x27;s Fashion E-Commerce Storefront
+- **Tech Stack:** Pure Semantic `HTML5` + Custom Responsive `CSS3` + Vanilla `JavaScript (ES5/ES6)` — Zero server or database required (`file://` and static-host compatible)
+- **Color Palette:** Ivory White (`#FAF8F5` / `#FFFFFF`), Obsidian Black (`#0D0D0F`), Champagne Gold (`#C5A059` / `#E4C98E`)
+
+## 2. Complete Directory &amp; File Map
+- `index.html` — Main single-entry storefront containing Header, Hero Banner («زیبایی در انتخاب استایل شما»), 8 Categories, Best Sellers, Full Searchable/Filterable/Sortable Storefront, New Arrivals, Special Offers, Brand Story, Contact Form, Full Footer, Dedicated Product Detail Page (`#productDetailView`), Slide-over Shopping Cart Drawer, Mobile Navigation Drawer, Size Guide Modal, and Demo Checkout Modal.
+- `assets/css/style.css` — Luxury RTL design system, local `@font-face` Vazirmatn definitions, animations, and responsive breakpoints (`1024px`, `768px`, `480px`).
+- `assets/js/products-data.js` — Structured catalog of **16 sample products** across all **8 required categories**:
+  1. `مانتو زنانه` (`prod-01`, `prod-02`)
+  2. `شومیز` (`prod-03`, `prod-04`)
+  3. `لباس مجلسی` (`prod-05`, `prod-06`)
+  4. `کت زنانه` (`prod-07`, `prod-08`)
+  5. `کیف دستی` (`prod-09`, `prod-10`)
+  6. `کفش زنانه` (`prod-11`, `prod-12`)
+  7. `شلوار زنانه` (`prod-13`, `prod-14`)
+  8. `ست لباس` (`prod-15`, `prod-16`)
+- `assets/js/app.js` — Interactive application engine:
+  - Live instant search (`#productSearchInput`)
+  - Category filtering (cards, dropdown `#categorySelect`, and filter pills)
+  - Price &amp; collection sorting (`featured`, `price-asc`, `price-desc`, `newest`, `discount`)
+  - Dedicated Product Detail View (`#product/&lt;id&gt;` hash routing + browser Back button support + size/color selection + quantity control + related items)
+  - Active Shopping Cart (`+` increment, `−` decrement, single remove, clear all, `ALVARO10` 10% coupon, free VIP shipping &gt;= 5,000,000 Toman, `localStorage` persistence under `alvaro_fashion_cart_v1`)
+  - Wishlist with `localStorage` persistence (`alvaro_fashion_wishlist_v1`)
+  - Demo Checkout flow generating a sample tracking code (explicitly labeled demo — no real payment gateway or fake personal data)
+  - Validated Contact Us form (`#contactUsForm`) &amp; VIP Newsletter form (`#newsletterForm`)
+  - Responsive Mobile Drawer Menu (`#mobileMenuDrawer`)
+- `assets/fonts/` — Local WOFF2 `Vazirmatn` font files (`400`, `500`, `700`, `800`) for fast offline/online rendering.
+- `assets/images/` — Custom SVG logos (`logo-alvaro.svg`, `logo-alvaro-light.svg`, `favicon.svg`), `hero-banner.jpg`, `brand-atelier.jpg`, and 16 product photos in `assets/images/products/`.
+- `manifest.webmanifest` &amp; `.htaccess` &amp; `README-FA.md` — Android Chrome web-app manifest, Apache/cPanel optimization rules, and Persian deployment guide.
+</code></pre>
+<hr><h2>FILE: index.html (31427 chars)</h2>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;fa&quot; dir=&quot;rtl&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;meta name=&quot;theme-color&quot; content=&quot;#0D0D0F&quot; /&gt;
+  &lt;meta
+    name=&quot;description&quot;
+    content=&quot;فروشگاه اینترنتی پوشاک لوکس زنانه ALVARO FASHION — زیبایی در انتخاب استایل شما. کالکشن اختصاصی مانتو، شومیز، لباس مجلسی، کت، کیف و کفش زنانه.&quot;
+  /&gt;
+  &lt;title&gt;ALVARO FASHION | فروشگاه آنلاین پوشاک لوکس زنانه&lt;/title&gt;
+  &lt;link rel=&quot;icon&quot; type=&quot;image/svg+xml&quot; href=&quot;assets/images/favicon.svg&quot; /&gt;
+  &lt;link rel=&quot;manifest&quot; href=&quot;manifest.webmanifest&quot; /&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;assets/css/style.css&quot; /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+  &lt;!-- نوار اعلان بالای صفحه --&gt;
+  &lt;div class=&quot;topbar&quot;&gt;
+    &lt;div class=&quot;container topbar-inner&quot;&gt;
+      &lt;div&gt;
+        ارسال اکسپرس &lt;span class=&quot;topbar-highlight&quot;&gt;رایگان VIP&lt;/span&gt; برای سفارش‌های بالای ۵ میلیون تومان | کد تخفیف ۱۰٪ فصل: &lt;span class=&quot;topbar-highlight&quot;&gt;ALVARO10&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;span class=&quot;topbar-demo-tag&quot;&gt;نسخه نمایشی (دمو) نمونه‌کار طراحی سایت — سفارش‌ها آزمایشی است&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- هدر حرفه‌ای چسبان --&gt;
+  &lt;header class=&quot;site-header&quot; id=&quot;siteHeader&quot;&gt;
+    &lt;div class=&quot;container header-inner&quot;&gt;
+      &lt;!-- دکمه منوی موبایل --&gt;
+      &lt;button
+        type=&quot;button&quot;
+        class=&quot;icon-btn mobile-menu-toggle&quot;
+        id=&quot;openMobileMenuBtn&quot;
+        aria-label=&quot;باز کردن منوی موبایل&quot;
+      &gt;
+        &lt;svg width=&quot;22&quot; height=&quot;22&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;
+          &lt;line x1=&quot;3&quot; y1=&quot;6&quot; x2=&quot;21&quot; y2=&quot;6&quot;&gt;&lt;/line&gt;
+          &lt;line x1=&quot;3&quot; y1=&quot;12&quot; x2=&quot;21&quot; y2=&quot;12&quot;&gt;&lt;/line&gt;
+          &lt;line x1=&quot;3&quot; y1=&quot;18&quot; x2=&quot;21&quot; y2=&quot;18&quot;&gt;&lt;/line&gt;
+        &lt;/svg&gt;
+      &lt;/button&gt;
+
+      &lt;!-- لوگوی برند ALVARO FASHION --&gt;
+      &lt;a href=&quot;#heroSection&quot; class=&quot;brand-logo&quot; data-nav-target=&quot;heroSection&quot; aria-label=&quot;صفحه اصلی ALVARO FASHION&quot;&gt;
+        &lt;img src=&quot;assets/images/logo-alvaro.svg&quot; alt=&quot;ALVARO FASHION&quot; width=&quot;195&quot; height=&quot;48&quot; /&gt;
+      &lt;/a&gt;
+
+      &lt;!-- منوی اصلی دسکتاپ --&gt;
+      &lt;nav class=&quot;main-nav&quot; aria-label=&quot;منوی اصلی سایت&quot;&gt;
+        &lt;a href=&quot;#heroSection&quot; class=&quot;nav-link active&quot; data-nav-target=&quot;heroSection&quot;&gt;خانه&lt;/a&gt;
+        &lt;a href=&quot;#shopSection&quot; class=&quot;nav-link&quot; data-nav-target=&quot;shopSection&quot;&gt;فروشگاه&lt;/a&gt;
+        &lt;a href=&quot;#newArrivalsSection&quot; class=&quot;nav-link&quot; data-nav-target=&quot;newArrivalsSection&quot;&gt;محصولات جدید&lt;/a&gt;
+        &lt;a href=&quot;#specialOffersSection&quot; class=&quot;nav-link&quot; data-nav-target=&quot;specialOffersSection&quot;&gt;تخفیف‌ها&lt;/a&gt;
+        &lt;a href=&quot;#contactSection&quot; class=&quot;nav-link&quot; data-nav-target=&quot;contactSection&quot;&gt;تماس با ما&lt;/a&gt;
+      &lt;/nav&gt;
+
+      &lt;!-- ابزارهای هدر: جست‌وجو، علاقه‌مندی، سبد خرید --&gt;
+      &lt;div class=&quot;header-actions&quot;&gt;
+        &lt;button
+          type=&quot;button&quot;
+          class=&quot;icon-btn&quot;
+          id=&quot;headerSearchBtn&quot;
+          aria-label=&quot;جست‌وجوی محصولات&quot;
+          title=&quot;جست‌وجوی محصولات&quot;
+        &gt;
+          &lt;svg width=&quot;19&quot; height=&quot;19&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;
+            &lt;circle cx=&quot;11&quot; cy=&quot;11&quot; r=&quot;8&quot;&gt;&lt;/circle&gt;
+            &lt;line x1=&quot;21&quot; y1=&quot;21&quot; x2=&quot;16.65&quot; y2=&quot;16.65&quot;&gt;&lt;/line&gt;
+          &lt;/svg&gt;
+        &lt;/button&gt;
+
+        &lt;button
+          type=&quot;button&quot;
+          class=&quot;icon-btn&quot;
+          id=&quot;headerWishlistBtn&quot;
+          aria-label=&quot;لیست علاقه‌مندی‌ها&quot;
+          title=&quot;لیست علاقه‌مندی‌ها&quot;
+        &gt;
+          &lt;svg width=&quot;19&quot; height=&quot;19&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;
+            &lt;path d=&quot;M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z&quot;&gt;&lt;/path&gt;
+          &lt;/svg&gt;
+          &lt;span class=&quot;badge-count&quot; id=&quot;wishCountBadge&quot;&gt;۰&lt;/span&gt;
+        &lt;/button&gt;
+
+        &lt;button
+          type=&quot;button&quot;
+          class=&quot;icon-btn&quot;
+          id=&quot;openCartBtn&quot;
+          aria-label=&quot;مشاهده سبد خرید&quot;
+          title=&quot;سبد خرید&quot;
+        &gt;
+          &lt;svg width=&quot;19&quot; height=&quot;19&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;
+            &lt;path d=&quot;M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z&quot;&gt;&lt;/path&gt;
+            &lt;line x1=&quot;3&quot; y1=&quot;6&quot; x2=&quot;21&quot; y2=&quot;6&quot;&gt;&lt;/line&gt;
+            &lt;path d=&quot;M16 10a4 4 0 0 1-8 0&quot;&gt;&lt;/path&gt;
+          &lt;/svg&gt;
+          &lt;span class=&quot;badge-count&quot; id=&quot;cartCountBadge&quot;&gt;۰&lt;/span&gt;
+        &lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/header&gt;
+
+  &lt;!-- محتوای اصلی صفحه خانه و فروشگاه --&gt;
+  &lt;main id=&quot;homeMainContent&quot;&gt;
+
+    &lt;!-- ۱. بنر بزرگ تبلیغاتی (Hero Section) --&gt;
+    &lt;section class=&quot;hero-section&quot; id=&quot;heroSection&quot;&gt;
+      &lt;div class=&quot;container hero-grid&quot;&gt;
+        &lt;div class=&quot;hero-copy&quot;&gt;
+          &lt;div class=&quot;hero-eyebrow&quot;&gt;ALVARO COUTURE • NEW COLLECTION&lt;/div&gt;
+          &lt;h1 class=&quot;hero-title&quot;&gt;
+            زیبایی در &lt;span&gt;انتخاب استایل شما&lt;/span&gt;
+          &lt;/h1&gt;
+          &lt;p class=&quot;hero-lead&quot;&gt;
+            تجربه‌ای متمایز از مد معاصر در خانه مد &lt;strong&gt;ALVARO FASHION&lt;/strong&gt;؛ تلفیق پارچه‌های اصیل، برش‌های دقیق مزونی و هارمونی ماندگار سفید، مشکی و طلایی برای بانوانی که به اصالت پوشش خود اهمیت می‌دهند.
+          &lt;/p&gt;
+          &lt;div class=&quot;hero-cta-group&quot;&gt;
+            &lt;a href=&quot;#shopSection&quot; class=&quot;btn btn-gold&quot; data-nav-target=&quot;shopSection&quot;&gt;
+              ورود به فروشگاه
+              &lt;span aria-hidden=&quot;true&quot;&gt;←&lt;/span&gt;
+            &lt;/a&gt;
+            &lt;a href=&quot;#specialOffersSection&quot; class=&quot;btn btn-outline-light&quot; data-nav-target=&quot;specialOffersSection&quot;&gt;
+              مشاهده پیشنهادهای ویژه
+            &lt;/a&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;hero-metrics&quot;&gt;
+            &lt;div&gt;
+              &lt;span class=&quot;hero-metric-num&quot;&gt;+۱۶ استایل&lt;/span&gt;
+              &lt;span class=&quot;hero-metric-label&quot;&gt;در ۸ دسته‌بندی تخصصی&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div&gt;
+              &lt;span class=&quot;hero-metric-num&quot;&gt;۱۰۰٪ مزونی&lt;/span&gt;
+              &lt;span class=&quot;hero-metric-label&quot;&gt;دوخت دقیق و پارچه ممتاز&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div&gt;
+              &lt;span class=&quot;hero-metric-num&quot;&gt;۷ روز ضمانت&lt;/span&gt;
+              &lt;span class=&quot;hero-metric-label&quot;&gt;تعویض آسان سایز و مدل&lt;/span&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;hero-visual&quot;&gt;
+          &lt;div class=&quot;hero-image-frame&quot;&gt;
+            &lt;img
+              src=&quot;assets/images/hero-banner.jpg&quot;
+              alt=&quot;کالکشن لوکس زنانه ALVARO FASHION — زیبایی در انتخاب استایل شما&quot;
+            /&gt;
+            &lt;div class=&quot;hero-floating-card&quot;&gt;
+              &lt;strong&gt;کالکشن اختصاصی وایت اند گلد&lt;/strong&gt;
+              &lt;span&gt;طراحی محدود با جزئیات یراق طلایی مات&lt;/span&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;!-- نوار مزیت‌های تجاری --&gt;
+    &lt;section class=&quot;pillars-strip&quot; aria-label=&quot;مزیت‌های خرید از آلوارو فشن&quot;&gt;
+      &lt;div class=&quot;container pillars-grid&quot;&gt;
+        &lt;div class=&quot;pillar-item&quot;&gt;
+          &lt;div class=&quot;pillar-icon&quot;&gt;✦&lt;/div&gt;
+          &lt;div&gt;
+            &lt;strong&gt;پارچه‌های منتخب وارداتی&lt;/strong&gt;
+            &lt;span&gt;ابریشم، مخمل، کرپ و چرم طبیعی&lt;/span&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;pillar-item&quot;&gt;
+          &lt;div class=&quot;pillar-icon&quot;&gt;♛&lt;/div&gt;
+          &lt;div&gt;
+            &lt;strong&gt;بسته‌بندی هدیه VIP&lt;/strong&gt;
+            &lt;span&gt;جعبه سخت مشکی با روبان طلایی آلوارو&lt;/span&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;pillar-item&quot;&gt;
+          &lt;div class=&quot;pillar-icon&quot;&gt;⚡&lt;/div&gt;
+          &lt;div&gt;
+            &lt;strong&gt;ارسال سریع سراسر ایران&lt;/strong&gt;
+            &lt;span&gt;پیک اختصاصی تهران و پست ویژه شهرستان&lt;/span&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;pillar-item&quot;&gt;
+          &lt;div class=&quot;pillar-icon&quot;&gt;↺&lt;/div&gt;
+          &lt;div&gt;
+            &lt;strong&gt;ضمانت تعویض سایز&lt;/strong&gt;
+            &lt;span&gt;پشتیبانی تخصصی انتخاب سایز قبل از خرید&lt;/span&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;!-- ۲. دسته‌بندی محصولات --&gt;
+    &lt;section class=&quot;section-block&quot; id=&quot;categoriesSection&quot;&gt;
+      &lt;div class=&quot;container&quot;&gt;
+        &lt;div class=&quot;section-header&quot;&gt;
+          &lt;div&gt;
+            &lt;span class=&quot;section-eyebrow&quot;&gt;CURATED CATEGORIES&lt;/span&gt;
+            &lt;h2 class=&quot;section-title&quot;&gt;دسته‌بندی محصولات آلوارو&lt;/h2&gt;
+            &lt;p class=&quot;section-desc&quot;&gt;برای مشاهده مدل‌های هر بخش، روی دسته‌بندی دلخواه خود کلیک کنید.&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;categories-grid&quot; id=&quot;categoriesGrid&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;!-- ۳. محصولات پرفروش --&gt;
+    &lt;section class=&quot;section-block&quot; id=&quot;bestSellersSection&quot; style=&quot;background: var(--clr-stone);&quot;&gt;
+      &lt;div class=&quot;container&quot;&gt;
+        &lt;div class=&quot;section-header&quot;&gt;
+          &lt;div&gt;
+            &lt;span class=&quot;section-eyebrow&quot;&gt;MOST LOVED PIECES&lt;/span&gt;
+            &lt;h2 class=&quot;section-title&quot;&gt;محصولات پرفروش&lt;/h2&gt;
+            &lt;p class=&quot;section-desc&quot;&gt;محبوب‌ترین انتخاب‌های مشتریان ALVARO FASHION در فصل جاری&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;a href=&quot;#shopSection&quot; class=&quot;btn btn-outline-dark&quot; data-nav-target=&quot;shopSection&quot;&gt;مشاهده کل فروشگاه&lt;/a&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;products-grid&quot; id=&quot;bestSellersGrid&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;!-- ۴. فروشگاه کامل با جست‌وجو، فیلتر دسته‌بندی و مرتب‌سازی قیمت --&gt;
+    &lt;section class=&quot;section-block&quot; id=&quot;shopSection&quot;&gt;
+      &lt;div class=&quot;container&quot;&gt;
+        &lt;div class=&quot;section-header&quot;&gt;
+          &lt;div&gt;
+            &lt;span class=&quot;section-eyebrow&quot;&gt;ALVARO BOUTIQUE&lt;/span&gt;
+            &lt;h2 class=&quot;section-title&quot;&gt;فروشگاه آنلاین آلوارو فشن&lt;/h2&gt;
+            &lt;p class=&quot;section-desc&quot;&gt;جست‌وجو، فیلتر بر اساس دسته‌بندی و مرتب‌سازی هوشمند قیمت به تومان&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;!-- نوار ابزار جست‌وجو و فیلتر --&gt;
+        &lt;div class=&quot;shop-toolbar&quot;&gt;
+          &lt;div class=&quot;toolbar-top&quot;&gt;
+            &lt;!-- جست‌وجوی محصولات --&gt;
+            &lt;div class=&quot;search-box&quot;&gt;
+              &lt;span class=&quot;search-icon&quot; aria-hidden=&quot;true&quot;&gt;🔍&lt;/span&gt;
+              &lt;input
+                type=&quot;search&quot;
+                id=&quot;productSearchInput&quot;
+                placeholder=&quot;جست‌وجوی نام محصول، جنس پارچه یا دسته‌بندی (مثلاً: مانتو، مخمل، کیف)...&quot;
+                aria-label=&quot;جست‌وجوی محصولات&quot;
+              /&gt;
+              &lt;button
+                type=&quot;button&quot;
+                class=&quot;search-clear-btn hidden&quot;
+                id=&quot;clearSearchBtn&quot;
+                aria-label=&quot;پاک کردن جست‌وجو&quot;
+              &gt;
+                ✕
+              &lt;/button&gt;
+            &lt;/div&gt;
+
+            &lt;!-- فیلتر کشویی دسته‌بندی --&gt;
+            &lt;div&gt;
+              &lt;select id=&quot;categorySelect&quot; class=&quot;toolbar-select&quot; aria-label=&quot;فیلتر دسته‌بندی&quot;&gt;
+                &lt;option value=&quot;all&quot;&gt;همه محصولات&lt;/option&gt;
+              &lt;/select&gt;
+            &lt;/div&gt;
+
+            &lt;!-- مرتب‌سازی قیمت --&gt;
+            &lt;div&gt;
+              &lt;select id=&quot;sortSelect&quot; class=&quot;toolbar-select&quot; aria-label=&quot;مرتب‌سازی محصولات&quot;&gt;
+                &lt;option value=&quot;featured&quot;&gt;مرتب‌سازی: پیشنهاد مزون آلوارو&lt;/option&gt;
+                &lt;option value=&quot;price-asc&quot;&gt;قیمت: ارزان‌ترین به گران‌ترین&lt;/option&gt;
+                &lt;option value=&quot;price-desc&quot;&gt;قیمت: گران‌ترین به ارزان‌ترین&lt;/option&gt;
+                &lt;option value=&quot;newest&quot;&gt;جدیدترین کالکشن&lt;/option&gt;
+                &lt;option value=&quot;discount&quot;&gt;بیشترین درصد تخفیف&lt;/option&gt;
+              &lt;/select&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+
+          &lt;!-- دکمه‌های قرصی فیلتر سریع --&gt;
+          &lt;div class=&quot;filter-pills&quot; id=&quot;categoryFilterPills&quot;&gt;&lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;results-meta&quot;&gt;
+          &lt;span id=&quot;shopResultsCount&quot;&gt;در حال بارگذاری محصولات...&lt;/span&gt;
+          &lt;button
+            type=&quot;button&quot;
+            class=&quot;btn-card-view hidden&quot;
+            id=&quot;resetFiltersBtn&quot;
+            style=&quot;padding: 4px 12px; min-height: 32px;&quot;
+          &gt;
+            پاک‌سازی همه فیلترها ✕
+          &lt;/button&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;products-grid&quot; id=&quot;shopProductsGrid&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;!-- ۵. جدیدترین محصولات --&gt;
+    &lt;section class=&quot;section-block&quot; id=&quot;newArrivalsSection&quot; style=&quot;background: var(--clr-white); border-top: 1px solid var(--clr-border);&quot;&gt;
+      &lt;div class=&quot;container&quot;&gt;
+        &lt;div class=&quot;section-header&quot;&gt;
+          &lt;div&gt;
+            &lt;span class=&quot;section-eyebrow&quot;&gt;JUST ARRIVED&lt;/span&gt;
+            &lt;h2 class=&quot;section-title&quot;&gt;جدیدترین محصولات&lt;/h2&gt;
+            &lt;p class=&quot;section-desc&quot;&gt;تازه‌ترین طراحی‌های دوخته‌شده در آتلیه اختصاصی آلوارو&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;products-grid&quot; id=&quot;newArrivalsGrid&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;!-- ۶. پیشنهادهای ویژه و تخفیف‌ها --&gt;
+    &lt;section class=&quot;section-block special-offers-section&quot; id=&quot;specialOffersSection&quot;&gt;
+      &lt;div class=&quot;container&quot;&gt;
+        &lt;div class=&quot;section-header&quot;&gt;
+          &lt;div&gt;
+            &lt;span class=&quot;section-eyebrow&quot;&gt;EXCLUSIVE PRIVILEGE&lt;/span&gt;
+            &lt;h2 class=&quot;section-title&quot;&gt;پیشنهادهای ویژه و تخفیف‌های فصل&lt;/h2&gt;
+            &lt;p class=&quot;section-desc&quot;&gt;فرصت محدود تهیه استایل‌های منتخب ALVARO FASHION با قیمت ویژه&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;promo-coupon-banner&quot;&gt;
+          &lt;div&gt;
+            &lt;strong style=&quot;color: var(--clr-gold-light); font-size: 1.02rem; display: block;&quot;&gt;
+              هدیه ویژه بازدیدکنندگان فروشگاه: ۱۰٪ تخفیف مازاد روی کل سبد خرید
+            &lt;/strong&gt;
+            &lt;span style=&quot;font-size: 0.85rem; color: #d5cfc3;&quot;&gt;
+              با کلیک روی دکمه روبه‌رو، کد تخفیف آزمایشی به صورت خودکار روی سبد خرید شما فعال می‌شود.
+            &lt;/span&gt;
+          &lt;/div&gt;
+          &lt;button type=&quot;button&quot; class=&quot;coupon-code-chip&quot; id=&quot;copyPromoCouponBtn&quot;&gt;
+            فعال‌سازی کد: ALVARO10
+          &lt;/button&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;products-grid&quot; id=&quot;specialOffersGrid&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;!-- ۷. معرفی برند ALVARO FASHION --&gt;
+    &lt;section class=&quot;section-block&quot; id=&quot;aboutBrandSection&quot;&gt;
+      &lt;div class=&quot;container brand-story-grid&quot;&gt;
+        &lt;div class=&quot;brand-story-copy&quot;&gt;
+          &lt;span class=&quot;section-eyebrow&quot;&gt;THE HOUSE OF ALVARO&lt;/span&gt;
+          &lt;h2 class=&quot;section-title&quot; style=&quot;margin-bottom: 16px;&quot;&gt;معرفی برند ALVARO FASHION&lt;/h2&gt;
+          &lt;p style=&quot;color: #413e39; margin: 0 0 14px;&quot;&gt;
+            خانه مد &lt;strong&gt;ALVARO FASHION&lt;/strong&gt; با فلسفه «زیبایی در سادگی اصیل و جزئیات بی‌نقص» شکل گرفته است. ما باور داریم هر قطعه پوشاک باید فراتر از ترندهای زودگذر، سال‌ها در کمد لباس شما بدرخشد و امضای شخصی استایل شما باشد.
+          &lt;/p&gt;
+          &lt;p style=&quot;color: #66625b; margin: 0;&quot;&gt;
+            از انتخاب دقیق کرپ‌ها، ابریشم‌ها و چرم‌های طبیعی تا دوخت ظریف یراق‌های طلایی و کنترل کیفی سه‌مرحله‌ای در آتلیه، تمام جزئیات برای خلق حسی از وقار، راحتی و اعتمادبه‌نفس طراحی شده‌اند.
+          &lt;/p&gt;
+
+          &lt;ul class=&quot;brand-values-list&quot;&gt;
+            &lt;li&gt;الگوسازی استاندارد متناسب با اندام بانوان ایرانی&lt;/li&gt;
+            &lt;li&gt;استفاده از یراق‌آلات فلزی با آبکاری طلایی ماندگار&lt;/li&gt;
+            &lt;li&gt;تولید در تیراژ محدود جهت حفظ تمایز استایل شما&lt;/li&gt;
+            &lt;li&gt;بسته‌بندی لوکس آماده هدیه بدون هزینه اضافه&lt;/li&gt;
+          &lt;/ul&gt;
+
+          &lt;a href=&quot;#shopSection&quot; class=&quot;btn btn-obsidian&quot; data-nav-target=&quot;shopSection&quot;&gt;
+            کشف کالکشن کامل آلوارو
+          &lt;/a&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;brand-story-image&quot;&gt;
+          &lt;img
+            src=&quot;assets/images/brand-atelier.jpg&quot;
+            alt=&quot;نمایشگاه و آتلیه طراحی برند ALVARO FASHION&quot;
+            loading=&quot;lazy&quot;
+          /&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;!-- ۸. بخش تماس با ما --&gt;
+    &lt;section class=&quot;section-block&quot; id=&quot;contactSection&quot; style=&quot;background: var(--clr-stone);&quot;&gt;
+      &lt;div class=&quot;container&quot;&gt;
+        &lt;div class=&quot;section-header&quot;&gt;
+          &lt;div&gt;
+            &lt;span class=&quot;section-eyebrow&quot;&gt;CLIENT CONCIERGE&lt;/span&gt;
+            &lt;h2 class=&quot;section-title&quot;&gt;تماس با ما و مشاوره استایل&lt;/h2&gt;
+            &lt;p class=&quot;section-desc&quot;&gt;سوالات خود درباره سایزبندی، سفارش عمده یا هماهنگی ست‌ها را با ما در میان بگذارید.&lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div class=&quot;contact-grid&quot;&gt;
+          &lt;div class=&quot;contact-info-card&quot;&gt;
+            &lt;h3&gt;واحد امور مشتریان ALVARO&lt;/h3&gt;
+            &lt;p style=&quot;color: #cfc9bd; font-size: 0.88rem;&quot;&gt;
+              این بخش به‌عنوان نمونه‌کار حرفه‌ای طراحی وب‌سایت فروشگاهی پیاده‌سازی شده است و در زمان تحویل به کارفرما، اطلاعات تماس رسمی برند جایگزین مقادیر نمونه زیر می‌گردد.
+            &lt;/p&gt;
+            &lt;ul class=&quot;contact-info-list&quot;&gt;
+              &lt;li&gt;
+                &lt;strong style=&quot;color: var(--clr-gold-light);&quot;&gt;ساعات پاسخگویی مزون:&lt;/strong&gt;&lt;br /&gt;
+                شنبه تا پنج‌شنبه — ساعت ۱۰:۰۰ الی ۲۱:۰۰
+              &lt;/li&gt;
+              &lt;li&gt;
+                &lt;strong style=&quot;color: var(--clr-gold-light);&quot;&gt;پست الکترونیک نمونه:&lt;/strong&gt;&lt;br /&gt;
+                concierge@alvaro-fashion.example
+              &lt;/li&gt;
+              &lt;li&gt;
+                &lt;strong style=&quot;color: var(--clr-gold-light);&quot;&gt;تلفن نمونه نمایشگاه:&lt;/strong&gt;&lt;br /&gt;
+                ۰۲۱-۰۰۰۰۰۰۰۰ (شماره نمایشی دمو)
+              &lt;/li&gt;
+              &lt;li&gt;
+                &lt;strong style=&quot;color: var(--clr-gold-light);&quot;&gt;نشانی نمونه شوروم:&lt;/strong&gt;&lt;br /&gt;
+                تهران، بلوار نمونه، پلاک آزمایشی (ویژه پیش‌نمایش قالب فروشگاهی)
+              &lt;/li&gt;
+            &lt;/ul&gt;
+          &lt;/div&gt;
+
+          &lt;div class=&quot;contact-form-card&quot;&gt;
+            &lt;form id=&quot;contactUsForm&quot;&gt;
+              &lt;div class=&quot;form-row-2&quot;&gt;
+                &lt;div class=&quot;field-group&quot;&gt;
+                  &lt;label for=&quot;contactName&quot;&gt;نام و نام خانوادگی *&lt;/label&gt;
+                  &lt;input type=&quot;text&quot; id=&quot;contactName&quot; required placeholder=&quot;نام خود را وارد کنید&quot; /&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;field-group&quot;&gt;
+                  &lt;label for=&quot;contactPhone&quot;&gt;شماره تماس یا ایمیل *&lt;/label&gt;
+                  &lt;input type=&quot;text&quot; id=&quot;contactPhone&quot; required placeholder=&quot;مثلاً ۰۹۱۲۰۰۰۰۰۰۰&quot; /&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+
+              &lt;div class=&quot;field-group&quot;&gt;
+                &lt;label for=&quot;contactTopic&quot;&gt;موضوع پیام&lt;/label&gt;
+                &lt;select id=&quot;contactTopic&quot;&gt;
+                  &lt;option value=&quot;مشاوره انتخاب سایز و استایل&quot;&gt;مشاوره انتخاب سایز و استایل&lt;/option&gt;
+                  &lt;option value=&quot;پیگیری سفارش آزمایشی&quot;&gt;پیگیری سفارش آزمایشی&lt;/option&gt;
+                  &lt;option value=&quot;همکاری تجاری و سفارش طراحی سایت&quot;&gt;همکاری تجاری و سفارش طراحی سایت&lt;/option&gt;
+                &lt;/select&gt;
+              &lt;/div&gt;
+
+              &lt;div class=&quot;field-group&quot;&gt;
+                &lt;label for=&quot;contactMessage&quot;&gt;متن پیام شما *&lt;/label&gt;
+                &lt;textarea
+                  id=&quot;contactMessage&quot;
+                  rows=&quot;4&quot;
+                  required
+                  placeholder=&quot;پیام یا درخواست خود را بنویسید...&quot;
+                &gt;&lt;/textarea&gt;
+              &lt;/div&gt;
+
+              &lt;button type=&quot;submit&quot; class=&quot;btn btn-obsidian&quot; style=&quot;width: 100%;&quot;&gt;
+                ارسال پیام به واحد پشتیبانی
+              &lt;/button&gt;
+
+              &lt;div
+                id=&quot;contactSuccessNotice&quot;
+                class=&quot;hidden&quot;
+                style=&quot;margin-top: 14px; padding: 12px 14px; border-radius: 6px; background: rgba(31,111,80,0.1); border: 1px solid #1f6f50; color: #1f6f50; font-size: 0.86rem; font-weight: 700;&quot;
+              &gt;&lt;/div&gt;
+            &lt;/form&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+  &lt;/main&gt;
+
+  &lt;!-- صفحه مستقل جزئیات محصول (Product Detail View) --&gt;
+  &lt;section id=&quot;productDetailView&quot; class=&quot;product-detail-page hidden&quot; aria-live=&quot;polite&quot;&gt;
+    &lt;div class=&quot;container&quot; id=&quot;productDetailContainer&quot;&gt;&lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;!-- ۹. فوتر کامل و حرفه‌ای --&gt;
+  &lt;footer class=&quot;site-footer&quot;&gt;
+    &lt;div class=&quot;container&quot;&gt;
+      &lt;div class=&quot;footer-grid&quot;&gt;
+        &lt;div&gt;
+          &lt;img
+            src=&quot;assets/images/logo-alvaro-light.svg&quot;
+            alt=&quot;ALVARO FASHION&quot;
+            width=&quot;195&quot;
+            height=&quot;48&quot;
+            style=&quot;margin-bottom: 14px;&quot;
+          /&gt;
+          &lt;p style=&quot;font-size: 0.86rem; line-height: 1.85; color: #bdb6a8; margin: 0;&quot;&gt;
+            فروشگاه اینترنتی پوشاک، کیف و کفش لوکس زنانه ALVARO FASHION؛ ترکیب طراحی مینیمال مدرن، کیفیت دوخت مزونی و تجربه خرید آنلاین سریع و لذت‌بخش در موبایل و دسکتاپ.
+          &lt;/p&gt;
+        &lt;/div&gt;
+
+        &lt;div&gt;
+          &lt;h3 class=&quot;footer-title&quot;&gt;دسترسی سریع&lt;/h3&gt;
+          &lt;ul class=&quot;footer-links&quot;&gt;
+            &lt;li&gt;&lt;a href=&quot;#heroSection&quot; data-nav-target=&quot;heroSection&quot;&gt;صفحه اصلی&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href=&quot;#shopSection&quot; data-nav-target=&quot;shopSection&quot;&gt;فروشگاه آنلاین&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href=&quot;#newArrivalsSection&quot; data-nav-target=&quot;newArrivalsSection&quot;&gt;محصولات جدید&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href=&quot;#specialOffersSection&quot; data-nav-target=&quot;specialOffersSection&quot;&gt;پیشنهادهای ویژه&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href=&quot;#aboutBrandSection&quot; data-nav-target=&quot;aboutBrandSection&quot;&gt;درباره برند آلوارو&lt;/a&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;a href=&quot;#contactSection&quot; data-nav-target=&quot;contactSection&quot;&gt;تماس با ما&lt;/a&gt;&lt;/li&gt;
+          &lt;/ul&gt;
+        &lt;/div&gt;
+
+        &lt;div&gt;
+          &lt;h3 class=&quot;footer-title&quot;&gt;دسته‌بندی‌های منتخب&lt;/h3&gt;
+          &lt;ul class=&quot;footer-links&quot;&gt;
+            &lt;li&gt;&lt;button type=&quot;button&quot; data-nav-target=&quot;shopSection&quot; data-nav-cat=&quot;manto&quot;&gt;مانتو زنانه مزونی&lt;/button&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;button type=&quot;button&quot; data-nav-target=&quot;shopSection&quot; data-nav-cat=&quot;majlesi&quot;&gt;لباس مجلسی شب&lt;/button&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;button type=&quot;button&quot; data-nav-target=&quot;shopSection&quot; data-nav-cat=&quot;shomiz&quot;&gt;شومیز ابریشمی&lt;/button&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;button type=&quot;button&quot; data-nav-target=&quot;shopSection&quot; data-nav-cat=&quot;coat&quot;&gt;کت و بلیزر زنانه&lt;/button&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;button type=&quot;button&quot; data-nav-target=&quot;shopSection&quot; data-nav-cat=&quot;bag&quot;&gt;کیف دستی چرم&lt;/button&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;button type=&quot;button&quot; data-nav-target=&quot;shopSection&quot; data-nav-cat=&quot;shoes&quot;&gt;کفش پاشنه‌بلند&lt;/button&gt;&lt;/li&gt;
+          &lt;/ul&gt;
+        &lt;/div&gt;
+
+        &lt;div&gt;
+          &lt;h3 class=&quot;footer-title&quot;&gt;عضویت در باشگاه استایل VIP&lt;/h3&gt;
+          &lt;p style=&quot;font-size: 0.83rem; color: #bdb6a8; margin: 0;&quot;&gt;
+            از زمان عرضه کالکشن‌های محدود و تخفیف‌های خصوصی فصل زودتر از دیگران باخبر شوید.
+          &lt;/p&gt;
+          &lt;form class=&quot;newsletter-form&quot; id=&quot;newsletterForm&quot;&gt;
+            &lt;input
+              type=&quot;email&quot;
+              required
+              placeholder=&quot;ایمیل خود را وارد کنید...&quot;
+              aria-label=&quot;ایمیل برای عضویت در خبرنامه&quot;
+            /&gt;
+            &lt;button type=&quot;submit&quot; class=&quot;btn btn-gold&quot; style=&quot;padding: 0 18px; min-height: 44px;&quot;&gt;
+              ثبت
+            &lt;/button&gt;
+          &lt;/form&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;footer-bottom&quot;&gt;
+        &lt;span&gt;© تمامی حقوق طراحی قالب و هویت بصری متعلق به نمونه‌کار فروشگاهی &lt;strong&gt;ALVARO FASHION&lt;/strong&gt; است.&lt;/span&gt;
+        &lt;span&gt;نسخه آزمایشی استاندارد HTML5 / CSS3 / JS — بدون درگاه بانکی واقعی&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/footer&gt;
+
+  &lt;!-- پس‌زمینه محو کشوها --&gt;
+  &lt;div class=&quot;backdrop&quot; id=&quot;globalBackdrop&quot;&gt;&lt;/div&gt;
+
+  &lt;!-- کشوی سبد خرید فعال --&gt;
+  &lt;aside class=&quot;drawer drawer-left&quot; id=&quot;cartDrawer&quot; aria-label=&quot;سبد خرید شما&quot;&gt;
+    &lt;div class=&quot;drawer-header&quot;&gt;
+      &lt;strong style=&quot;font-size: 1.02rem;&quot;&gt;🛍️ سبد خرید ALVARO&lt;/strong&gt;
+      &lt;button type=&quot;button&quot; class=&quot;icon-btn&quot; id=&quot;closeCartBtn&quot; aria-label=&quot;بستن سبد خرید&quot; style=&quot;width: 36px; height: 36px;&quot;&gt;✕&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;drawer-body&quot; id=&quot;cartItemsContainer&quot;&gt;&lt;/div&gt;
+
+    &lt;div class=&quot;drawer-footer hidden&quot; id=&quot;cartDrawerFooter&quot;&gt;
+      &lt;div class=&quot;cart-coupon-row&quot;&gt;
+        &lt;input
+          type=&quot;text&quot;
+          id=&quot;cartCouponInput&quot;
+          placeholder=&quot;کد تخفیف (مثلاً ALVARO10)&quot;
+          aria-label=&quot;کد تخفیف&quot;
+        /&gt;
+        &lt;button type=&quot;button&quot; class=&quot;btn-card-quickadd&quot; id=&quot;applyCouponBtn&quot;&gt;اعمال کد&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;summary-line&quot;&gt;
+        &lt;span&gt;جمع جزء کالاها:&lt;/span&gt;
+        &lt;strong id=&quot;cartSubtotalText&quot;&gt;۰ تومان&lt;/strong&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;summary-line&quot; style=&quot;color: #1f6f50;&quot;&gt;
+        &lt;span&gt;کسر کد تخفیف:&lt;/span&gt;
+        &lt;strong id=&quot;cartDiscountText&quot;&gt;۰ تومان&lt;/strong&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;summary-line&quot;&gt;
+        &lt;span&gt;هزینه ارسال:&lt;/span&gt;
+        &lt;strong id=&quot;cartShippingText&quot;&gt;رایگان&lt;/strong&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;summary-total&quot;&gt;
+        &lt;span&gt;مبلغ قابل پرداخت:&lt;/span&gt;
+        &lt;span id=&quot;cartTotalPayableText&quot; style=&quot;color: var(--clr-gold-dark);&quot;&gt;۰ تومان&lt;/span&gt;
+      &lt;/div&gt;
+
+      &lt;button type=&quot;button&quot; class=&quot;btn btn-gold&quot; id=&quot;proceedDemoCheckoutBtn&quot; style=&quot;width: 100%;&quot;&gt;
+        ثبت سفارش آزمایشی (دمو)
+      &lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/aside&gt;
+
+  &lt;!-- کشوی منوی موبایل --&gt;
+  &lt;aside class=&quot;drawer drawer-right&quot; id=&quot;mobileMenuDrawer&quot; aria-label=&quot;منوی موبایل&quot;&gt;
+    &lt;div class=&quot;drawer-header&quot;&gt;
+      &lt;img src=&quot;assets/images/logo-alvaro-light.svg&quot; alt=&quot;ALVARO FASHION&quot; width=&quot;165&quot; height=&quot;40&quot; /&gt;
+      &lt;button
+        type=&quot;button&quot;
+        class=&quot;icon-btn&quot;
+        id=&quot;closeMobileMenuBtn&quot;
+        aria-label=&quot;بستن منو&quot;
+        style=&quot;width: 36px; height: 36px; background: rgba(255,255,255,0.08); color:#fff; border-color:rgba(255,255,255,0.2);&quot;
+      &gt;
+        ✕
+      &lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;drawer-body&quot;&gt;
+      &lt;ul class=&quot;mobile-nav-list&quot;&gt;
+        &lt;li&gt;&lt;a href=&quot;#heroSection&quot; data-nav-target=&quot;heroSection&quot;&gt;&lt;span&gt;خانه&lt;/span&gt;&lt;span&gt;←&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&quot;#shopSection&quot; data-nav-target=&quot;shopSection&quot;&gt;&lt;span&gt;فروشگاه (همه مدل‌ها)&lt;/span&gt;&lt;span&gt;←&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&quot;#newArrivalsSection&quot; data-nav-target=&quot;newArrivalsSection&quot;&gt;&lt;span&gt;محصولات جدید&lt;/span&gt;&lt;span&gt;←&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&quot;#specialOffersSection&quot; data-nav-target=&quot;specialOffersSection&quot;&gt;&lt;span&gt;تخفیف‌ها و پیشنهاد ویژه&lt;/span&gt;&lt;span&gt;←&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&quot;#aboutBrandSection&quot; data-nav-target=&quot;aboutBrandSection&quot;&gt;&lt;span&gt;معرفی برند آلوارو&lt;/span&gt;&lt;span&gt;←&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;a href=&quot;#contactSection&quot; data-nav-target=&quot;contactSection&quot;&gt;&lt;span&gt;تماس با ما&lt;/span&gt;&lt;span&gt;←&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+
+      &lt;div style=&quot;margin-top: 26px; padding: 16px; border: 1px solid rgba(197,160,89,0.35); border-radius: 10px; background: rgba(197,160,89,0.08);&quot;&gt;
+        &lt;strong style=&quot;color: var(--clr-gold-light); display: block; margin-bottom: 6px; font-size: 0.88rem;&quot;&gt;
+          دسته‌بندی‌های سریع پوشاک
+        &lt;/strong&gt;
+        &lt;div style=&quot;display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;&quot;&gt;
+          &lt;button type=&quot;button&quot; class=&quot;filter-pill&quot; data-nav-target=&quot;shopSection&quot; data-nav-cat=&quot;manto&quot;&gt;مانتو زنانه&lt;/button&gt;
+          &lt;button type=&quot;button&quot; class=&quot;filter-pill&quot; data-nav-target=&quot;shopSection&quot; data-nav-cat=&quot;shomiz&quot;&gt;شومیز&lt;/button&gt;
+          &lt;button type=&quot;button&quot; class=&quot;filter-pill&quot; data-nav-target=&quot;shopSection&quot; data-nav-cat=&quot;majlesi&quot;&gt;لباس مجلسی&lt;/button&gt;
+          &lt;button type=&quot;button&quot; class=&quot;filter-pill&quot; data-nav-target=&quot;shopSection&quot; data-nav-cat=&quot;coat&quot;&gt;کت زنانه&lt;/button&gt;
+          &lt;button type=&quot;button&quot; class=&quot;filter-pill&quot; data-nav-target=&quot;shopSection&quot; data-nav-cat=&quot;bag&quot;&gt;کیف دستی&lt;/button&gt;
+          &lt;button type=&quot;button&quot; class=&quot;filter-pill&quot; data-nav-target=&quot;shopSection&quot; data-nav-cat=&quot;shoes&quot;&gt;کفش زنانه&lt;/button&gt;
+          &lt;button type=&quot;button&quot; class=&quot;filter-pill&quot; data-nav-target=&quot;shopSection&quot; data-nav-cat=&quot;pants&quot;&gt;شلوار زنانه&lt;/button&gt;
+          &lt;button type=&quot;button&quot; class=&quot;filter-pill&quot; data-nav-target=&quot;shopSection&quot; data-nav-cat=&quot;set&quot;&gt;ست لباس&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/aside&gt;
+
+  &lt;!-- مودال ثبت سفارش آزمایشی (بدون درگاه واقعی) --&gt;
+  &lt;div class=&quot;modal-wrap&quot; id=&quot;demoCheckoutModal&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot; aria-labelledby=&quot;chkModalTitle&quot;&gt;
+    &lt;div class=&quot;modal-card&quot;&gt;
+      &lt;div style=&quot;display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;&quot;&gt;
+        &lt;h3 id=&quot;chkModalTitle&quot; style=&quot;margin: 0;&quot;&gt;تکمیل سفارش آزمایشی (نسخه دمو)&lt;/h3&gt;
+        &lt;button type=&quot;button&quot; class=&quot;icon-btn&quot; id=&quot;closeCheckoutModalBtn&quot; style=&quot;width: 34px; height: 34px;&quot;&gt;✕&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;div id=&quot;demoCheckoutFormWrap&quot;&gt;
+        &lt;p style=&quot;font-size: 0.83rem; background: var(--clr-ivory); border-right: 3px solid var(--clr-gold); padding: 10px 12px; margin-top: 0;&quot;&gt;
+          توجه: این بخش صرفاً جهت نمایش فرآیند کامل خرید به کارفرمایان طراحی سایت است و &lt;strong&gt;هیچ درگاه پرداخت واقعی یا تراکنش بانکی&lt;/strong&gt; وجود ندارد.
+        &lt;/p&gt;
+
+        &lt;div style=&quot;margin-bottom: 14px; font-size: 0.92rem;&quot;&gt;
+          مبلغ نهایی سفارش آزمایشی: &lt;strong id=&quot;checkoutModalPayable&quot; style=&quot;color: var(--clr-gold-dark);&quot;&gt;۰ تومان&lt;/strong&gt;
+        &lt;/div&gt;
+
+        &lt;form id=&quot;demoCheckoutForm&quot;&gt;
+          &lt;div class=&quot;field-group&quot;&gt;
+            &lt;label for=&quot;chkName&quot;&gt;نام تحویل‌گیرنده (آزمایشی) *&lt;/label&gt;
+            &lt;input type=&quot;text&quot; id=&quot;chkName&quot; required placeholder=&quot;مثلاً سارا محمدی (تست)&quot; /&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;field-group&quot;&gt;
+            &lt;label for=&quot;chkCity&quot;&gt;شهر و نشانی تحویل (آزمایشی) *&lt;/label&gt;
+            &lt;input type=&quot;text&quot; id=&quot;chkCity&quot; required placeholder=&quot;مثلاً تهران — ارسال آزمایشی&quot; /&gt;
+          &lt;/div&gt;
+          &lt;button type=&quot;submit&quot; class=&quot;btn btn-gold&quot; style=&quot;width: 100%;&quot;&gt;
+            تأیید نهایی و صدور رسید آزمایشی
+          &lt;/button&gt;
+        &lt;/form&gt;
+      &lt;/div&gt;
+
+      &lt;div id=&quot;demoCheckoutSuccessWrap&quot; class=&quot;hidden&quot; style=&quot;text-align: center; padding: 14px 6px;&quot;&gt;
+        &lt;div style=&quot;font-size: 2.6rem; margin-bottom: 8px;&quot;&gt;✨&lt;/div&gt;
+        &lt;h4 style=&quot;margin: 0 0 8px; font-size: 1.15rem;&quot;&gt;
+          &lt;span id=&quot;demoCustomerGreeting&quot;&gt;&lt;/span&gt;، سفارش آزمایشی شما با موفقیت ثبت شد!
+        &lt;/h4&gt;
+        &lt;p style=&quot;font-size: 0.88rem; color: var(--clr-muted); margin: 0 0 14px;&quot;&gt;
+          کد رهگیری نمایشی سفارش شما: &lt;strong id=&quot;demoTrackingCode&quot; style=&quot;color: var(--clr-obsidian); letter-spacing: 1px;&quot;&gt;&lt;/strong&gt;
+        &lt;/p&gt;
+        &lt;p style=&quot;font-size: 0.81rem; color: #1f6f50; margin-bottom: 18px;&quot;&gt;
+          در هنگام راه‌اندازی نهایی سایت برای مشتری، این مرحله به درگاه پرداخت رسمی دارای اینماد و سامانه پیامک متصل می‌گردد.
+        &lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- مودال راهنمای سایز --&gt;
+  &lt;div class=&quot;modal-wrap&quot; id=&quot;sizeGuideModal&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot; aria-labelledby=&quot;sizeModalTitle&quot;&gt;
+    &lt;div class=&quot;modal-card&quot;&gt;
+      &lt;div style=&quot;display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;&quot;&gt;
+        &lt;h3 id=&quot;sizeModalTitle&quot; style=&quot;margin: 0;&quot;&gt;جدول استاندارد راهنمای سایز ALVARO&lt;/h3&gt;
+        &lt;button type=&quot;button&quot; class=&quot;icon-btn&quot; id=&quot;closeSizeGuideModalBtn&quot; style=&quot;width: 34px; height: 34px;&quot;&gt;✕&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div style=&quot;overflow-x: auto;&quot;&gt;
+        &lt;table style=&quot;width: 100%; border-collapse: collapse; font-size: 0.86rem; text-align: center;&quot;&gt;
+          &lt;thead&gt;
+            &lt;tr style=&quot;background: var(--clr-obsidian); color: var(--clr-gold-light);&quot;&gt;
+              &lt;th style=&quot;padding: 10px;&quot;&gt;سایز&lt;/th&gt;
+              &lt;th style=&quot;padding: 10px;&quot;&gt;دور سینه (cm)&lt;/th&gt;
+              &lt;th style=&quot;padding: 10px;&quot;&gt;دور کمر (cm)&lt;/th&gt;
+              &lt;th style=&quot;padding: 10px;&quot;&gt;دور باسن (cm)&lt;/th&gt;
+            &lt;/tr&gt;
+          &lt;/thead&gt;
+          &lt;tbody&gt;
+            &lt;tr style=&quot;border-bottom: 1px solid var(--clr-border);&quot;&gt;
+              &lt;td style=&quot;padding: 9px; font-weight: 700;&quot;&gt;S (۳۶-۳۸)&lt;/td&gt;
+              &lt;td&gt;۸۴ تا ۸۸&lt;/td&gt;
+              &lt;td&gt;۶۶ تا ۷۰&lt;/td&gt;
+              &lt;td&gt;۹۰ تا ۹۴&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr style=&quot;border-bottom: 1px solid var(--clr-border);&quot;&gt;
+              &lt;td style=&quot;padding: 9px; font-weight: 700;&quot;&gt;M (۳۸-۴۰)&lt;/td&gt;
+              &lt;td&gt;۸۹ تا ۹۴&lt;/td&gt;
+              &lt;td&gt;۷۱ تا ۷۶&lt;/td&gt;
+              &lt;td&gt;۹۵ تا ۱۰۰&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr style=&quot;border-bottom: 1px solid var(--clr-border);&quot;&gt;
+              &lt;td style=&quot;padding: 9px; font-weight: 700;&quot;&gt;L (۴۰-۴۲)&lt;/td&gt;
+              &lt;td&gt;۹۵ تا ۱۰۰&lt;/td&gt;
+              &lt;td&gt;۷۷ تا ۸۲&lt;/td&gt;
+              &lt;td&gt;۱۰۱ تا ۱۰۶&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+              &lt;td style=&quot;padding: 9px; font-weight: 700;&quot;&gt;XL (۴۲-۴۴)&lt;/td&gt;
+              &lt;td&gt;۱۰۱ تا ۱۰۶&lt;/td&gt;
+              &lt;td&gt;۸۳ تا ۸۸&lt;/td&gt;
+              &lt;td&gt;۱۰۷ تا ۱۱۲&lt;/td&gt;
+            &lt;/tr&gt;
+          &lt;/tbody&gt;
+        &lt;/table&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- محل نمایش اعلان‌های فوری (Toast) --&gt;
+  &lt;div class=&quot;toast-container&quot; id=&quot;toastContainer&quot; aria-live=&quot;polite&quot;&gt;&lt;/div&gt;
+
+  &lt;!-- اسکریپت‌های استاندارد بدون نیاز به سرور (سازگار با اجرای مستقیم و هاست) --&gt;
+  &lt;script src=&quot;assets/js/products-data.js&quot;&gt;&lt;/script&gt;
+  &lt;script src=&quot;assets/js/app.js&quot;&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<hr><h2>FILE: assets/css/style.css (32571 chars)</h2>
+<pre><code>/* ==========================================================================
+   ALVARO FASHION — استایل اختصاصی فروشگاه اینترنتی لوکس پوشاک زنانه
+   پالت رنگی: سفید عاجی (#FAF8F5 / #FFFFFF)، مشکی ابسیدین (#0D0D0F)، طلایی شامپاینی (#C5A059)
+   طراحی راست‌چین (RTL) و ۱۰۰٪ واکنش‌گرا (موبایل، تبلت، دسکتاپ)
+   ========================================================================== */
+
+@font-face {
+  font-family: &#x27;Vazirmatn&#x27;;
+  src: url(&#x27;../fonts/vazirmatn-arabic-400-normal.woff2&#x27;) format(&#x27;woff2&#x27;);
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: &#x27;Vazirmatn&#x27;;
+  src: url(&#x27;../fonts/vazirmatn-arabic-500-normal.woff2&#x27;) format(&#x27;woff2&#x27;);
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: &#x27;Vazirmatn&#x27;;
+  src: url(&#x27;../fonts/vazirmatn-arabic-700-normal.woff2&#x27;) format(&#x27;woff2&#x27;);
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: &#x27;Vazirmatn&#x27;;
+  src: url(&#x27;../fonts/vazirmatn-arabic-800-normal.woff2&#x27;) format(&#x27;woff2&#x27;);
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: &#x27;Vazirmatn&#x27;;
+  src: url(&#x27;../fonts/vazirmatn-latin-400-normal.woff2&#x27;) format(&#x27;woff2&#x27;);
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF;
+}
+@font-face {
+  font-family: &#x27;Vazirmatn&#x27;;
+  src: url(&#x27;../fonts/vazirmatn-latin-700-normal.woff2&#x27;) format(&#x27;woff2&#x27;);
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF;
+}
+
+:root {
+  --clr-ivory: #faf8f5;
+  --clr-white: #ffffff;
+  --clr-stone: #f1ede6;
+  --clr-border: #e5dfd3;
+  --clr-obsidian: #0d0d0f;
+  --clr-charcoal: #1a1a1e;
+  --clr-muted: #66625b;
+  --clr-gold: #c5a059;
+  --clr-gold-light: #e4c98e;
+  --clr-gold-dark: #987634;
+  --clr-gold-tint: rgba(197, 160, 89, 0.12);
+  --clr-success: #1f6f50;
+  --clr-danger: #a63232;
+
+  --radius-sm: 4px;
+  --radius-md: 10px;
+  --radius-lg: 18px;
+  --shadow-soft: 0 10px 30px rgba(13, 13, 15, 0.06);
+  --shadow-luxury: 0 22px 50px rgba(13, 13, 15, 0.14);
+  --transition-fast: 0.22s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --transition-smooth: 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: &#x27;Vazirmatn&#x27;, Tahoma, sans-serif;
+  background-color: var(--clr-ivory);
+  color: var(--clr-obsidian);
+  direction: rtl;
+  text-align: right;
+  line-height: 1.7;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ==================== نوار اعلان بالای سایت ==================== */
+.topbar {
+  background-color: var(--clr-obsidian);
+  color: var(--clr-ivory);
+  border-bottom: 1px solid rgba(197, 160, 89, 0.35);
+  font-size: 0.8rem;
+  padding: 8px 0;
+}
+
+.topbar-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.topbar-highlight {
+  color: var(--clr-gold-light);
+  font-weight: 700;
+}
+
+.topbar-demo-tag {
+  background: rgba(197, 160, 89, 0.18);
+  border: 1px solid rgba(197, 160, 89, 0.45);
+  color: var(--clr-gold-light);
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+}
+
+/* ==================== هدر اصلی چسبان ==================== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(250, 248, 245, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--clr-border);
+  transition: box-shadow var(--transition-fast);
+}
+
+.site-header.scrolled {
+  box-shadow: 0 8px 28px rgba(13, 13, 15, 0.08);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 78px;
+  gap: 16px;
+}
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.brand-logo img {
+  height: 48px;
+  width: auto;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.nav-link {
+  position: relative;
+  font-size: 0.94rem;
+  font-weight: 500;
+  color: var(--clr-obsidian);
+  padding: 6px 0;
+  transition: color var(--transition-fast);
+}
+
+.nav-link::after {
+  content: &#x27;&#x27;;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--clr-gold), var(--clr-gold-dark));
+  transition: width var(--transition-smooth);
+}
+
+.nav-link:hover,
+.nav-link.active {
+  color: var(--clr-gold-dark);
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon-btn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--clr-border);
+  background: var(--clr-white);
+  color: var(--clr-obsidian);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.icon-btn:hover {
+  border-color: var(--clr-gold);
+  background: var(--clr-obsidian);
+  color: var(--clr-gold-light);
+  transform: translateY(-1px);
+}
+
+.badge-count {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--clr-gold);
+  color: var(--clr-obsidian);
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+}
+
+.mobile-menu-toggle {
+  display: none;
+}
+
+/* ==================== بنر اصلی تبلیغاتی (Hero) ==================== */
+.hero-section {
+  position: relative;
+  background-color: var(--clr-obsidian);
+  color: var(--clr-white);
+  overflow: hidden;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1.15fr;
+  align-items: center;
+  gap: 40px;
+  padding: 56px 0 64px;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--clr-gold-light);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+  padding: 6px 14px;
+  border: 1px solid rgba(197, 160, 89, 0.4);
+  border-radius: 999px;
+  background: rgba(197, 160, 89, 0.08);
+}
+
+.hero-title {
+  margin: 0 0 18px;
+  font-size: clamp(2rem, 4vw, 3.35rem);
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--clr-white);
+}
+
+.hero-title span {
+  color: var(--clr-gold-light);
+}
+
+.hero-lead {
+  margin: 0 0 30px;
+  font-size: 1.02rem;
+  color: #d3cec4;
+  max-width: 540px;
+  line-height: 1.9;
+}
+
+.hero-cta-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 36px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 26px;
+  border-radius: var(--radius-sm);
+  font-size: 0.94rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, var(--clr-gold-light) 0%, var(--clr-gold) 55%, var(--clr-gold-dark) 100%);
+  color: var(--clr-obsidian);
+  box-shadow: 0 10px 24px rgba(197, 160, 89, 0.28);
+}
+
+.btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(197, 160, 89, 0.42);
+  filter: brightness(1.04);
+}
+
+.btn-outline-light {
+  background: transparent;
+  color: var(--clr-white);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.btn-outline-light:hover {
+  border-color: var(--clr-gold-light);
+  color: var(--clr-gold-light);
+  background: rgba(197, 160, 89, 0.08);
+}
+
+.btn-obsidian {
+  background: var(--clr-obsidian);
+  color: var(--clr-white);
+  border-color: var(--clr-obsidian);
+}
+
+.btn-obsidian:hover {
+  background: var(--clr-gold-dark);
+  border-color: var(--clr-gold-dark);
+  color: var(--clr-white);
+}
+
+.btn-outline-dark {
+  background: transparent;
+  color: var(--clr-obsidian);
+  border-color: var(--clr-obsidian);
+}
+
+.btn-outline-dark:hover {
+  background: var(--clr-obsidian);
+  color: var(--clr-gold-light);
+}
+
+.hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.hero-metric-num {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--clr-gold-light);
+}
+
+.hero-metric-label {
+  font-size: 0.8rem;
+  color: #b7b1a6;
+}
+
+.hero-visual {
+  position: relative;
+}
+
+.hero-image-frame {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid rgba(197, 160, 89, 0.42);
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.55);
+}
+
+.hero-image-frame img {
+  width: 100%;
+  height: 490px;
+  object-fit: cover;
+  object-position: center top;
+  transition: transform 0.9s ease;
+}
+
+.hero-image-frame:hover img {
+  transform: scale(1.03);
+}
+
+.hero-floating-card {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(13, 13, 15, 0.88);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(197, 160, 89, 0.5);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  color: var(--clr-white);
+}
+
+.hero-floating-card strong {
+  display: block;
+  color: var(--clr-gold-light);
+  font-size: 0.88rem;
+}
+
+.hero-floating-card span {
+  font-size: 0.77rem;
+  color: #d6d0c4;
+}
+
+/* ==================== نوار ویژگی‌های برند ==================== */
+.pillars-strip {
+  background: var(--clr-white);
+  border-bottom: 1px solid var(--clr-border);
+  padding: 22px 0;
+}
+
+.pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.pillar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pillar-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--clr-gold-tint);
+  border: 1px solid rgba(197, 160, 89, 0.35);
+  color: var(--clr-gold-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pillar-item strong {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.pillar-item span {
+  font-size: 0.78rem;
+  color: var(--clr-muted);
+}
+
+/* ==================== عنوان بخش‌ها ==================== */
+.section-block {
+  padding: 68px 0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 34px;
+  flex-wrap: wrap;
+}
+
+.section-eyebrow {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--clr-gold-dark);
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+}
+
+.section-title {
+  margin: 0;
+  font-size: clamp(1.45rem, 2.5vw, 2.05rem);
+  font-weight: 800;
+  color: var(--clr-obsidian);
+}
+
+.section-desc {
+  margin: 6px 0 0;
+  color: var(--clr-muted);
+  font-size: 0.92rem;
+}
+
+/* ==================== دسته‌بندی محصولات ==================== */
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.category-card {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  height: 225px;
+  cursor: pointer;
+  border: 1px solid var(--clr-border);
+  background: var(--clr-obsidian);
+  text-align: right;
+  padding: 0;
+  transition: transform var(--transition-smooth), box-shadow var(--transition-smooth), border-color var(--transition-fast);
+}
+
+.category-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  opacity: 0.82;
+  transition: transform 0.65s ease, opacity 0.35s ease;
+}
+
+.category-card:hover,
+.category-card.active {
+  transform: translateY(-4px);
+  border-color: var(--clr-gold);
+  box-shadow: var(--shadow-luxury);
+}
+
+.category-card:hover img {
+  transform: scale(1.07);
+  opacity: 0.95;
+}
+
+.category-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(13, 13, 15, 0.9) 0%, rgba(13, 13, 15, 0.2) 60%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 18px;
+  color: var(--clr-white);
+}
+
+.category-overlay strong {
+  font-size: 1.06rem;
+  font-weight: 800;
+}
+
+.category-overlay span {
+  font-size: 0.78rem;
+  color: var(--clr-gold-light);
+}
+
+/* ==================== نوار ابزار فروشگاه: جست‌وجو، فیلتر، مرتب‌سازی ==================== */
+.shop-toolbar {
+  background: var(--clr-white);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  margin-bottom: 26px;
+  box-shadow: var(--shadow-soft);
+}
+
+.toolbar-top {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-box input {
+  width: 100%;
+  height: 46px;
+  padding: 0 42px 0 38px;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  background: var(--clr-ivory);
+  font-size: 0.92rem;
+  color: var(--clr-obsidian);
+  transition: border-color var(--transition-fast);
+}
+
+.search-box input:focus,
+.toolbar-select:focus {
+  outline: none;
+  border-color: var(--clr-gold);
+  background: var(--clr-white);
+}
+
+.search-icon {
+  position: absolute;
+  right: 13px;
+  color: var(--clr-muted);
+  pointer-events: none;
+}
+
+.search-clear-btn {
+  position: absolute;
+  left: 8px;
+  border: none;
+  background: transparent;
+  color: var(--clr-muted);
+  cursor: pointer;
+  padding: 4px 6px;
+  font-size: 1rem;
+}
+
+.toolbar-select {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  background: var(--clr-ivory);
+  color: var(--clr-obsidian);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--clr-stone);
+}
+
+.filter-pill {
+  padding: 7px 15px;
+  border-radius: 999px;
+  border: 1px solid var(--clr-border);
+  background: var(--clr-white);
+  color: var(--clr-obsidian);
+  font-size: 0.83rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.filter-pill:hover {
+  border-color: var(--clr-gold);
+}
+
+.filter-pill.active {
+  background: var(--clr-obsidian);
+  border-color: var(--clr-gold);
+  color: var(--clr-gold-light);
+  font-weight: 700;
+}
+
+.results-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  font-size: 0.86rem;
+  color: var(--clr-muted);
+}
+
+/* ==================== شبکه کارت‌های محصولات ==================== */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+
+.product-card {
+  background: var(--clr-white);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition-smooth), box-shadow var(--transition-smooth), border-color var(--transition-fast);
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-luxury);
+  border-color: rgba(197, 160, 89, 0.65);
+}
+
+.product-media {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  background: var(--clr-stone);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.product-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.product-card:hover .product-media img {
+  transform: scale(1.06);
+}
+
+.product-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--clr-obsidian);
+  color: var(--clr-gold-light);
+  border: 1px solid rgba(197, 160, 89, 0.5);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.74rem;
+  font-weight: 700;
+  z-index: 2;
+}
+
+.discount-tag {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--clr-gold);
+  color: var(--clr-obsidian);
+  padding: 3px 9px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 800;
+  z-index: 2;
+}
+
+.wishlist-btn {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(13, 13, 15, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--clr-obsidian);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: all var(--transition-fast);
+}
+
+.wishlist-btn.active,
+.wishlist-btn:hover {
+  background: var(--clr-obsidian);
+  color: var(--clr-gold-light);
+  border-color: var(--clr-gold);
+}
+
+.product-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.product-cat {
+  font-size: 0.75rem;
+  color: var(--clr-gold-dark);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.product-title {
+  margin: 0 0 8px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--clr-obsidian);
+  cursor: pointer;
+}
+
+.product-title:hover {
+  color: var(--clr-gold-dark);
+}
+
+.product-desc {
+  margin: 0 0 14px;
+  font-size: 0.81rem;
+  color: var(--clr-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.product-price-row {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--clr-stone);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.price-current {
+  font-size: 1.04rem;
+  font-weight: 800;
+  color: var(--clr-obsidian);
+}
+
+.price-old {
+  font-size: 0.8rem;
+  color: #9b958b;
+  text-decoration: line-through;
+}
+
+.product-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.btn-card-view {
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--clr-obsidian);
+  background: transparent;
+  color: var(--clr-obsidian);
+  font-size: 0.83rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-card-view:hover {
+  background: var(--clr-obsidian);
+  color: var(--clr-gold-light);
+}
+
+.btn-card-quickadd {
+  min-height: 40px;
+  padding: 8px 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--clr-gold);
+  background: var(--clr-gold-tint);
+  color: var(--clr-obsidian);
+  font-size: 0.83rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-card-quickadd:hover {
+  background: var(--clr-gold);
+}
+
+/* ==================== بخش تیره پیشنهادهای ویژه ==================== */
+.special-offers-section {
+  background: var(--clr-obsidian);
+  color: var(--clr-white);
+  border-top: 1px solid rgba(197, 160, 89, 0.35);
+  border-bottom: 1px solid rgba(197, 160, 89, 0.35);
+}
+
+.special-offers-section .section-title {
+  color: var(--clr-white);
+}
+
+.special-offers-section .section-eyebrow {
+  color: var(--clr-gold-light);
+}
+
+.special-offers-section .section-desc {
+  color: #c5bfb4;
+}
+
+.promo-coupon-banner {
+  background: linear-gradient(135deg, rgba(197, 160, 89, 0.18), rgba(197, 160, 89, 0.05));
+  border: 1px solid rgba(197, 160, 89, 0.45);
+  border-radius: var(--radius-md);
+  padding: 16px 22px;
+  margin-bottom: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.coupon-code-chip {
+  background: var(--clr-gold);
+  color: var(--clr-obsidian);
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  border: none;
+}
+
+/* ==================== معرفی برند آلوارو فشن ==================== */
+.brand-story-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 44px;
+  align-items: center;
+}
+
+.brand-story-image {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--clr-gold);
+  box-shadow: var(--shadow-luxury);
+}
+
+.brand-story-image img {
+  width: 100%;
+  height: 420px;
+  object-fit: cover;
+}
+
+.brand-values-list {
+  list-style: none;
+  padding: 0;
+  margin: 22px 0 28px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.brand-values-list li {
+  background: var(--clr-white);
+  border: 1px solid var(--clr-border);
+  border-right: 3px solid var(--clr-gold);
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.87rem;
+  font-weight: 500;
+}
+
+/* ==================== صفحه مستقل جزئیات محصول ==================== */
+.product-detail-page {
+  padding: 36px 0 72px;
+  animation: fadeSlideUp 0.35s ease;
+}
+
+.breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 26px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--clr-border);
+  font-size: 0.86rem;
+  color: var(--clr-muted);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: 42px;
+  background: var(--clr-white);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  padding: 30px;
+  box-shadow: var(--shadow-soft);
+}
+
+.detail-image-box {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--clr-stone);
+  border: 1px solid var(--clr-border);
+}
+
+.detail-image-box img {
+  width: 100%;
+  max-height: 600px;
+  object-fit: cover;
+  object-position: center top;
+  transition: transform 0.5s ease;
+}
+
+.detail-image-box:hover img {
+  transform: scale(1.05);
+}
+
+.detail-sku {
+  font-size: 0.8rem;
+  color: var(--clr-muted);
+  margin-bottom: 6px;
+}
+
+.detail-title {
+  margin: 0 0 14px;
+  font-size: clamp(1.4rem, 2.4vw, 1.95rem);
+  font-weight: 800;
+}
+
+.detail-price-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--clr-ivory);
+  border: 1px solid var(--clr-border);
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+}
+
+.detail-price-main {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--clr-obsidian);
+}
+
+.option-group {
+  margin-bottom: 20px;
+}
+
+.option-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.size-options,
+.color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.size-chip {
+  min-width: 58px;
+  padding: 8px 14px;
+  border: 1px solid var(--clr-border);
+  background: var(--clr-white);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.size-chip.active {
+  background: var(--clr-obsidian);
+  border-color: var(--clr-gold);
+  color: var(--clr-gold-light);
+}
+
+.color-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border: 1px solid var(--clr-border);
+  background: var(--clr-white);
+  border-radius: 999px;
+  font-size: 0.84rem;
+  cursor: pointer;
+}
+
+.color-chip.active {
+  border-color: var(--clr-gold);
+  box-shadow: 0 0 0 2px rgba(197, 160, 89, 0.28);
+  font-weight: 700;
+}
+
+.color-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.detail-purchase-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.qty-control {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  background: var(--clr-ivory);
+  height: 48px;
+}
+
+.qty-btn {
+  width: 40px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--clr-obsidian);
+}
+
+.qty-btn:hover {
+  color: var(--clr-gold-dark);
+}
+
+.qty-val {
+  min-width: 36px;
+  text-align: center;
+  font-weight: 800;
+}
+
+.detail-specs {
+  border-top: 1px solid var(--clr-border);
+  padding-top: 18px;
+  font-size: 0.88rem;
+}
+
+.detail-specs p {
+  margin: 8px 0;
+}
+
+/* ==================== بخش تماس با ما ==================== */
+.contact-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 32px;
+}
+
+.contact-info-card {
+  background: var(--clr-obsidian);
+  color: var(--clr-white);
+  border: 1px solid rgba(197, 160, 89, 0.45);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+}
+
+.contact-info-card h3 {
+  margin-top: 0;
+  color: var(--clr-gold-light);
+}
+
+.contact-info-list {
+  list-style: none;
+  padding: 0;
+  margin: 22px 0;
+}
+
+.contact-info-list li {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+}
+
+.contact-form-card {
+  background: var(--clr-white);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-soft);
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.field-group {
+  margin-bottom: 16px;
+}
+
+.field-group label {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.field-group input,
+.field-group select,
+.field-group textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  background: var(--clr-ivory);
+  font-size: 0.92rem;
+  color: var(--clr-obsidian);
+}
+
+.field-group input:focus,
+.field-group select:focus,
+.field-group textarea:focus {
+  outline: none;
+  border-color: var(--clr-gold);
+  background: var(--clr-white);
+}
+
+/* ==================== فوتر کامل ==================== */
+.site-footer {
+  background: var(--clr-obsidian);
+  color: #d6d0c4;
+  border-top: 2px solid var(--clr-gold);
+  padding: 60px 0 26px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr 0.8fr 1.2fr;
+  gap: 32px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-title {
+  color: var(--clr-gold-light);
+  font-size: 0.98rem;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 10px;
+}
+
+.footer-links a,
+.footer-links button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #c8c2b6;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.footer-links a:hover,
+.footer-links button:hover {
+  color: var(--clr-gold-light);
+}
+
+.newsletter-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.newsletter-form input {
+  flex: 1;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(197, 160, 89, 0.4);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--clr-white);
+}
+
+.footer-bottom {
+  padding-top: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: #9e988e;
+}
+
+/* ==================== کشوی سبد خرید و منوی موبایل ==================== */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 13, 15, 0.62);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-fast);
+}
+
+.backdrop.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: min(430px, 92vw);
+  background: var(--clr-white);
+  z-index: 210;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -14px 0 45px rgba(0, 0, 0, 0.28);
+  transition: transform var(--transition-smooth);
+}
+
+.drawer-left {
+  left: 0;
+  transform: translateX(-105%);
+}
+
+.drawer-left.open {
+  transform: translateX(0);
+}
+
+.drawer-right {
+  right: 0;
+  background: var(--clr-obsidian);
+  color: var(--clr-white);
+  transform: translateX(105%);
+}
+
+.drawer-right.open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--clr-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.drawer-right .drawer-header {
+  border-bottom-color: rgba(197, 160, 89, 0.25);
+}
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px;
+}
+
+.cart-item {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--clr-stone);
+}
+
+.cart-item img {
+  width: 74px;
+  height: 94px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--clr-border);
+}
+
+.cart-item-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.cart-item-meta {
+  font-size: 0.76rem;
+  color: var(--clr-muted);
+  margin-bottom: 8px;
+}
+
+.cart-item-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cart-qty-mini {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+}
+
+.cart-qty-mini button {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: var(--clr-ivory);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.cart-qty-mini span {
+  min-width: 28px;
+  text-align: center;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.cart-remove-btn {
+  border: none;
+  background: transparent;
+  color: var(--clr-danger);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.drawer-footer {
+  padding: 18px 20px;
+  background: var(--clr-ivory);
+  border-top: 1px solid var(--clr-border);
+}
+
+.cart-coupon-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cart-coupon-row input {
+  flex: 1;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.86rem;
+  margin-bottom: 6px;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.04rem;
+  font-weight: 800;
+  padding-top: 10px;
+  margin: 8px 0 14px;
+  border-top: 1px solid var(--clr-border);
+}
+
+/* منوی موبایل */
+.mobile-nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mobile-nav-list li {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mobile-nav-list a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--clr-ivory);
+}
+
+.mobile-nav-list a:hover {
+  color: var(--clr-gold-light);
+}
+
+/* ==================== مودال ثبت سفارش آزمایشی و راهنمای سایز ==================== */
+.modal-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(13, 13, 15, 0.72);
+  backdrop-filter: blur(5px);
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-fast);
+}
+
+.modal-wrap.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--clr-white);
+  border: 1px solid var(--clr-gold);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-luxury);
+}
+
+/* ==================== اعلان Toast ==================== */
+.toast-container {
+  position: fixed;
+  bottom: 22px;
+  right: 22px;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast-item {
+  background: var(--clr-obsidian);
+  color: var(--clr-white);
+  border-right: 4px solid var(--clr-gold);
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 0.86rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-luxury);
+  animation: fadeSlideUp 0.28s ease;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==================== واکنش‌گرایی تبلت و موبایل اندروید ==================== */
+@media (max-width: 1024px) {
+  .products-grid,
+  .categories-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .pillars-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .hero-grid,
+  .brand-story-grid,
+  .detail-grid,
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-image-frame img {
+    height: 390px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-nav {
+    display: none;
+  }
+  .mobile-menu-toggle {
+    display: inline-flex;
+  }
+  .toolbar-top {
+    grid-template-columns: 1fr;
+  }
+  .products-grid,
+  .categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  .form-row-2,
+  .brand-values-list {
+    grid-template-columns: 1fr;
+  }
+  .section-block {
+    padding: 48px 0;
+  }
+  .detail-grid {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar-inner {
+    justify-content: center;
+    text-align: center;
+  }
+  .brand-logo img {
+    height: 40px;
+  }
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+  .categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .category-card {
+    height: 165px;
+  }
+  .hero-metrics {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .pillars-grid,
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-cta-group .btn {
+    width: 100%;
+  }
+}
+</code></pre>
+<hr><h2>FILE: assets/js/products-data.js (17174 chars)</h2>
+<pre><code>/**
+ * ALVARO FASHION — کاتالوگ آزمایشی محصولات پوشاک لوکس زنانه
+ * توجه: تمامی قیمت‌ها، موجودی‌ها و مشخصات صرفاً جهت نمایش نمونه‌کار طراحی وب‌سایت فروشگاهی هستند.
+ */
+window.ALVARO_CATEGORIES = [
+  {
+    id: &#x27;all&#x27;,
+    title: &#x27;همه محصولات&#x27;,
+    subtitle: &#x27;تمامی کالکشن‌ها&#x27;,
+    coverImage: &#x27;assets/images/hero-banner.jpg&#x27;,
+  },
+  {
+    id: &#x27;manto&#x27;,
+    title: &#x27;مانتو زنانه&#x27;,
+    subtitle: &#x27;دوخت مزونی و رسمی&#x27;,
+    coverImage: &#x27;assets/images/products/prod-01-manto-royal.jpg&#x27;,
+  },
+  {
+    id: &#x27;shomiz&#x27;,
+    title: &#x27;شومیز&#x27;,
+    subtitle: &#x27;ابریشم و ارگانزا&#x27;,
+    coverImage: &#x27;assets/images/products/prod-03-shomiz-silk.jpg&#x27;,
+  },
+  {
+    id: &#x27;majlesi&#x27;,
+    title: &#x27;لباس مجلسی&#x27;,
+    subtitle: &#x27;مخمل و پلیسه شب&#x27;,
+    coverImage: &#x27;assets/images/products/prod-05-majlesi-velvet.jpg&#x27;,
+  },
+  {
+    id: &#x27;coat&#x27;,
+    title: &#x27;کت زنانه&#x27;,
+    subtitle: &#x27;بلیزر و تویید لوکس&#x27;,
+    coverImage: &#x27;assets/images/products/prod-07-coat-blazer.jpg&#x27;,
+  },
+  {
+    id: &#x27;bag&#x27;,
+    title: &#x27;کیف دستی&#x27;,
+    subtitle: &#x27;چرم طبیعی و یراق طلایی&#x27;,
+    coverImage: &#x27;assets/images/products/prod-09-bag-croc.jpg&#x27;,
+  },
+  {
+    id: &#x27;shoes&#x27;,
+    title: &#x27;کفش زنانه&#x27;,
+    subtitle: &#x27;پاشنه‌بلند و نیم‌بوت&#x27;,
+    coverImage: &#x27;assets/images/products/prod-11-shoes-stiletto.jpg&#x27;,
+  },
+  {
+    id: &#x27;pants&#x27;,
+    title: &#x27;شلوار زنانه&#x27;,
+    subtitle: &#x27;پالازو و راسته رسمی&#x27;,
+    coverImage: &#x27;assets/images/products/prod-13-pants-palazzo.jpg&#x27;,
+  },
+  {
+    id: &#x27;set&#x27;,
+    title: &#x27;ست لباس&#x27;,
+    subtitle: &#x27;کالکشن دوتکه هماهنگ&#x27;,
+    coverImage: &#x27;assets/images/products/prod-15-set-noir.jpg&#x27;,
+  },
+];
+
+window.ALVARO_PRODUCTS = [
+  {
+    id: &#x27;prod-01&#x27;,
+    sku: &#x27;ALV-2601&#x27;,
+    name: &#x27;مانتو کتی مزونی رویال مشکی با یراق طلایی&#x27;,
+    category: &#x27;manto&#x27;,
+    categoryTitle: &#x27;مانتو زنانه&#x27;,
+    price: 4680000,
+    oldPrice: 5400000,
+    discountPercent: 13,
+    isBestSeller: true,
+    isNewArrival: true,
+    isSpecialOffer: true,
+    image: &#x27;assets/images/products/prod-01-manto-royal.jpg&#x27;,
+    shortDesc: &#x27;برش کمر کرستی با نواردوزی ظریف طلایی روی یقه انگلیسی و دکمه‌های فلزی مات.&#x27;,
+    fullDescription:
+      &#x27;مانتو کتی رویال آلوارو با الهام از کت‌های کلاسیک خانه‌های مد اروپایی و متناسب با استایل شیک بانوان ایرانی طراحی شده است. پارچه کرپ پشمی چهارفصل آن ایستایی کم‌نظیری روی سرشانه ایجاد می‌کند و نواردوزی طلایی یقه جلوه‌ای متمایز و اشرافی به استایل رسمی و مهمانی شما می‌بخشد.&#x27;,
+    fabric: &#x27;کرپ پشمی درجه یک با آستر ساتن ابریشمی ضدحساسیت&#x27;,
+    care: &#x27;خشکشویی تخصصی؛ اتوکشی با بخار ملایم از پشت پارچه&#x27;,
+    sizes: [&#x27;S (36-38)&#x27;, &#x27;M (38-40)&#x27;, &#x27;L (40-42)&#x27;, &#x27;XL (42-44)&#x27;],
+    colors: [
+      { name: &#x27;مشکی ابسیدین&#x27;, hex: &#x27;#121214&#x27; },
+      { name: &#x27;سرمه‌ای تیره&#x27;, hex: &#x27;#1B2432&#x27; },
+    ],
+    badge: &#x27;پرفروش فصل&#x27;,
+  },
+  {
+    id: &#x27;prod-02&#x27;,
+    sku: &#x27;ALV-2602&#x27;,
+    name: &#x27;مانتو بلند عاجی کمربنددار کالکشن وایت‌گلد&#x27;,
+    category: &#x27;manto&#x27;,
+    categoryTitle: &#x27;مانتو زنانه&#x27;,
+    price: 4290000,
+    oldPrice: null,
+    discountPercent: 0,
+    isBestSeller: false,
+    isNewArrival: true,
+    isSpecialOffer: false,
+    image: &#x27;assets/images/products/prod-02-manto-ivory.jpg&#x27;,
+    shortDesc: &#x27;مانتو بلند مینیمال به رنگ سفید عاجی همراه با کمربند ظریف سگک طلایی.&#x27;,
+    fullDescription:
+      &#x27;انتخابی بی‌نقص برای قرارهای رسمی، گالری‌گردی و رویدادهای خاص. برش آزاد اما خوش‌فرم این مانتو همراه با کمربند قابل تنظیم با سگک طلایی برس‌خورده، تناسب اندام را به زیباترین شکل نمایش می‌دهد و چروک‌پذیری بسیار پایینی دارد.&#x27;,
+    fabric: &#x27;کرپ مازراتی سنگین‌وزن وارداتی&#x27;,
+    care: &#x27;شست‌وشوی دستی با آب سرد یا خشکشویی&#x27;,
+    sizes: [&#x27;S (36-38)&#x27;, &#x27;M (38-40)&#x27;, &#x27;L (40-42)&#x27;],
+    colors: [
+      { name: &#x27;سفید عاجی&#x27;, hex: &#x27;#F4EFE6&#x27; },
+      { name: &#x27;کرم شنی&#x27;, hex: &#x27;#D8CBB8&#x27; },
+    ],
+    badge: &#x27;کالکشن جدید&#x27;,
+  },
+  {
+    id: &#x27;prod-03&#x27;,
+    sku: &#x27;ALV-2603&#x27;,
+    name: &#x27;شومیز ساتن ابریشم شامپاینی یقه‌کراواتی&#x27;,
+    category: &#x27;shomiz&#x27;,
+    categoryTitle: &#x27;شومیز&#x27;,
+    price: 2380000,
+    oldPrice: 2850000,
+    discountPercent: 16,
+    isBestSeller: true,
+    isNewArrival: false,
+    isSpecialOffer: true,
+    image: &#x27;assets/images/products/prod-03-shomiz-silk.jpg&#x27;,
+    shortDesc: &#x27;درخشش لطیف ساتن ابریشم طلایی شامپاینی با مچ‌دکمه جواهرنشان.&#x27;,
+    fullDescription:
+      &#x27;شومیز ساتن ابریشم آلوارو با لطافت خیره‌کننده و ریزش ابریشمی روی تن، هم به‌تنهایی برای دورهمی‌های عصرانه و هم در زیر کت‌های رسمی مشکی و سفید جلوه‌ای لوکس می‌آفریند. یقه کراواتی آن به دو حالت پاپیونی و باز قابل استایل شدن است.&#x27;,
+    fabric: &#x27;ساتن ابریشم مالبری با تنفس‌پذیری بالا&#x27;,
+    care: &#x27;شست‌وشوی ملایم دستی بدون چلاندن؛ بخاردهی عمودی&#x27;,
+    sizes: [&#x27;S (36)&#x27;, &#x27;M (38-40)&#x27;, &#x27;L (42)&#x27;, &#x27;XL (44)&#x27;],
+    colors: [
+      { name: &#x27;طلایی شامپاینی&#x27;, hex: &#x27;#D7BE8A&#x27; },
+      { name: &#x27;سفید صدفی&#x27;, hex: &#x27;#F7F5F0&#x27; },
+    ],
+    badge: &#x27;تخفیف ویژه&#x27;,
+  },
+  {
+    id: &#x27;prod-04&#x27;,
+    sku: &#x27;ALV-2604&#x27;,
+    name: &#x27;شومیز ارگانزا سفید مرواریدی آستین‌پفی&#x27;,
+    category: &#x27;shomiz&#x27;,
+    categoryTitle: &#x27;شومیز&#x27;,
+    price: 2150000,
+    oldPrice: null,
+    discountPercent: 0,
+    isBestSeller: false,
+    isNewArrival: true,
+    isSpecialOffer: false,
+    image: &#x27;assets/images/products/prod-04-shomiz-organza.jpg&#x27;,
+    shortDesc: &#x27;ترکیب ظرافت ارگانزا ابریشمی با دکمه‌های مرواریدی قاب طلایی و مچ بلند.&#x27;,
+    fullDescription:
+      &#x27;طراحی شاعرانه و مدرن با آستین‌های بیشاپ پلیسه و سرمچ‌های پهن سه‌دکمه. تنه لباس دارای آستر نخی لطیف است تا ضمن حفظ ایستایی شیک ارگانزا در بخش آستین‌ها، پوشش کامل و راحتی تمام‌روز را تضمین کند.&#x27;,
+    fabric: &#x27;ارگانزا ابریشمی با آستر تنه ویسکوز طبیعی&#x27;,
+    care: &#x27;شست‌وشوی دستی در کیسه محافظ لباس&#x27;,
+    sizes: [&#x27;S (36-38)&#x27;, &#x27;M (38-40)&#x27;, &#x27;L (40-42)&#x27;],
+    colors: [
+      { name: &#x27;سفید مرواریدی&#x27;, hex: &#x27;#FAF9F6&#x27; },
+      { name: &#x27;مشکی کلاسیک&#x27;, hex: &#x27;#141416&#x27; },
+    ],
+    badge: &#x27;جدید&#x27;,
+  },
+  {
+    id: &#x27;prod-05&#x27;,
+    sku: &#x27;ALV-2605&#x27;,
+    name: &#x27;لباس مجلسی ماکسی مخمل مشکی گلدوزی سلطنتی&#x27;,
+    category: &#x27;majlesi&#x27;,
+    categoryTitle: &#x27;لباس مجلسی&#x27;,
+    price: 8450000,
+    oldPrice: 9800000,
+    discountPercent: 14,
+    isBestSeller: true,
+    isNewArrival: false,
+    isSpecialOffer: true,
+    image: &#x27;assets/images/products/prod-05-majlesi-velvet.jpg&#x27;,
+    shortDesc: &#x27;پیراهن شب تمام‌پوشیده از مخمل ابریشم مشکی با کمربند و سرآستین ملیله‌دوزی طلایی.&#x27;,
+    fullDescription:
+      &#x27;شاهکار بخش کوتور ALVARO FASHION برای شب‌های به‌یادماندنی. مخمل ابریشمی عمیق مشکی در کنار نقوش برجسته طلایی دست‌دوز در ناحیه کمر و مچ، قامت را کشیده‌تر نشان داده و شکوهی بی‌همتا خلق می‌کند.&#x27;,
+    fabric: &#x27;مخمل ابریشم فرانسوی با گلدوزی نخ گلابتون طلایی&#x27;,
+    care: &#x27;صرفاً خشکشویی تخصصی لباس‌های کوتور&#x27;,
+    sizes: [&#x27;S (36)&#x27;, &#x27;M (38)&#x27;, &#x27;L (40)&#x27;, &#x27;XL (42)&#x27;],
+    colors: [{ name: &#x27;مشکی و طلایی سلطنتی&#x27;, hex: &#x27;#111111&#x27; }],
+    badge: &#x27;کوتور اختصاصی&#x27;,
+  },
+  {
+    id: &#x27;prod-06&#x27;,
+    sku: &#x27;ALV-2606&#x27;,
+    name: &#x27;پیراهن مجلسی ماکسی پلیسه طلایی متالیک&#x27;,
+    category: &#x27;majlesi&#x27;,
+    categoryTitle: &#x27;لباس مجلسی&#x27;,
+    price: 7200000,
+    oldPrice: null,
+    discountPercent: 0,
+    isBestSeller: false,
+    isNewArrival: true,
+    isSpecialOffer: false,
+    image: &#x27;assets/images/products/prod-06-majlesi-gold.jpg&#x27;,
+    shortDesc: &#x27;پلیسه‌های ریز خورشیدی با درخشش ملایم طلایی و کمربند پارچه‌ای هم‌رنگ.&#x27;,
+    fullDescription:
+      &#x27;این پیراهن مجلسی با پلیسه‌های حرارتی ماندگار و آستین‌های پوشیده کلوش، با هر قدم موجی از نور طلایی ملایم ایجاد می‌کند. وزن سبک و آستر تنفسی آن راحتی کامل در طولانی‌ترین مراسم‌ها را فراهم می‌سازد.&#x27;,
+    fabric: &#x27;لامه ابریشمی پلیسه‌دار با آستر ژرسه لطیف&#x27;,
+    care: &#x27;خشکشویی ملایم بدون پرس اتو روی پلیسه‌ها&#x27;,
+    sizes: [&#x27;S (36-38)&#x27;, &#x27;M (38-40)&#x27;, &#x27;L (40-42)&#x27;],
+    colors: [{ name: &#x27;طلایی شامپاینی متالیک&#x27;, hex: &#x27;#C6A35E&#x27; }],
+    badge: &#x27;کالکشن شب&#x27;,
+  },
+  {
+    id: &#x27;prod-07&#x27;,
+    sku: &#x27;ALV-2607&#x27;,
+    name: &#x27;کت بلیزر رسمی دو ردیف دکمه طلایی آلوارو&#x27;,
+    category: &#x27;coat&#x27;,
+    categoryTitle: &#x27;کت زنانه&#x27;,
+    price: 3980000,
+    oldPrice: 4600000,
+    discountPercent: 13,
+    isBestSeller: true,
+    isNewArrival: false,
+    isSpecialOffer: true,
+    image: &#x27;assets/images/products/prod-07-coat-blazer.jpg&#x27;,
+    shortDesc: &#x27;بلیزر ساختارمند مشکی با شش دکمه نشان‌دار طلایی و اپل سرشانه استاندارد.&#x27;,
+    fullDescription:
+      &#x27;آیتم کلیدی کمد کپسولی هر بانوی شیک‌پوش. برش دقیق سرشانه و کمر این کت بلیزر به همراه دکمه‌های طلایی حک‌شده برند آلوارو، استایلی مقتدر و لوکس برای جلسات کاری سطح بالا و مهمانی‌های رسمی پدید می‌آورد.&#x27;,
+    fabric: &#x27;فاستونی پشم مرینوس بدون پرزدهی با آستر کامل&#x27;,
+    care: &#x27;خشکشویی؛ آویز روی چوب‌لباسی کت پهن&#x27;,
+    sizes: [&#x27;S (36)&#x27;, &#x27;M (38)&#x27;, &#x27;L (40)&#x27;, &#x27;XL (42-44)&#x27;],
+    colors: [
+      { name: &#x27;مشکی زغالی&#x27;, hex: &#x27;#141416&#x27; },
+      { name: &#x27;سفید گچی&#x27;, hex: &#x27;#F5F4F0&#x27; },
+    ],
+    badge: &#x27;پرفروش&#x27;,
+  },
+  {
+    id: &#x27;prod-08&#x27;,
+    sku: &#x27;ALV-2608&#x27;,
+    name: &#x27;کت تویید سفید و طلایی استایل پاریسی&#x27;,
+    category: &#x27;coat&#x27;,
+    categoryTitle: &#x27;کت زنانه&#x27;,
+    price: 4490000,
+    oldPrice: null,
+    discountPercent: 0,
+    isBestSeller: true,
+    isNewArrival: true,
+    isSpecialOffer: false,
+    image: &#x27;assets/images/products/prod-08-coat-tweed.jpg&#x27;,
+    shortDesc: &#x27;بافت بوکله سفید با رشته‌های ظریف طلایی و مغزی‌دوزی مشکی کنتراست.&#x27;,
+    fullDescription:
+      &#x27;الهام‌گرفته از اصالت مد کلاسیک پاریس؛ کت تویید آلوارو با ترکیب بی‌نظیر سفید، مشکی و رگه‌های ظریف طلایی، انتخابی چشم‌نواز برای فصل بهار و پاییز است و به‌راحتی با شلوارهای راسته مشکی یا سفید ست می‌شود.&#x27;,
+    fabric: &#x27;تویید بوکله دست‌بافت با نخ لمه ظریف طلایی&#x27;,
+    care: &#x27;خشکشویی تخصصی؛ پرهیز از شست‌وشو در ماشین لباسشویی&#x27;,
+    sizes: [&#x27;S (36-38)&#x27;, &#x27;M (38-40)&#x27;, &#x27;L (40-42)&#x27;],
+    colors: [{ name: &#x27;ترکیب سفید، طلایی و مشکی&#x27;, hex: &#x27;#EFECE4&#x27; }],
+    badge: &#x27;محدود&#x27;,
+  },
+  {
+    id: &#x27;prod-09&#x27;,
+    sku: &#x27;ALV-2609&#x27;,
+    name: &#x27;کیف دستی چرم طبیعی طرح کروکو با زیپ طلایی&#x27;,
+    category: &#x27;bag&#x27;,
+    categoryTitle: &#x27;کیف دستی&#x27;,
+    price: 3650000,
+    oldPrice: 4300000,
+    discountPercent: 15,
+    isBestSeller: true,
+    isNewArrival: false,
+    isSpecialOffer: true,
+    image: &#x27;assets/images/products/prod-09-bag-croc.jpg&#x27;,
+    shortDesc: &#x27;چرم گاوی برجسته با زیپ‌ها و یراق‌آلات آبکاری طلایی ضدتغییر رنگ.&#x27;,
+    fullDescription:
+      &#x27;کیف دستی ساختارمند آلوارو از چرم طبیعی فرآوری‌شده با تکسچر کروکو ساخته شده است. فضای داخلی سه‌بخشی با آستر جیر نرم امکان نظم‌دهی کامل به تلفن همراه، کیف پول و لوازم روزمره را فراهم می‌کند.&#x27;,
+    fabric: &#x27;چرم طبیعی گاوی درجه یک + یراق فولادی آبکاری طلایی&#x27;,
+    care: &#x27;پاک‌سازی با دستمال نرم مرطوب و واکس بی‌رنگ چرم طبیعی&#x27;,
+    sizes: [&#x27;تک‌سایز استاندارد (۳۰×۲۴×۱۲ سانتی‌متر)&#x27;],
+    colors: [
+      { name: &#x27;مشکی کلاسیک&#x27;, hex: &#x27;#151517&#x27; },
+      { name: &#x27;عسلی کاراملی&#x27;, hex: &#x27;#7C4728&#x27; },
+    ],
+    badge: &#x27;پیشنهاد ویژه&#x27;,
+  },
+  {
+    id: &#x27;prod-10&#x27;,
+    sku: &#x27;ALV-2610&#x27;,
+    name: &#x27;کیف دستی مینیمال آتلیه با بند دوشی قابل تنظیم&#x27;,
+    category: &#x27;bag&#x27;,
+    categoryTitle: &#x27;کیف دستی&#x27;,
+    price: 3290000,
+    oldPrice: null,
+    discountPercent: 0,
+    isBestSeller: false,
+    isNewArrival: true,
+    isSpecialOffer: false,
+    image: &#x27;assets/images/products/prod-10-bag-atelier.jpg&#x27;,
+    shortDesc: &#x27;فرم هندسی مدرن با دسته کوتاه دستی و بند بلند دوشی قابل جداسازی.&#x27;,
+    fullDescription:
+      &#x27;کیف آتلیه برای بانوانی طراحی شده است که به فرم‌های معماری و مینیمال علاقه دارند. ایستایی عالی بدنه در کنار وزن متعادل، آن را به گزینه‌ای ایده‌آل برای استفاده روزانه لوکس و استایل‌های رسمی تبدیل کرده است.&#x27;,
+    fabric: &#x27;چرم صاف مات ضدخش با دوخت صنعتی دقیق&#x27;,
+    care: &#x27;نگهداری داخل کاور پارچه‌ای اختصاصی آلوارو به دور از رطوبت&#x27;,
+    sizes: [&#x27;تک‌سایز متوسط (۲۶×۲۰×۱۱ سانتی‌متر)&#x27;],
+    colors: [
+      { name: &#x27;بژ شنی&#x27;, hex: &#x27;#B48E78&#x27; },
+      { name: &#x27;مشکی مات&#x27;, hex: &#x27;#1A1A1C&#x27; },
+      { name: &#x27;طوسی سنگی&#x27;, hex: &#x27;#72706E&#x27; },
+    ],
+    badge: &#x27;جدید&#x27;,
+  },
+  {
+    id: &#x27;prod-11&#x27;,
+    sku: &#x27;ALV-2611&#x27;,
+    name: &#x27;کفش پاشنه‌بلند استیلتو چرم مشکی کلاسیک&#x27;,
+    category: &#x27;shoes&#x27;,
+    categoryTitle: &#x27;کفش زنانه&#x27;,
+    price: 2950000,
+    oldPrice: 3450000,
+    discountPercent: 14,
+    isBestSeller: true,
+    isNewArrival: false,
+    isSpecialOffer: true,
+    image: &#x27;assets/images/products/prod-11-shoes-stiletto.jpg&#x27;,
+    shortDesc: &#x27;پنجه بادامی کشیده با پاشنه ۸ سانتی‌متری متعادل و کفی طبی چرم طبیعی.&#x27;,
+    fullDescription:
+      &#x27;کفش استیلتو آلوارو با قالب استاندارد ارگونومیک طراحی شده تا فشار وزن را به‌صورت یکنواخت بین پنجه و پاشنه تقسیم کند. رویه چرم براق با بافت ظریف جلوه‌ای ماندگار در کنار لباس‌های مجلسی و کت‌وشلوارهای رسمی دارد.&#x27;,
+    fabric: &#x27;رویه و آستر داخلی تمام چرم طبیعی + زیره نیولایت ضدلغزش&#x27;,
+    care: &#x27;استفاده از قالب نگه‌دارنده کفش پس از هر بار پوشیدن&#x27;,
+    sizes: [&#x27;37&#x27;, &#x27;38&#x27;, &#x27;39&#x27;, &#x27;40&#x27;],
+    colors: [
+      { name: &#x27;مشکی شب&#x27;, hex: &#x27;#141720&#x27; },
+      { name: &#x27;کرم بژ&#x27;, hex: &#x27;#DFCBB5&#x27; },
+    ],
+    badge: &#x27;پرفروش&#x27;,
+  },
+  {
+    id: &#x27;prod-12&#x27;,
+    sku: &#x27;ALV-2612&#x27;,
+    name: &#x27;نیم‌بوت مجلسی چرم دست‌دوز پاشنه ظریف&#x27;,
+    category: &#x27;shoes&#x27;,
+    categoryTitle: &#x27;کفش زنانه&#x27;,
+    price: 3790000,
+    oldPrice: null,
+    discountPercent: 0,
+    isBestSeller: false,
+    isNewArrival: true,
+    isSpecialOffer: false,
+    image: &#x27;assets/images/products/prod-12-shoes-boot.jpg&#x27;,
+    shortDesc: &#x27;نیم‌بوت زیپ‌دار با ترکیب چرم صاف و کروکو، مناسب استایل پاییز و زمستان لوکس.&#x27;,
+    fullDescription:
+      &#x27;ترکیب هنرمندانه چرم صاف و بخش پاشنه طرح کروکو به این نیم‌بوت شخصیتی متمایز بخشیده است. زیپ کناری روان پوشیدن سریع را ممکن می‌سازد و پاشنه مستحکم آن ثبات عالی هنگام راه رفتن ایجاد می‌کند.&#x27;,
+    fabric: &#x27;چرم طبیعی گاوی دست‌دوز با آستر تنفسی گرم&#x27;,
+    care: &#x27;واکس مخصوص چرم طبیعی و پرهیز از حرارت مستقیم&#x27;,
+    sizes: [&#x27;37&#x27;, &#x27;38&#x27;, &#x27;39&#x27;, &#x27;40&#x27;],
+    colors: [
+      { name: &#x27;قهوه‌ای اسپرسو تیره&#x27;, hex: &#x27;#3B261E&#x27; },
+      { name: &#x27;مشکی ابسیدین&#x27;, hex: &#x27;#121212&#x27; },
+    ],
+    badge: &#x27;کالکشن فصل&#x27;,
+  },
+  {
+    id: &#x27;prod-13&#x27;,
+    sku: &#x27;ALV-2613&#x27;,
+    name: &#x27;شلوار پالازو فاق‌بلند پیلی‌دار کرم شنی&#x27;,
+    category: &#x27;pants&#x27;,
+    categoryTitle: &#x27;شلوار زنانه&#x27;,
+    price: 2290000,
+    oldPrice: null,
+    discountPercent: 0,
+    isBestSeller: true,
+    isNewArrival: false,
+    isSpecialOffer: false,
+    image: &#x27;assets/images/products/prod-13-pants-palazzo.jpg&#x27;,
+    shortDesc: &#x27;برش وایدلگ فاق‌بلند با کمر جناغی پهن و ریزش عمودی کشیده‌کننده قد.&#x27;,
+    fullDescription:
+      &#x27;شلوار پالازو آلوارو با طراحی هوشمندانه کمر جناغی و دو پیلی عمیق در جلو، پاها را کشیده‌تر نشان داده و آزادی حرکت بی‌نظیری فراهم می‌کند. ایده‌آل برای ست کردن با شومیزهای ابریشمی و کت‌های کوتاه.&#x27;,
+    fabric: &#x27;کرپ تنسل ترک بدون آبرفت و بدون زانو انداختن&#x27;,
+    care: &#x27;شست‌وشو با آب ۳۰ درجه؛ اتوکشی از روی خط اتو&#x27;,
+    sizes: [&#x27;S (36-38)&#x27;, &#x27;M (38-40)&#x27;, &#x27;L (40-42)&#x27;, &#x27;XL (42-44)&#x27;],
+    colors: [
+      { name: &#x27;کرم شنی طلایی&#x27;, hex: &#x27;#CBB094&#x27; },
+      { name: &#x27;مشکی کلاسیک&#x27;, hex: &#x27;#141416&#x27; },
+    ],
+    badge: &#x27;محبوب مشتریان&#x27;,
+  },
+  {
+    id: &#x27;prod-14&#x27;,
+    sku: &#x27;ALV-2614&#x27;,
+    name: &#x27;شلوار راسته رسمی سفید عاجی فاق‌بلند&#x27;,
+    category: &#x27;pants&#x27;,
+    categoryTitle: &#x27;شلوار زنانه&#x27;,
+    price: 2120000,
+    oldPrice: 2490000,
+    discountPercent: 15,
+    isBestSeller: false,
+    isNewArrival: true,
+    isSpecialOffer: true,
+    image: &#x27;assets/images/products/prod-14-pants-ivory.jpg&#x27;,
+    shortDesc: &#x27;برش تیلورد راسته با پارچه ضخیم غیربدن‌نما و جیب‌های مخفی کناری.&#x27;,
+    fullDescription:
+      &#x27;یکی از کاربردی‌ترین شلوارهای سفید کمد هر خانم شیک‌پوش که به لطف تراکم بالای بافت پارچه و جیب‌های هم‌رنگ داخلی، به‌هیچ‌وجه سایه نمی‌اندازد و فرم رسمی و اتوکشیده خود را در طول روز حفظ می‌کند.&#x27;,
+    fabric: &#x27;کتان کرپ تراکم بالا با کشسانی ملایم ۲ درصد&#x27;,
+    care: &#x27;شست‌وشو با شوینده مخصوص لباس‌های روشن&#x27;,
+    sizes: [&#x27;S (36)&#x27;, &#x27;M (38)&#x27;, &#x27;L (40)&#x27;, &#x27;XL (42)&#x27;],
+    colors: [
+      { name: &#x27;سفید عاجی&#x27;, hex: &#x27;#F2EFE9&#x27; },
+      { name: &#x27;مشکی زغالی&#x27;, hex: &#x27;#18181A&#x27; },
+    ],
+    badge: &#x27;تخفیف فصل&#x27;,
+  },
+  {
+    id: &#x27;prod-15&#x27;,
+    sku: &#x27;ALV-2615&#x27;,
+    name: &#x27;ست دوتکه کت، جلیقه و شلوار واید مشکی نوآر&#x27;,
+    category: &#x27;set&#x27;,
+    categoryTitle: &#x27;ست لباس&#x27;,
+    price: 6450000,
+    oldPrice: 7500000,
+    discountPercent: 14,
+    isBestSeller: true,
+    isNewArrival: true,
+    isSpecialOffer: true,
+    image: &#x27;assets/images/products/prod-15-set-noir.jpg&#x27;,
+    shortDesc: &#x27;ست هماهنگ مزونی با برش مدرن و پارچه یکدست مشکی مات، آماده استایل بی‌دردسر.&#x27;,
+    fullDescription:
+      &#x27;ست رسمی نوآر آلوارو دغدغه هماهنگ‌سازی رنگ و جنس پارچه را به کلی از بین می‌برد. کت خوش‌دوخت و شلوار واید فاق‌بلند هم به‌صورت یکپارچه در مجالس و جلسات رسمی و هم به‌صورت جداگانه با سایر آیتم‌های کمد شما قابل استفاده هستند.&#x27;,
+    fabric: &#x27;فاستونی کرپ سوپرمات ضدچروک&#x27;,
+    care: &#x27;خشکشویی؛ استفاده از بخارگر ایستاده&#x27;,
+    sizes: [&#x27;S (36-38)&#x27;, &#x27;M (38-40)&#x27;, &#x27;L (40-42)&#x27;, &#x27;XL (42-44)&#x27;],
+    colors: [{ name: &#x27;مشکی ابسیدین&#x27;, hex: &#x27;#101012&#x27; }],
+    badge: &#x27;ست کامل VIP&#x27;,
+  },
+  {
+    id: &#x27;prod-16&#x27;,
+    sku: &#x27;ALV-2616&#x27;,
+    name: &#x27;ست دوتکه کت لانگ و شلوار پالازو شامپاینی&#x27;,
+    category: &#x27;set&#x27;,
+    categoryTitle: &#x27;ست لباس&#x27;,
+    price: 5980000,
+    oldPrice: null,
+    discountPercent: 0,
+    isBestSeller: false,
+    isNewArrival: true,
+    isSpecialOffer: false,
+    image: &#x27;assets/images/products/prod-16-set-champagne.jpg&#x27;,
+    shortDesc: &#x27;ست روشن شامپاینی-بژ با کت بلند کمربنددار و شلوار گشاد تابستانه و بهاره.&#x27;,
+    fullDescription:
+      &#x27;ترکیب رنگی روشن شامپاینی و عاجی در این ست دوتکه، طراوت و وقار خاصی به استایل روزانه و مهمانی‌های عصرانه می‌بخشد. پارچه خنک و تنفس‌پذیر آن حس سبکی بی‌نظیری روی پوست ایجاد می‌کند.&#x27;,
+    fabric: &#x27;لینن ابریشم لمینت‌شده با ایستایی مزونی&#x27;,
+    care: &#x27;شست‌وشوی ملایم ۳۰ درجه و اتوکشی در حالت نیمه‌مرطوب&#x27;,
+    sizes: [&#x27;S (36-38)&#x27;, &#x27;M (38-40)&#x27;, &#x27;L (40-42)&#x27;],
+    colors: [
+      { name: &#x27;شامپاینی روشن&#x27;, hex: &#x27;#DFCDBA&#x27; },
+      { name: &#x27;سفید استخوانی&#x27;, hex: &#x27;#F6F3EC&#x27; },
+    ],
+    badge: &#x27;جدیدترین ست&#x27;,
+  },
+];
+</code></pre>
+<hr><h2>FILE: assets/js/app.js (40292 chars)</h2>
+<pre><code>/**
+ * ALVARO FASHION — منطق کامل تعاملی فروشگاه اینترنتی
+ * پشتیبانی از جست‌وجوی آنی، فیلتر دسته‌بندی، مرتب‌سازی قیمت، صفحه جزئیات محصول،
+ * سبد خرید فعال با ذخیره در مرورگر (localStorage)، علاقه‌مندی‌ها، منوی موبایل و فرم‌ها.
+ */
+(function () {
+  &#x27;use strict&#x27;;
+
+  var STORAGE_CART_KEY = &#x27;alvaro_fashion_cart_v1&#x27;;
+  var STORAGE_WISH_KEY = &#x27;alvaro_fashion_wishlist_v1&#x27;;
+
+  var products = window.ALVARO_PRODUCTS || [];
+  var categories = window.ALVARO_CATEGORIES || [];
+
+  var state = {
+    searchQuery: &#x27;&#x27;,
+    selectedCategory: &#x27;all&#x27;,
+    sortBy: &#x27;featured&#x27;,
+    onlyDiscounted: false,
+    cart: loadStorage(STORAGE_CART_KEY, []),
+    wishlist: loadStorage(STORAGE_WISH_KEY, []),
+    couponCode: &#x27;&#x27;,
+    couponDiscountPercent: 0,
+    activeDetailProductId: null,
+    detailSelectedSize: &#x27;&#x27;,
+    detailSelectedColor: &#x27;&#x27;,
+    detailQty: 1,
+  };
+
+  function loadStorage(key, fallback) {
+    try {
+      var raw = window.localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  function saveStorage(key, val) {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(val));
+    } catch (e) {
+      // ادامه اجرا در حالت مرورگر خصوصی
+    }
+  }
+
+  function toPersianDigits(val) {
+    var map = [&#x27;۰&#x27;, &#x27;۱&#x27;, &#x27;۲&#x27;, &#x27;۳&#x27;, &#x27;۴&#x27;, &#x27;۵&#x27;, &#x27;۶&#x27;, &#x27;۷&#x27;, &#x27;۸&#x27;, &#x27;۹&#x27;];
+    return String(val).replace(/\d/g, function (d) {
+      return map[Number(d)];
+    });
+  }
+
+  function formatToman(amount) {
+    var formatted = Math.round(Number(amount) || 0)
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, &#x27;٬&#x27;);
+    return toPersianDigits(formatted) + &#x27; تومان&#x27;;
+  }
+
+  function showToast(message) {
+    var container = document.getElementById(&#x27;toastContainer&#x27;);
+    if (!container) return;
+    var item = document.createElement(&#x27;div&#x27;);
+    item.className = &#x27;toast-item&#x27;;
+    item.textContent = message;
+    container.appendChild(item);
+    setTimeout(function () {
+      if (item.parentNode) item.parentNode.removeChild(item);
+    }, 3400);
+  }
+
+  // ==================== رندر دسته‌بندی‌ها ====================
+  function renderCategoriesSection() {
+    var grid = document.getElementById(&#x27;categoriesGrid&#x27;);
+    var pillsWrap = document.getElementById(&#x27;categoryFilterPills&#x27;);
+    var catSelect = document.getElementById(&#x27;categorySelect&#x27;);
+    if (!grid) return;
+
+    var visualCats = categories.filter(function (c) {
+      return c.id !== &#x27;all&#x27;;
+    });
+
+    grid.innerHTML = visualCats
+      .map(function (cat) {
+        var count = products.filter(function (p) {
+          return p.category === cat.id;
+        }).length;
+        var isActive = state.selectedCategory === cat.id ? &#x27;active&#x27; : &#x27;&#x27;;
+        return (
+          &#x27;&lt;button type=&quot;button&quot; class=&quot;category-card &#x27; +
+          isActive +
+          &#x27;&quot; data-cat-pick=&quot;&#x27; +
+          cat.id +
+          &#x27;&quot;&gt;&#x27; +
+          &#x27;&lt;img src=&quot;&#x27; +
+          cat.coverImage +
+          &#x27;&quot; alt=&quot;&#x27; +
+          cat.title +
+          &#x27;&quot; loading=&quot;lazy&quot; /&gt;&#x27; +
+          &#x27;&lt;div class=&quot;category-overlay&quot;&gt;&#x27; +
+          &#x27;&lt;strong&gt;&#x27; +
+          cat.title +
+          &#x27;&lt;/strong&gt;&#x27; +
+          &#x27;&lt;span&gt;&#x27; +
+          cat.subtitle +
+          &#x27; • &#x27; +
+          toPersianDigits(count) +
+          &#x27; مدل&lt;/span&gt;&#x27; +
+          &#x27;&lt;/div&gt;&#x27; +
+          &#x27;&lt;/button&gt;&#x27;
+        );
+      })
+      .join(&#x27;&#x27;);
+
+    if (pillsWrap) {
+      pillsWrap.innerHTML =
+        categories
+          .map(function (cat) {
+            var activeCls =
+              state.selectedCategory === cat.id &amp;&amp; !state.onlyDiscounted
+                ? &#x27;active&#x27;
+                : &#x27;&#x27;;
+            return (
+              &#x27;&lt;button type=&quot;button&quot; class=&quot;filter-pill &#x27; +
+              activeCls +
+              &#x27;&quot; data-pill-cat=&quot;&#x27; +
+              cat.id +
+              &#x27;&quot;&gt;&#x27; +
+              cat.title +
+              &#x27;&lt;/button&gt;&#x27;
+            );
+          })
+          .join(&#x27;&#x27;) +
+        &#x27;&lt;button type=&quot;button&quot; class=&quot;filter-pill &#x27; +
+        (state.onlyDiscounted ? &#x27;active&#x27; : &#x27;&#x27;) +
+        &#x27;&quot; data-pill-discount=&quot;1&quot;&gt;فقط تخفیف‌دارها&lt;/button&gt;&#x27;;
+    }
+
+    if (catSelect &amp;&amp; catSelect.options.length &lt;= 1) {
+      catSelect.innerHTML = categories
+        .map(function (c) {
+          return &#x27;&lt;option value=&quot;&#x27; + c.id + &#x27;&quot;&gt;&#x27; + c.title + &#x27;&lt;/option&gt;&#x27;;
+        })
+        .join(&#x27;&#x27;);
+    }
+    if (catSelect) {
+      catSelect.value = state.selectedCategory;
+    }
+  }
+
+  // ==================== قالب کارت محصول ====================
+  function createProductCardHtml(product) {
+    var isWished = state.wishlist.indexOf(product.id) !== -1;
+    var discountHtml =
+      product.discountPercent &gt; 0
+        ? &#x27;&lt;span class=&quot;discount-tag&quot;&gt;&#x27; +
+          toPersianDigits(product.discountPercent) +
+          &#x27;٪ تخفیف&lt;/span&gt;&#x27;
+        : &#x27;&#x27;;
+    var badgeHtml = product.badge
+      ? &#x27;&lt;span class=&quot;product-badge&quot;&gt;&#x27; + product.badge + &#x27;&lt;/span&gt;&#x27;
+      : &#x27;&#x27;;
+    var oldPriceHtml = product.oldPrice
+      ? &#x27;&lt;span class=&quot;price-old&quot;&gt;&#x27; + formatToman(product.oldPrice) + &#x27;&lt;/span&gt;&#x27;
+      : &#x27;&#x27;;
+
+    return (
+      &#x27;&lt;article class=&quot;product-card&quot; data-product-card=&quot;&#x27; +
+      product.id +
+      &#x27;&quot;&gt;&#x27; +
+      &#x27;&lt;div class=&quot;product-media&quot; data-open-product=&quot;&#x27; +
+      product.id +
+      &#x27;&quot;&gt;&#x27; +
+      badgeHtml +
+      discountHtml +
+      &#x27;&lt;img src=&quot;&#x27; +
+      product.image +
+      &#x27;&quot; alt=&quot;&#x27; +
+      product.name +
+      &#x27;&quot; loading=&quot;lazy&quot; /&gt;&#x27; +
+      &#x27;&lt;button type=&quot;button&quot; class=&quot;wishlist-btn &#x27; +
+      (isWished ? &#x27;active&#x27; : &#x27;&#x27;) +
+      &#x27;&quot; data-toggle-wish=&quot;&#x27; +
+      product.id +
+      &#x27;&quot; aria-label=&quot;افزودن به علاقه‌مندی‌ها&quot; title=&quot;علاقه‌مندی&quot;&gt;&#x27; +
+      (isWished ? &#x27;♥&#x27; : &#x27;♡&#x27;) +
+      &#x27;&lt;/button&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;div class=&quot;product-body&quot;&gt;&#x27; +
+      &#x27;&lt;span class=&quot;product-cat&quot;&gt;&#x27; +
+      product.categoryTitle +
+      &#x27;&lt;/span&gt;&#x27; +
+      &#x27;&lt;h3 class=&quot;product-title&quot; data-open-product=&quot;&#x27; +
+      product.id +
+      &#x27;&quot;&gt;&#x27; +
+      product.name +
+      &#x27;&lt;/h3&gt;&#x27; +
+      &#x27;&lt;p class=&quot;product-desc&quot;&gt;&#x27; +
+      product.shortDesc +
+      &#x27;&lt;/p&gt;&#x27; +
+      &#x27;&lt;div class=&quot;product-price-row&quot;&gt;&#x27; +
+      &#x27;&lt;span class=&quot;price-current&quot;&gt;&#x27; +
+      formatToman(product.price) +
+      &#x27;&lt;/span&gt;&#x27; +
+      oldPriceHtml +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;div class=&quot;product-actions&quot;&gt;&#x27; +
+      &#x27;&lt;button type=&quot;button&quot; class=&quot;btn-card-view&quot; data-open-product=&quot;&#x27; +
+      product.id +
+      &#x27;&quot;&gt;مشاهده محصول&lt;/button&gt;&#x27; +
+      &#x27;&lt;button type=&quot;button&quot; class=&quot;btn-card-quickadd&quot; data-quick-add=&quot;&#x27; +
+      product.id +
+      &#x27;&quot; title=&quot;افزودن سریع به سبد خرید&quot;&gt;+ سبد&lt;/button&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;/article&gt;&#x27;
+    );
+  }
+
+  // ==================== فیلتر، جست‌وجو و مرتب‌سازی فروشگاه ====================
+  function getFilteredAndSortedProducts() {
+    var q = state.searchQuery.trim().toLowerCase();
+    var list = products.filter(function (p) {
+      if (state.selectedCategory !== &#x27;all&#x27; &amp;&amp; p.category !== state.selectedCategory) {
+        return false;
+      }
+      if (state.onlyDiscounted &amp;&amp; (!p.discountPercent || p.discountPercent &lt;= 0)) {
+        return false;
+      }
+      if (q) {
+        var haystack = (
+          p.name +
+          &#x27; &#x27; +
+          p.categoryTitle +
+          &#x27; &#x27; +
+          p.shortDesc +
+          &#x27; &#x27; +
+          p.fabric
+        ).toLowerCase();
+        if (haystack.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+
+    var sorted = list.slice();
+    if (state.sortBy === &#x27;price-asc&#x27;) {
+      sorted.sort(function (a, b) {
+        return a.price - b.price;
+      });
+    } else if (state.sortBy === &#x27;price-desc&#x27;) {
+      sorted.sort(function (a, b) {
+        return b.price - a.price;
+      });
+    } else if (state.sortBy === &#x27;newest&#x27;) {
+      sorted.sort(function (a, b) {
+        return Number(b.isNewArrival) - Number(a.isNewArrival);
+      });
+    } else if (state.sortBy === &#x27;discount&#x27;) {
+      sorted.sort(function (a, b) {
+        return (b.discountPercent || 0) - (a.discountPercent || 0);
+      });
+    }
+    return sorted;
+  }
+
+  function renderMainStoreGrid() {
+    var grid = document.getElementById(&#x27;shopProductsGrid&#x27;);
+    var countEl = document.getElementById(&#x27;shopResultsCount&#x27;);
+    var clearBtn = document.getElementById(&#x27;clearSearchBtn&#x27;);
+    var resetFiltersBtn = document.getElementById(&#x27;resetFiltersBtn&#x27;);
+    if (!grid) return;
+
+    var filtered = getFilteredAndSortedProducts();
+
+    if (countEl) {
+      countEl.textContent =
+        &#x27;نمایش &#x27; +
+        toPersianDigits(filtered.length) +
+        &#x27; محصول از &#x27; +
+        toPersianDigits(products.length) +
+        &#x27; مدل کالکشن آلوارو&#x27;;
+    }
+
+    if (clearBtn) {
+      clearBtn.classList.toggle(&#x27;hidden&#x27;, state.searchQuery.length === 0);
+    }
+
+    var hasActiveFilter =
+      state.selectedCategory !== &#x27;all&#x27; ||
+      state.onlyDiscounted ||
+      state.searchQuery.trim() !== &#x27;&#x27; ||
+      state.sortBy !== &#x27;featured&#x27;;
+    if (resetFiltersBtn) {
+      resetFiltersBtn.classList.toggle(&#x27;hidden&#x27;, !hasActiveFilter);
+    }
+
+    if (filtered.length === 0) {
+      grid.innerHTML =
+        &#x27;&lt;div style=&quot;grid-column: 1 / -1; text-align: center; padding: 48px 20px; background:#fff; border:1px solid #e5dfd3; border-radius:10px;&quot;&gt;&#x27; +
+        &#x27;&lt;h3 style=&quot;margin:0 0 8px;&quot;&gt;محصولی مطابق جست‌وجوی شما یافت نشد&lt;/h3&gt;&#x27; +
+        &#x27;&lt;p style=&quot;color:#66625b; margin:0 0 18px;&quot;&gt;پیشنهاد می‌کنیم عبارت دیگری را جست‌وجو کنید یا فیلترها را بازنشانی نمایید.&lt;/p&gt;&#x27; +
+        &#x27;&lt;button type=&quot;button&quot; class=&quot;btn btn-obsidian&quot; id=&quot;emptyResetBtn&quot;&gt;نمایش همه محصولات فروشگاه&lt;/button&gt;&#x27; +
+        &#x27;&lt;/div&gt;&#x27;;
+      var emptyBtn = document.getElementById(&#x27;emptyResetBtn&#x27;);
+      if (emptyBtn) {
+        emptyBtn.addEventListener(&#x27;click&#x27;, resetAllFilters);
+      }
+      return;
+    }
+
+    grid.innerHTML = filtered.map(createProductCardHtml).join(&#x27;&#x27;);
+  }
+
+  function renderCuratedHomepageSections() {
+    var bestGrid = document.getElementById(&#x27;bestSellersGrid&#x27;);
+    var newGrid = document.getElementById(&#x27;newArrivalsGrid&#x27;);
+    var offersGrid = document.getElementById(&#x27;specialOffersGrid&#x27;);
+
+    if (bestGrid) {
+      var bestItems = products
+        .filter(function (p) {
+          return p.isBestSeller;
+        })
+        .slice(0, 4);
+      bestGrid.innerHTML = bestItems.map(createProductCardHtml).join(&#x27;&#x27;);
+    }
+
+    if (newGrid) {
+      var newItems = products
+        .filter(function (p) {
+          return p.isNewArrival;
+        })
+        .slice(0, 4);
+      newGrid.innerHTML = newItems.map(createProductCardHtml).join(&#x27;&#x27;);
+    }
+
+    if (offersGrid) {
+      var offerItems = products
+        .filter(function (p) {
+          return p.isSpecialOffer;
+        })
+        .slice(0, 4);
+      offersGrid.innerHTML = offerItems.map(createProductCardHtml).join(&#x27;&#x27;);
+    }
+  }
+
+  function resetAllFilters() {
+    state.searchQuery = &#x27;&#x27;;
+    state.selectedCategory = &#x27;all&#x27;;
+    state.sortBy = &#x27;featured&#x27;;
+    state.onlyDiscounted = false;
+    var sInput = document.getElementById(&#x27;productSearchInput&#x27;);
+    var sortSel = document.getElementById(&#x27;sortSelect&#x27;);
+    if (sInput) sInput.value = &#x27;&#x27;;
+    if (sortSel) sortSel.value = &#x27;featured&#x27;;
+    renderCategoriesSection();
+    renderMainStoreGrid();
+  }
+
+  // ==================== صفحه مستقل جزئیات محصول ====================
+  function openProductDetail(productId, pushHash) {
+    var product = products.find(function (p) {
+      return p.id === productId;
+    });
+    if (!product) return;
+
+    state.activeDetailProductId = product.id;
+    state.detailSelectedSize = product.sizes[0] || &#x27;تک‌سایز&#x27;;
+    state.detailSelectedColor =
+      (product.colors[0] &amp;&amp; product.colors[0].name) || &#x27;مشکی&#x27;;
+    state.detailQty = 1;
+
+    var homeMain = document.getElementById(&#x27;homeMainContent&#x27;);
+    var detailPage = document.getElementById(&#x27;productDetailView&#x27;);
+    if (!homeMain || !detailPage) return;
+
+    homeMain.classList.add(&#x27;hidden&#x27;);
+    detailPage.classList.remove(&#x27;hidden&#x27;);
+
+    if (pushHash !== false) {
+      try {
+        window.history.pushState(null, &#x27;&#x27;, &#x27;#product/&#x27; + product.id);
+      } catch (e) {}
+    }
+
+    renderProductDetailContent(product);
+    window.scrollTo({ top: 0, behavior: &#x27;smooth&#x27; });
+  }
+
+  function closeProductDetailAndGoTo(sectionId) {
+    var homeMain = document.getElementById(&#x27;homeMainContent&#x27;);
+    var detailPage = document.getElementById(&#x27;productDetailView&#x27;);
+    if (homeMain) homeMain.classList.remove(&#x27;hidden&#x27;);
+    if (detailPage) detailPage.classList.add(&#x27;hidden&#x27;);
+    state.activeDetailProductId = null;
+
+    try {
+      if (window.location.hash.indexOf(&#x27;#product/&#x27;) === 0) {
+        window.history.pushState(
+          null,
+          &#x27;&#x27;,
+          window.location.pathname + window.location.search
+        );
+      }
+    } catch (e) {}
+
+    if (sectionId) {
+      var target = document.getElementById(sectionId);
+      if (target) {
+        setTimeout(function () {
+          target.scrollIntoView({ behavior: &#x27;smooth&#x27; });
+        }, 40);
+      }
+    }
+  }
+
+  function renderProductDetailContent(product) {
+    var container = document.getElementById(&#x27;productDetailContainer&#x27;);
+    if (!container) return;
+
+    var related = products
+      .filter(function (p) {
+        return p.id !== product.id &amp;&amp; p.category === product.category;
+      })
+      .concat(
+        products.filter(function (p) {
+          return p.id !== product.id &amp;&amp; p.category !== product.category;
+        })
+      )
+      .slice(0, 4);
+
+    var oldPriceHtml = product.oldPrice
+      ? &#x27;&lt;span class=&quot;price-old&quot; style=&quot;font-size:1rem;&quot;&gt;&#x27; +
+        formatToman(product.oldPrice) +
+        &#x27;&lt;/span&gt;&#x27;
+      : &#x27;&#x27;;
+    var discountBadge =
+      product.discountPercent &gt; 0
+        ? &#x27;&lt;span class=&quot;discount-tag&quot; style=&quot;position:static;&quot;&gt;&#x27; +
+          toPersianDigits(product.discountPercent) +
+          &#x27;٪ تخفیف ویژه&lt;/span&gt;&#x27;
+        : &#x27;&#x27;;
+
+    var sizesHtml = product.sizes
+      .map(function (sz) {
+        var act = sz === state.detailSelectedSize ? &#x27;active&#x27; : &#x27;&#x27;;
+        return (
+          &#x27;&lt;button type=&quot;button&quot; class=&quot;size-chip &#x27; +
+          act +
+          &#x27;&quot; data-pick-size=&quot;&#x27; +
+          sz +
+          &#x27;&quot;&gt;&#x27; +
+          sz +
+          &#x27;&lt;/button&gt;&#x27;
+        );
+      })
+      .join(&#x27;&#x27;);
+
+    var colorsHtml = product.colors
+      .map(function (clr) {
+        var act = clr.name === state.detailSelectedColor ? &#x27;active&#x27; : &#x27;&#x27;;
+        return (
+          &#x27;&lt;button type=&quot;button&quot; class=&quot;color-chip &#x27; +
+          act +
+          &#x27;&quot; data-pick-color=&quot;&#x27; +
+          clr.name +
+          &#x27;&quot;&gt;&#x27; +
+          &#x27;&lt;span class=&quot;color-dot&quot; style=&quot;background:&#x27; +
+          clr.hex +
+          &#x27;;&quot;&gt;&lt;/span&gt;&#x27; +
+          &#x27;&lt;span&gt;&#x27; +
+          clr.name +
+          &#x27;&lt;/span&gt;&#x27; +
+          &#x27;&lt;/button&gt;&#x27;
+        );
+      })
+      .join(&#x27;&#x27;);
+
+    container.innerHTML =
+      &#x27;&lt;div class=&quot;breadcrumb-bar&quot;&gt;&#x27; +
+      &#x27;&lt;div&gt;&#x27; +
+      &#x27;&lt;button type=&quot;button&quot; class=&quot;btn-card-view&quot; id=&quot;backToShopBtn&quot; style=&quot;border:none; padding:4px 0;&quot;&gt;← بازگشت به فروشگاه&lt;/button&gt;&#x27; +
+      &#x27; &lt;span style=&quot;margin:0 8px;&quot;&gt;|&lt;/span&gt; &#x27; +
+      &#x27;&lt;span&gt;خانه / &#x27; +
+      product.categoryTitle +
+      &#x27; / &lt;strong&gt;&#x27; +
+      product.name +
+      &#x27;&lt;/strong&gt;&lt;/span&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;span class=&quot;detail-sku&quot;&gt;کد استایل: &#x27; +
+      product.sku +
+      &#x27;&lt;/span&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;div class=&quot;detail-grid&quot;&gt;&#x27; +
+      &#x27;&lt;div class=&quot;detail-image-box&quot;&gt;&#x27; +
+      (product.badge
+        ? &#x27;&lt;span class=&quot;product-badge&quot;&gt;&#x27; + product.badge + &#x27;&lt;/span&gt;&#x27;
+        : &#x27;&#x27;) +
+      &#x27;&lt;img src=&quot;&#x27; +
+      product.image +
+      &#x27;&quot; alt=&quot;&#x27; +
+      product.name +
+      &#x27;&quot; /&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;div&gt;&#x27; +
+      &#x27;&lt;span class=&quot;section-eyebrow&quot;&gt;&#x27; +
+      product.categoryTitle +
+      &#x27; • ALVARO COUTURE&lt;/span&gt;&#x27; +
+      &#x27;&lt;h1 class=&quot;detail-title&quot;&gt;&#x27; +
+      product.name +
+      &#x27;&lt;/h1&gt;&#x27; +
+      &#x27;&lt;div class=&quot;detail-price-box&quot;&gt;&#x27; +
+      &#x27;&lt;span class=&quot;detail-price-main&quot;&gt;&#x27; +
+      formatToman(product.price) +
+      &#x27;&lt;/span&gt;&#x27; +
+      oldPriceHtml +
+      discountBadge +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;p style=&quot;color:#43403b; margin:0 0 22px; line-height:1.9;&quot;&gt;&#x27; +
+      product.fullDescription +
+      &#x27;&lt;/p&gt;&#x27; +
+      &#x27;&lt;div class=&quot;option-group&quot;&gt;&#x27; +
+      &#x27;&lt;div class=&quot;option-label&quot;&gt;&#x27; +
+      &#x27;&lt;span&gt;انتخاب رنگ: &lt;strong&gt;&#x27; +
+      state.detailSelectedColor +
+      &#x27;&lt;/strong&gt;&lt;/span&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;div class=&quot;color-options&quot;&gt;&#x27; +
+      colorsHtml +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;div class=&quot;option-group&quot;&gt;&#x27; +
+      &#x27;&lt;div class=&quot;option-label&quot;&gt;&#x27; +
+      &#x27;&lt;span&gt;انتخاب سایز: &lt;strong&gt;&#x27; +
+      state.detailSelectedSize +
+      &#x27;&lt;/strong&gt;&lt;/span&gt;&#x27; +
+      &#x27;&lt;button type=&quot;button&quot; id=&quot;openSizeGuideBtn&quot; style=&quot;border:none; background:none; color:#987634; font-weight:700; cursor:pointer; text-decoration:underline;&quot;&gt;جدول راهنمای سایز&lt;/button&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;div class=&quot;size-options&quot;&gt;&#x27; +
+      sizesHtml +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;div class=&quot;detail-purchase-row&quot;&gt;&#x27; +
+      &#x27;&lt;div class=&quot;qty-control&quot;&gt;&#x27; +
+      &#x27;&lt;button type=&quot;button&quot; class=&quot;qty-btn&quot; id=&quot;detailQtyPlus&quot; aria-label=&quot;افزایش تعداد&quot;&gt;+&lt;/button&gt;&#x27; +
+      &#x27;&lt;span class=&quot;qty-val&quot; id=&quot;detailQtyVal&quot;&gt;&#x27; +
+      toPersianDigits(state.detailQty) +
+      &#x27;&lt;/span&gt;&#x27; +
+      &#x27;&lt;button type=&quot;button&quot; class=&quot;qty-btn&quot; id=&quot;detailQtyMinus&quot; aria-label=&quot;کاهش تعداد&quot;&gt;−&lt;/button&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;button type=&quot;button&quot; class=&quot;btn btn-gold&quot; id=&quot;detailAddToCartBtn&quot; style=&quot;flex:1;&quot;&gt;افزودن به سبد خرید&lt;/button&gt;&#x27; +
+      &#x27;&lt;button type=&quot;button&quot; class=&quot;btn btn-outline-dark&quot; id=&quot;detailWishBtn&quot;&gt;&#x27; +
+      (state.wishlist.indexOf(product.id) !== -1
+        ? &#x27;♥ در علاقه‌مندی‌ها&#x27;
+        : &#x27;♡ علاقه‌مندی&#x27;) +
+      &#x27;&lt;/button&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;div class=&quot;detail-specs&quot;&gt;&#x27; +
+      &#x27;&lt;p&gt;&lt;strong&gt;جنس و متریال:&lt;/strong&gt; &#x27; +
+      product.fabric +
+      &#x27;&lt;/p&gt;&#x27; +
+      &#x27;&lt;p&gt;&lt;strong&gt;نگهداری و شست‌وشو:&lt;/strong&gt; &#x27; +
+      product.care +
+      &#x27;&lt;/p&gt;&#x27; +
+      &#x27;&lt;p&gt;&lt;strong&gt;بسته‌بندی و ارسال:&lt;/strong&gt; ارسال در جعبه مشکی-طلایی اختصاصی ALVARO FASHION با ضمانت تعویض سایز تا ۷ روز&lt;/p&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;div style=&quot;margin-top:54px;&quot;&gt;&#x27; +
+      &#x27;&lt;div class=&quot;section-header&quot;&gt;&lt;div&gt;&lt;span class=&quot;section-eyebrow&quot;&gt;COMPLETE THE LOOK&lt;/span&gt;&lt;h2 class=&quot;section-title&quot;&gt;پیشنهاد استایلیست برای ست کردن&lt;/h2&gt;&lt;/div&gt;&lt;/div&gt;&#x27; +
+      &#x27;&lt;div class=&quot;products-grid&quot;&gt;&#x27; +
+      related.map(createProductCardHtml).join(&#x27;&#x27;) +
+      &#x27;&lt;/div&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27;;
+
+    // رویدادهای داخلی صفحه جزئیات
+    var backBtn = document.getElementById(&#x27;backToShopBtn&#x27;);
+    if (backBtn) {
+      backBtn.addEventListener(&#x27;click&#x27;, function () {
+        closeProductDetailAndGoTo(&#x27;shopSection&#x27;);
+      });
+    }
+
+    var sizeGuideBtn = document.getElementById(&#x27;openSizeGuideBtn&#x27;);
+    if (sizeGuideBtn) {
+      sizeGuideBtn.addEventListener(&#x27;click&#x27;, function () {
+        openModal(&#x27;sizeGuideModal&#x27;);
+      });
+    }
+
+    var plusBtn = document.getElementById(&#x27;detailQtyPlus&#x27;);
+    var minusBtn = document.getElementById(&#x27;detailQtyMinus&#x27;);
+    if (plusBtn) {
+      plusBtn.addEventListener(&#x27;click&#x27;, function () {
+        state.detailQty += 1;
+        document.getElementById(&#x27;detailQtyVal&#x27;).textContent = toPersianDigits(
+          state.detailQty
+        );
+      });
+    }
+    if (minusBtn) {
+      minusBtn.addEventListener(&#x27;click&#x27;, function () {
+        if (state.detailQty &gt; 1) {
+          state.detailQty -= 1;
+          document.getElementById(&#x27;detailQtyVal&#x27;).textContent = toPersianDigits(
+            state.detailQty
+          );
+        }
+      });
+    }
+
+    var addBtn = document.getElementById(&#x27;detailAddToCartBtn&#x27;);
+    if (addBtn) {
+      addBtn.addEventListener(&#x27;click&#x27;, function () {
+        addToCart(
+          product.id,
+          state.detailSelectedSize,
+          state.detailSelectedColor,
+          state.detailQty
+        );
+        openCartDrawer();
+      });
+    }
+
+    var wishBtn = document.getElementById(&#x27;detailWishBtn&#x27;);
+    if (wishBtn) {
+      wishBtn.addEventListener(&#x27;click&#x27;, function () {
+        toggleWishlist(product.id);
+        renderProductDetailContent(product);
+      });
+    }
+  }
+
+  // ==================== سبد خرید فعال با ذخیره در مرورگر ====================
+  function makeCartKey(productId, size, color) {
+    return productId + &#x27;__&#x27; + size + &#x27;__&#x27; + color;
+  }
+
+  function addToCart(productId, size, color, qty) {
+    var product = products.find(function (p) {
+      return p.id === productId;
+    });
+    if (!product) return;
+
+    var chosenSize = size || product.sizes[0] || &#x27;تک‌سایز&#x27;;
+    var chosenColor =
+      color || (product.colors[0] &amp;&amp; product.colors[0].name) || &#x27;مشکی&#x27;;
+    var addQty = Math.max(1, Number(qty) || 1);
+    var cartKey = makeCartKey(product.id, chosenSize, chosenColor);
+
+    var existing = state.cart.find(function (item) {
+      return item.cartKey === cartKey;
+    });
+
+    if (existing) {
+      existing.qty += addQty;
+    } else {
+      state.cart.push({
+        cartKey: cartKey,
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        size: chosenSize,
+        color: chosenColor,
+        qty: addQty,
+      });
+    }
+
+    saveStorage(STORAGE_CART_KEY, state.cart);
+    renderCartUI();
+    showToast(&#x27;«&#x27; + product.name + &#x27;» به سبد خرید اضافه شد.&#x27;);
+  }
+
+  function updateCartItemQty(cartKey, delta) {
+    for (var i = 0; i &lt; state.cart.length; i++) {
+      if (state.cart[i].cartKey === cartKey) {
+        state.cart[i].qty += delta;
+        if (state.cart[i].qty &lt;= 0) {
+          state.cart.splice(i, 1);
+          showToast(&#x27;محصول از سبد خرید حذف شد.&#x27;);
+        }
+        break;
+      }
+    }
+    saveStorage(STORAGE_CART_KEY, state.cart);
+    renderCartUI();
+  }
+
+  function removeCartItem(cartKey) {
+    state.cart = state.cart.filter(function (item) {
+      return item.cartKey !== cartKey;
+    });
+    saveStorage(STORAGE_CART_KEY, state.cart);
+    renderCartUI();
+    showToast(&#x27;آیتم انتخاب‌شده از سبد خرید حذف شد.&#x27;);
+  }
+
+  function clearEntireCart() {
+    state.cart = [];
+    state.couponCode = &#x27;&#x27;;
+    state.couponDiscountPercent = 0;
+    saveStorage(STORAGE_CART_KEY, state.cart);
+    renderCartUI();
+    showToast(&#x27;سبد خرید خالی شد.&#x27;);
+  }
+
+  function calculateCartTotals() {
+    var subtotal = state.cart.reduce(function (sum, item) {
+      return sum + item.price * item.qty;
+    }, 0);
+    var totalCount = state.cart.reduce(function (sum, item) {
+      return sum + item.qty;
+    }, 0);
+    var couponDiscount = Math.round(
+      (subtotal * state.couponDiscountPercent) / 100
+    );
+    var afterDiscount = Math.max(0, subtotal - couponDiscount);
+    var shipping =
+      afterDiscount === 0 || afterDiscount &gt;= 5000000 ? 0 : 120000;
+    var payable = afterDiscount + shipping;
+
+    return {
+      totalCount: totalCount,
+      subtotal: subtotal,
+      couponDiscount: couponDiscount,
+      shipping: shipping,
+      payable: payable,
+    };
+  }
+
+  function renderCartUI() {
+    var totals = calculateCartTotals();
+    var countBadge = document.getElementById(&#x27;cartCountBadge&#x27;);
+    var wishBadge = document.getElementById(&#x27;wishCountBadge&#x27;);
+    var bodyEl = document.getElementById(&#x27;cartItemsContainer&#x27;);
+    var footerEl = document.getElementById(&#x27;cartDrawerFooter&#x27;);
+
+    if (countBadge) {
+      countBadge.textContent = toPersianDigits(totals.totalCount);
+    }
+    if (wishBadge) {
+      wishBadge.textContent = toPersianDigits(state.wishlist.length);
+    }
+
+    if (!bodyEl || !footerEl) return;
+
+    if (state.cart.length === 0) {
+      bodyEl.innerHTML =
+        &#x27;&lt;div style=&quot;text-align:center; padding:56px 12px; color:#66625b;&quot;&gt;&#x27; +
+        &#x27;&lt;div style=&quot;font-size:2.4rem; margin-bottom:10px;&quot;&gt;🛍️&lt;/div&gt;&#x27; +
+        &#x27;&lt;strong style=&quot;display:block; color:#0d0d0f; margin-bottom:6px;&quot;&gt;سبد خرید شما خالی است&lt;/strong&gt;&#x27; +
+        &#x27;&lt;p style=&quot;font-size:0.85rem; margin:0 0 20px;&quot;&gt;از کالکشن مانتو، لباس مجلسی، کیف و کفش آلوارو دیدن فرمایید.&lt;/p&gt;&#x27; +
+        &#x27;&lt;button type=&quot;button&quot; class=&quot;btn btn-obsidian&quot; id=&quot;emptyCartGoShopBtn&quot;&gt;مشاهده محصولات فروشگاه&lt;/button&gt;&#x27; +
+        &#x27;&lt;/div&gt;&#x27;;
+      footerEl.classList.add(&#x27;hidden&#x27;);
+
+      var goShop = document.getElementById(&#x27;emptyCartGoShopBtn&#x27;);
+      if (goShop) {
+        goShop.addEventListener(&#x27;click&#x27;, function () {
+          closeAllDrawers();
+          closeProductDetailAndGoTo(&#x27;shopSection&#x27;);
+        });
+      }
+      return;
+    }
+
+    footerEl.classList.remove(&#x27;hidden&#x27;);
+
+    bodyEl.innerHTML =
+      &#x27;&lt;div style=&quot;display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;&quot;&gt;&#x27; +
+      &#x27;&lt;span style=&quot;font-size:0.82rem; color:#66625b;&quot;&gt;&#x27; +
+      toPersianDigits(totals.totalCount) +
+      &#x27; کالا در سبد شما&lt;/span&gt;&#x27; +
+      &#x27;&lt;button type=&quot;button&quot; class=&quot;cart-remove-btn&quot; id=&quot;clearCartBtn&quot;&gt;حذف همه&lt;/button&gt;&#x27; +
+      &#x27;&lt;/div&gt;&#x27; +
+      state.cart
+        .map(function (item) {
+          return (
+            &#x27;&lt;div class=&quot;cart-item&quot;&gt;&#x27; +
+            &#x27;&lt;img src=&quot;&#x27; +
+            item.image +
+            &#x27;&quot; alt=&quot;&#x27; +
+            item.name +
+            &#x27;&quot; /&gt;&#x27; +
+            &#x27;&lt;div&gt;&#x27; +
+            &#x27;&lt;h4 class=&quot;cart-item-title&quot;&gt;&#x27; +
+            item.name +
+            &#x27;&lt;/h4&gt;&#x27; +
+            &#x27;&lt;div class=&quot;cart-item-meta&quot;&gt;سایز: &#x27; +
+            item.size +
+            &#x27; | رنگ: &#x27; +
+            item.color +
+            &#x27;&lt;/div&gt;&#x27; +
+            &#x27;&lt;div style=&quot;font-weight:800; font-size:0.88rem; margin-bottom:8px;&quot;&gt;&#x27; +
+            formatToman(item.price * item.qty) +
+            &#x27;&lt;/div&gt;&#x27; +
+            &#x27;&lt;div class=&quot;cart-item-controls&quot;&gt;&#x27; +
+            &#x27;&lt;div class=&quot;cart-qty-mini&quot;&gt;&#x27; +
+            &#x27;&lt;button type=&quot;button&quot; data-cart-inc=&quot;&#x27; +
+            item.cartKey +
+            &#x27;&quot; aria-label=&quot;افزایش&quot;&gt;+&lt;/button&gt;&#x27; +
+            &#x27;&lt;span&gt;&#x27; +
+            toPersianDigits(item.qty) +
+            &#x27;&lt;/span&gt;&#x27; +
+            &#x27;&lt;button type=&quot;button&quot; data-cart-dec=&quot;&#x27; +
+            item.cartKey +
+            &#x27;&quot; aria-label=&quot;کاهش&quot;&gt;−&lt;/button&gt;&#x27; +
+            &#x27;&lt;/div&gt;&#x27; +
+            &#x27;&lt;button type=&quot;button&quot; class=&quot;cart-remove-btn&quot; data-cart-rm=&quot;&#x27; +
+            item.cartKey +
+            &#x27;&quot;&gt;حذف&lt;/button&gt;&#x27; +
+            &#x27;&lt;/div&gt;&#x27; +
+            &#x27;&lt;/div&gt;&#x27; +
+            &#x27;&lt;/div&gt;&#x27;
+          );
+        })
+        .join(&#x27;&#x27;);
+
+    document.getElementById(&#x27;cartSubtotalText&#x27;).textContent = formatToman(
+      totals.subtotal
+    );
+    document.getElementById(&#x27;cartDiscountText&#x27;).textContent =
+      totals.couponDiscount &gt; 0
+        ? &#x27;− &#x27; + formatToman(totals.couponDiscount)
+        : &#x27;۰ تومان&#x27;;
+    document.getElementById(&#x27;cartShippingText&#x27;).textContent =
+      totals.shipping === 0
+        ? &#x27;رایگان (VIP)&#x27;
+        : formatToman(totals.shipping);
+    document.getElementById(&#x27;cartTotalPayableText&#x27;).textContent = formatToman(
+      totals.payable
+    );
+
+    var clearBtn = document.getElementById(&#x27;clearCartBtn&#x27;);
+    if (clearBtn) {
+      clearBtn.addEventListener(&#x27;click&#x27;, clearEntireCart);
+    }
+  }
+
+  // ==================== علاقه‌مندی‌ها ====================
+  function toggleWishlist(productId) {
+    var idx = state.wishlist.indexOf(productId);
+    if (idx === -1) {
+      state.wishlist.push(productId);
+      showToast(&#x27;به لیست علاقه‌مندی‌های شما اضافه شد.&#x27;);
+    } else {
+      state.wishlist.splice(idx, 1);
+      showToast(&#x27;از لیست علاقه‌مندی‌ها خارج شد.&#x27;);
+    }
+    saveStorage(STORAGE_WISH_KEY, state.wishlist);
+    renderMainStoreGrid();
+    renderCuratedHomepageSections();
+    renderCartUI();
+  }
+
+  // ==================== کنترل کشوها و مودال‌ها ====================
+  function openCartDrawer() {
+    document.getElementById(&#x27;globalBackdrop&#x27;).classList.add(&#x27;open&#x27;);
+    document.getElementById(&#x27;cartDrawer&#x27;).classList.add(&#x27;open&#x27;);
+    document.getElementById(&#x27;mobileMenuDrawer&#x27;).classList.remove(&#x27;open&#x27;);
+  }
+
+  function openMobileMenu() {
+    document.getElementById(&#x27;globalBackdrop&#x27;).classList.add(&#x27;open&#x27;);
+    document.getElementById(&#x27;mobileMenuDrawer&#x27;).classList.add(&#x27;open&#x27;);
+    document.getElementById(&#x27;cartDrawer&#x27;).classList.remove(&#x27;open&#x27;);
+  }
+
+  function closeAllDrawers() {
+    document.getElementById(&#x27;globalBackdrop&#x27;).classList.remove(&#x27;open&#x27;);
+    document.getElementById(&#x27;cartDrawer&#x27;).classList.remove(&#x27;open&#x27;);
+    document.getElementById(&#x27;mobileMenuDrawer&#x27;).classList.remove(&#x27;open&#x27;);
+  }
+
+  function openModal(modalId) {
+    var el = document.getElementById(modalId);
+    if (el) el.classList.add(&#x27;open&#x27;);
+  }
+
+  function closeModal(modalId) {
+    var el = document.getElementById(modalId);
+    if (el) el.classList.remove(&#x27;open&#x27;);
+  }
+
+  // ==================== راه‌اندازی رویدادهای صفحه ====================
+  function bindGlobalEvents() {
+    // افکت اسکرول هدر
+    window.addEventListener(&#x27;scroll&#x27;, function () {
+      var header = document.getElementById(&#x27;siteHeader&#x27;);
+      if (header) {
+        header.classList.toggle(&#x27;scrolled&#x27;, window.scrollY &gt; 30);
+      }
+    });
+
+    // مدیریت رویدادهای کلیک عمومی (Delegation)
+    document.addEventListener(&#x27;click&#x27;, function (e) {
+      var target = e.target;
+
+      // باز کردن جزئیات محصول
+      var openProdTrigger = target.closest(&#x27;[data-open-product]&#x27;);
+      if (openProdTrigger) {
+        e.preventDefault();
+        openProductDetail(openProdTrigger.getAttribute(&#x27;data-open-product&#x27;));
+        return;
+      }
+
+      // افزودن سریع به سبد
+      var quickAddBtn = target.closest(&#x27;[data-quick-add]&#x27;);
+      if (quickAddBtn) {
+        e.preventDefault();
+        addToCart(quickAddBtn.getAttribute(&#x27;data-quick-add&#x27;), null, null, 1);
+        return;
+      }
+
+      // علاقه‌مندی
+      var wishTrigger = target.closest(&#x27;[data-toggle-wish]&#x27;);
+      if (wishTrigger) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleWishlist(wishTrigger.getAttribute(&#x27;data-toggle-wish&#x27;));
+        return;
+      }
+
+      // انتخاب کارت دسته‌بندی
+      var catCard = target.closest(&#x27;[data-cat-pick]&#x27;);
+      if (catCard) {
+        state.selectedCategory = catCard.getAttribute(&#x27;data-cat-pick&#x27;);
+        state.onlyDiscounted = false;
+        renderCategoriesSection();
+        renderMainStoreGrid();
+        closeProductDetailAndGoTo(&#x27;shopSection&#x27;);
+        return;
+      }
+
+      // فیلتر قرصی دسته‌بندی
+      var pillCat = target.closest(&#x27;[data-pill-cat]&#x27;);
+      if (pillCat) {
+        state.selectedCategory = pillCat.getAttribute(&#x27;data-pill-cat&#x27;);
+        state.onlyDiscounted = false;
+        renderCategoriesSection();
+        renderMainStoreGrid();
+        return;
+      }
+
+      // فیلتر قرصی تخفیف‌دار
+      var pillDisc = target.closest(&#x27;[data-pill-discount]&#x27;);
+      if (pillDisc) {
+        state.onlyDiscounted = !state.onlyDiscounted;
+        renderCategoriesSection();
+        renderMainStoreGrid();
+        return;
+      }
+
+      // انتخاب سایز در صفحه جزئیات
+      var sizeChip = target.closest(&#x27;[data-pick-size]&#x27;);
+      if (sizeChip &amp;&amp; state.activeDetailProductId) {
+        state.detailSelectedSize = sizeChip.getAttribute(&#x27;data-pick-size&#x27;);
+        var prod1 = products.find(function (p) {
+          return p.id === state.activeDetailProductId;
+        });
+        if (prod1) renderProductDetailContent(prod1);
+        return;
+      }
+
+      // انتخاب رنگ در صفحه جزئیات
+      var colorChip = target.closest(&#x27;[data-pick-color]&#x27;);
+      if (colorChip &amp;&amp; state.activeDetailProductId) {
+        state.detailSelectedColor = colorChip.getAttribute(&#x27;data-pick-color&#x27;);
+        var prod2 = products.find(function (p) {
+          return p.id === state.activeDetailProductId;
+        });
+        if (prod2) renderProductDetailContent(prod2);
+        return;
+      }
+
+      // کنترل‌های داخل سبد خرید (+ / - / حذف)
+      var incBtn = target.closest(&#x27;[data-cart-inc]&#x27;);
+      if (incBtn) {
+        updateCartItemQty(incBtn.getAttribute(&#x27;data-cart-inc&#x27;), 1);
+        return;
+      }
+      var decBtn = target.closest(&#x27;[data-cart-dec]&#x27;);
+      if (decBtn) {
+        updateCartItemQty(decBtn.getAttribute(&#x27;data-cart-dec&#x27;), -1);
+        return;
+      }
+      var rmBtn = target.closest(&#x27;[data-cart-rm]&#x27;);
+      if (rmBtn) {
+        removeCartItem(rmBtn.getAttribute(&#x27;data-cart-rm&#x27;));
+        return;
+      }
+
+      // لینک‌های ناوبری (خانه، فروشگاه، محصولات جدید، تخفیف‌ها، تماس با ما)
+      var navScroll = target.closest(&#x27;[data-nav-target]&#x27;);
+      if (navScroll) {
+        e.preventDefault();
+        var dest = navScroll.getAttribute(&#x27;data-nav-target&#x27;);
+        var filterCat = navScroll.getAttribute(&#x27;data-nav-cat&#x27;);
+        if (filterCat) {
+          state.selectedCategory = filterCat;
+          state.onlyDiscounted = false;
+          renderCategoriesSection();
+          renderMainStoreGrid();
+        }
+        closeAllDrawers();
+        closeProductDetailAndGoTo(dest);
+      }
+    });
+
+    // جست‌وجوی آنی محصولات
+    var searchInput = document.getElementById(&#x27;productSearchInput&#x27;);
+    if (searchInput) {
+      searchInput.addEventListener(&#x27;input&#x27;, function (e) {
+        state.searchQuery = e.target.value;
+        renderMainStoreGrid();
+      });
+    }
+
+    var clearSearchBtn = document.getElementById(&#x27;clearSearchBtn&#x27;);
+    if (clearSearchBtn) {
+      clearSearchBtn.addEventListener(&#x27;click&#x27;, function () {
+        state.searchQuery = &#x27;&#x27;;
+        if (searchInput) searchInput.value = &#x27;&#x27;;
+        renderMainStoreGrid();
+      });
+    }
+
+    // دکمه جست‌وجوی سریع هدر
+    var headerSearchBtn = document.getElementById(&#x27;headerSearchBtn&#x27;);
+    if (headerSearchBtn) {
+      headerSearchBtn.addEventListener(&#x27;click&#x27;, function () {
+        closeProductDetailAndGoTo(&#x27;shopSection&#x27;);
+        setTimeout(function () {
+          if (searchInput) searchInput.focus();
+        }, 350);
+      });
+    }
+
+    // دکمه نمایش علاقه‌مندی‌ها در هدر
+    var headerWishBtn = document.getElementById(&#x27;headerWishlistBtn&#x27;);
+    if (headerWishBtn) {
+      headerWishBtn.addEventListener(&#x27;click&#x27;, function () {
+        if (state.wishlist.length === 0) {
+          showToast(&#x27;لیست علاقه‌مندی‌های شما خالی است؛ روی آیکون قلب محصولات کلیک کنید.&#x27;);
+          return;
+        }
+        var firstWish = state.wishlist[state.wishlist.length - 1];
+        openProductDetail(firstWish);
+      });
+    }
+
+    // انتخاب دسته‌بندی و مرتب‌سازی از منوی کشویی
+    var catSelect = document.getElementById(&#x27;categorySelect&#x27;);
+    if (catSelect) {
+      catSelect.addEventListener(&#x27;change&#x27;, function (e) {
+        state.selectedCategory = e.target.value;
+        state.onlyDiscounted = false;
+        renderCategoriesSection();
+        renderMainStoreGrid();
+      });
+    }
+
+    var sortSelect = document.getElementById(&#x27;sortSelect&#x27;);
+    if (sortSelect) {
+      sortSelect.addEventListener(&#x27;change&#x27;, function (e) {
+        state.sortBy = e.target.value;
+        renderMainStoreGrid();
+      });
+    }
+
+    var resetFiltersBtn = document.getElementById(&#x27;resetFiltersBtn&#x27;);
+    if (resetFiltersBtn) {
+      resetFiltersBtn.addEventListener(&#x27;click&#x27;, resetAllFilters);
+    }
+
+    // باز و بسته کردن سبد خرید و منوی موبایل
+    document
+      .getElementById(&#x27;openCartBtn&#x27;)
+      .addEventListener(&#x27;click&#x27;, openCartDrawer);
+    document
+      .getElementById(&#x27;closeCartBtn&#x27;)
+      .addEventListener(&#x27;click&#x27;, closeAllDrawers);
+    document
+      .getElementById(&#x27;openMobileMenuBtn&#x27;)
+      .addEventListener(&#x27;click&#x27;, openMobileMenu);
+    document
+      .getElementById(&#x27;closeMobileMenuBtn&#x27;)
+      .addEventListener(&#x27;click&#x27;, closeAllDrawers);
+    document
+      .getElementById(&#x27;globalBackdrop&#x27;)
+      .addEventListener(&#x27;click&#x27;, closeAllDrawers);
+
+    // کپی کد تخفیف ALVARO10
+    var copyCouponBtn = document.getElementById(&#x27;copyPromoCouponBtn&#x27;);
+    if (copyCouponBtn) {
+      copyCouponBtn.addEventListener(&#x27;click&#x27;, function () {
+        state.couponCode = &#x27;ALVARO10&#x27;;
+        state.couponDiscountPercent = 10;
+        var couponInput = document.getElementById(&#x27;cartCouponInput&#x27;);
+        if (couponInput) couponInput.value = &#x27;ALVARO10&#x27;;
+        renderCartUI();
+        showToast(&#x27;کد تخفیف ۱۰٪ (ALVARO10) روی سبد خرید شما فعال شد!&#x27;);
+      });
+    }
+
+    // اعمال کد تخفیف در سبد خرید
+    var applyCouponBtn = document.getElementById(&#x27;applyCouponBtn&#x27;);
+    if (applyCouponBtn) {
+      applyCouponBtn.addEventListener(&#x27;click&#x27;, function () {
+        var input = document.getElementById(&#x27;cartCouponInput&#x27;);
+        var code = ((input &amp;&amp; input.value) || &#x27;&#x27;).trim().toUpperCase();
+        if (code === &#x27;ALVARO10&#x27;) {
+          state.couponCode = code;
+          state.couponDiscountPercent = 10;
+          renderCartUI();
+          showToast(&#x27;کد تخفیف ۱۰٪ آلوارو با موفقیت اعمال شد.&#x27;);
+        } else {
+          state.couponCode = &#x27;&#x27;;
+          state.couponDiscountPercent = 0;
+          renderCartUI();
+          showToast(&#x27;کد واردشده معتبر نیست (کد آزمایشی: ALVARO10).&#x27;);
+        }
+      });
+    }
+
+    // ثبت سفارش آزمایشی (بدون درگاه واقعی)
+    var checkoutBtn = document.getElementById(&#x27;proceedDemoCheckoutBtn&#x27;);
+    if (checkoutBtn) {
+      checkoutBtn.addEventListener(&#x27;click&#x27;, function () {
+        closeAllDrawers();
+        var totals = calculateCartTotals();
+        document.getElementById(&#x27;checkoutModalPayable&#x27;).textContent =
+          formatToman(totals.payable);
+        document.getElementById(&#x27;demoCheckoutFormWrap&#x27;).classList.remove(&#x27;hidden&#x27;);
+        document.getElementById(&#x27;demoCheckoutSuccessWrap&#x27;).classList.add(&#x27;hidden&#x27;);
+        openModal(&#x27;demoCheckoutModal&#x27;);
+      });
+    }
+
+    var demoCheckoutForm = document.getElementById(&#x27;demoCheckoutForm&#x27;);
+    if (demoCheckoutForm) {
+      demoCheckoutForm.addEventListener(&#x27;submit&#x27;, function (e) {
+        e.preventDefault();
+        var customerName = document.getElementById(&#x27;chkName&#x27;).value.trim();
+        var tracking =
+          &#x27;ALV-&#x27; + toPersianDigits(Math.floor(100000 + Math.random() * 900000));
+        document.getElementById(&#x27;demoTrackingCode&#x27;).textContent = tracking;
+        document.getElementById(&#x27;demoCustomerGreeting&#x27;).textContent =
+          customerName || &#x27;مشتری گرامی&#x27;;
+        document.getElementById(&#x27;demoCheckoutFormWrap&#x27;).classList.add(&#x27;hidden&#x27;);
+        document
+          .getElementById(&#x27;demoCheckoutSuccessWrap&#x27;)
+          .classList.remove(&#x27;hidden&#x27;);
+
+        // خالی کردن سبد خرید پس از ثبت آزمایشی
+        state.cart = [];
+        state.couponDiscountPercent = 0;
+        saveStorage(STORAGE_CART_KEY, state.cart);
+        renderCartUI();
+      });
+    }
+
+    // بستن مودال‌ها
+    var closeCheckoutModalBtn = document.getElementById(&#x27;closeCheckoutModalBtn&#x27;);
+    if (closeCheckoutModalBtn) {
+      closeCheckoutModalBtn.addEventListener(&#x27;click&#x27;, function () {
+        closeModal(&#x27;demoCheckoutModal&#x27;);
+      });
+    }
+    var closeSizeModalBtn = document.getElementById(&#x27;closeSizeGuideModalBtn&#x27;);
+    if (closeSizeModalBtn) {
+      closeSizeModalBtn.addEventListener(&#x27;click&#x27;, function () {
+        closeModal(&#x27;sizeGuideModal&#x27;);
+      });
+    }
+
+    // فرم تماس با ما
+    var contactForm = document.getElementById(&#x27;contactUsForm&#x27;);
+    if (contactForm) {
+      contactForm.addEventListener(&#x27;submit&#x27;, function (e) {
+        e.preventDefault();
+        var fullName = document.getElementById(&#x27;contactName&#x27;).value.trim();
+        var msgBox = document.getElementById(&#x27;contactSuccessNotice&#x27;);
+        if (msgBox) {
+          msgBox.textContent =
+            &#x27;پیام آزمایشی شما با نام «&#x27; +
+            fullName +
+            &#x27;» با موفقیت ثبت شد. در نسخه عملیاتی مشتری، این فرم مستقیماً به پنل مدیریت و پیامک متصل می‌گردد.&#x27;;
+          msgBox.classList.remove(&#x27;hidden&#x27;);
+        }
+        contactForm.reset();
+        showToast(&#x27;پیام شما با موفقیت ثبت گردید.&#x27;);
+      });
+    }
+
+    // فرم خبرنامه فوتر
+    var newsletterForm = document.getElementById(&#x27;newsletterForm&#x27;);
+    if (newsletterForm) {
+      newsletterForm.addEventListener(&#x27;submit&#x27;, function (e) {
+        e.preventDefault();
+        newsletterForm.reset();
+        showToast(&#x27;عضویت آزمایشی شما در باشگاه مشتریان VIP آلوارو ثبت شد.&#x27;);
+      });
+    }
+
+    // کلید ESC برای بستن کشوها و مودال‌ها
+    document.addEventListener(&#x27;keydown&#x27;, function (e) {
+      if (e.key === &#x27;Escape&#x27;) {
+        closeAllDrawers();
+        closeModal(&#x27;demoCheckoutModal&#x27;);
+        closeModal(&#x27;sizeGuideModal&#x27;);
+      }
+    });
+
+    // پشتیبانی از دکمه بازگشت مرورگر موبایل در صفحه محصول
+    window.addEventListener(&#x27;popstate&#x27;, function () {
+      var hash = window.location.hash || &#x27;&#x27;;
+      if (hash.indexOf(&#x27;#product/&#x27;) === 0) {
+        var pid = hash.replace(&#x27;#product/&#x27;, &#x27;&#x27;);
+        openProductDetail(pid, false);
+      } else if (state.activeDetailProductId) {
+        closeProductDetailAndGoTo();
+      }
+    });
+  }
+
+  // ==================== مقداردهی اولیه ====================
+  function initApp() {
+    renderCategoriesSection();
+    renderCuratedHomepageSections();
+    renderMainStoreGrid();
+    renderCartUI();
+    bindGlobalEvents();
+
+    // بررسی Hash اولیه در صورت اشتراک‌گذاری لینک مستقیم یک محصول
+    if (window.location.hash &amp;&amp; window.location.hash.indexOf(&#x27;#product/&#x27;) === 0) {
+      var initialPid = window.location.hash.replace(&#x27;#product/&#x27;, &#x27;&#x27;);
+      openProductDetail(initialPid, false);
+    }
+  }
+
+  if (document.readyState === &#x27;loading&#x27;) {
+    document.addEventListener(&#x27;DOMContentLoaded&#x27;, initApp);
+  } else {
+    initApp();
+  }
+})();
+</code></pre>
+<hr><h2>FILE: README-FA.md (3870 chars)</h2>
+<pre><code># راهنمای کامل اجرا و بارگذاری فروشگاه اینترنتی ALVARO FASHION
+
+این پروژه یک وب‌سایت فروشگاهی کامل، لوکس، راست‌چین (`RTL`) و واکنش‌گرا با رنگ‌بندی اختصاصی **سفید، مشکی و طلایی** است که بدون نیاز به سرور یا دیتابیس، آماده نمایش به‌عنوان **نمونه‌کار حرفه‌ای طراحی وب‌سایت** به مشتریان و کارفرمایان ایرانی است.
+
+---
+
+## ۱. ساختار مرتب فایل‌ها و پوشه‌ها
+
+```text
+alvaro-fashion/
+├── index.html                  ← فایل اصلی سایت (نقطه شروع)
+├── manifest.webmanifest        ← تنظیمات وب‌اپ موبایل برای Chrome اندروید
+├── .htaccess                   ← تنظیمات بهینه‌سازی سرعت برای هاست لینوکسی (cPanel/DirectAdmin)
+├── README-FA.md                ← راهنمای کامل اجرا و بارگذاری روی هاست
+└── assets/
+    ├── css/
+    │   └── style.css           ← استایل اختصاصی لوکس و واکنش‌گرا (موبایل، تبلت، دسکتاپ)
+    ├── js/
+    │   ├── products-data.js    ← اطلاعات ۱۶ محصول در ۸ دسته‌بندی پوشاک زنانه (قابل ویرایش آسان)
+    │   └── app.js              ← منطق جست‌وجو، فیلتر، مرتب‌سازی، صفحه محصول، سبد خرید و فرم‌ها
+    ├── fonts/                  ← فونت فارسی وزیرمتن محلی (بدون وابستگی به اینترنت خارجی)
+    └── images/
+        ├── logo-alvaro.svg     ← لوگوی اختصاصی ALVARO FASHION (زمینه روشن)
+        ├── logo-alvaro-light.svg ← لوگوی اختصاصی (زمینه تیره)
+        ├── favicon.svg         ← آیکون تب مرورگر
+        ├── hero-banner.jpg     ← تصویر بنر اصلی تبلیغاتی
+        ├── brand-atelier.jpg   ← تصویر بخش معرفی برند و آتلیه
+        └── products/           ← تصاویر باکیفیت ۱۶ محصول پوشاک، کیف و کفش زنانه
+```
+
+---
+
+## ۲. روش‌های اجرای فوری سایت (بدون نیاز به سرور)
+
+### الف) اجرا روی کامپیوتر (ویندوز / مک / لینوکس)
+1. فایل فشرده `ALVARO-FASHION-Complete-Package.zip` را از حالت فشرده خارج (`Extract`) کنید.
+2. مستقیماً روی فایل **`index.html`** دابل‌کلیک کنید تا در مرورگر Chrome، Edge یا Firefox باز شود.
+3. تمامی امکانات (جست‌وجو، فیلتر، مرتب‌سازی، صفحه جزئیات محصول، سبد خرید با ذخیره خودکار در مرورگر و فرم‌ها) بلافاصله کار می‌کنند.
+
+### ب) اجرا روی گوشی اندروید (مرورگر Chrome)
+- **روش آنلاین (پیشنهادی برای پرزنت به مشتری):** لینک آنلاین هاست یا پیش‌نمایش را در مرورگر Chrome اندروید باز کنید (همچنین می‌توانید از منوی سه نقطه کروم گزینه `Add to Home screen` را بزنید تا آیکون سایت روی صفحه گوشی قرار بگیرد).
+- **روش آفلاین:** پوشه استخراج‌شده را به حافظه گوشی منتقل کرده و فایل `index.html` را با Chrome باز نمایید.
+
+---
+
+## ۳. راهنمای بارگذاری روی هاست ایرانی (cPanel / DirectAdmin)
+
+این بسته ۱۰۰٪ آماده آپلود مستقیم روی هر هاست اشتراکی لینوکسی (مانند نت‌افراز، ایران‌سرور، پارس‌پک، میزبان‌فا و...) است:
+
+1. وارد کنترل‌پنل هاست (`cPanel` یا `DirectAdmin`) شوید و بخش **File Manager** را باز کنید.
+2. وارد پوشه **`public_html`** (یا یک زیرپوشه نمونه‌کار مانند `public_html/demo/alvaro`) شوید.
+3. فایل **`ALVARO-FASHION-Complete-Package.zip`** را آپلود (`Upload`) کرده و روی آن کلیک راست و گزینه **`Extract`** را انتخاب کنید (مطمئن شوید `index.html` و پوشه `assets` مستقیماً داخل همان مسیر قرار گرفته‌اند).
+4. اکنون آدرس دامنه یا زیرپوشه خود را باز کنید؛ سایت با سرعت بسیار بالا و فونت فارسی محلی آماده نمایش است!
+
+---
+
+## ۴. راهنمای استفاده در سامانه‌های سایت‌ساز و المنتور وردپرس
+
+- اگر از هاست‌های رایگان بین‌المللی مانند **Netlify Drop** (`app.netlify.com/drop`) یا **Cloudflare Pages** استفاده می‌کنید، کافی است پوشه `alvaro-fashion` یا فایل `ZIP` را بکشید و رها کنید (`Drag &amp; Drop`) تا در چند ثانیه لینک HTTPS رایگان دریافت نمایید.
+- برای ویرایش محصولات، قیمت‌ها یا افزودن کالای جدید کافی است فایل `assets/js/products-data.js` را با هر ویرایشگر متنی (مانند Notepad یا VS Code) باز کرده و نام، قیمت یا توضیحات را تغییر دهید.
+
+---
+
+## ۵. نکات آزمایشی برای ارائه به کارفرما
+- کد تخفیف آزمایشی فعال برای تست در سبد خرید: **`ALVARO10`** (اعمال ۱۰٪ تخفیف روی کل سبد).
+- ارسال رایگان خودکار برای سبدهای خرید بالای ۵٬۰۰۰٬۰۰۰ تومان محاسبه می‌شود.
+- هیچ درگاه پرداخت واقعی یا اطلاعات شخصی جعلی در پروژه درج نشده است تا امنیت و اعتبار پرزنت تجاری شما نزد مشتری کاملاً حفظ شود.
+</code></pre>
+</body></html>
