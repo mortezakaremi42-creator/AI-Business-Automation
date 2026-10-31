@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0D0D0F" />
+  <meta
+    name="description"
+    content="فروشگاه اینترنتی پوشاک لوکس زنانه ALVARO FASHION — زیبایی در انتخاب استایل شما. کالکشن اختصاصی مانتو، شومیز، لباس مجلسی، کت، کیف و کفش زنانه."
+  />
+  <title>ALVARO FASHION | فروشگاه آنلاین پوشاک لوکس زنانه</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+  <!-- نوار اعلان بالای صفحه -->
+  <div class="topbar">
+    <div class="container topbar-inner">
+      <div>
+        ارسال اکسپرس <span class="topbar-highlight">رایگان VIP</span> برای سفارش‌های بالای ۵ میلیون تومان | کد تخفیف ۱۰٪ فصل: <span class="topbar-highlight">ALVARO10</span>
+      </div>
+      <span class="topbar-demo-tag">نسخه نمایشی (دمو) نمونه‌کار طراحی سایت — سفارش‌ها آزمایشی است</span>
+    </div>
+  </div>
+
+  <!-- هدر حرفه‌ای چسبان -->
+  <header class="site-header" id="siteHeader">
+    <div class="container header-inner">
+      <!-- دکمه منوی موبایل -->
+      <button
+        type="button"
+        class="icon-btn mobile-menu-toggle"
+        id="openMobileMenuBtn"
+        aria-label="باز کردن منوی موبایل"
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- لوگوی برند ALVARO FASHION -->
+      <a href="#heroSection" class="brand-logo" data-nav-target="heroSection" aria-label="صفحه اصلی ALVARO FASHION">
+        <img src="assets/images/logo-alvaro.svg" alt="ALVARO FASHION" width="195" height="48" />
+      </a>
+
+      <!-- منوی اصلی دسکتاپ -->
+      <nav class="main-nav" aria-label="منوی اصلی سایت">
+        <a href="#heroSection" class="nav-link active" data-nav-target="heroSection">خانه</a>
+        <a href="#shopSection" class="nav-link" data-nav-target="shopSection">فروشگاه</a>
+        <a href="#newArrivalsSection" class="nav-link" data-nav-target="newArrivalsSection">محصولات جدید</a>
+        <a href="#specialOffersSection" class="nav-link" data-nav-target="specialOffersSection">تخفیف‌ها</a>
+        <a href="#contactSection" class="nav-link" data-nav-target="contactSection">تماس با ما</a>
+      </nav>
+
+      <!-- ابزارهای هدر: جست‌وجو، علاقه‌مندی، سبد خرید -->
+      <div class="header-actions">
+        <button
+          type="button"
+          class="icon-btn"
+          id="headerSearchBtn"
+          aria-label="جست‌وجوی محصولات"
+          title="جست‌وجوی محصولات"
+        >
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
+
+        <button
+          type="button"
+          class="icon-btn"
+          id="headerWishlistBtn"
+          aria-label="لیست علاقه‌مندی‌ها"
+          title="لیست علاقه‌مندی‌ها"
+        >
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+          <span class="badge-count" id="wishCountBadge">۰</span>
+        </button>
+
+        <button
+          type="button"
+          class="icon-btn"
+          id="openCartBtn"
+          aria-label="مشاهده سبد خرید"
+          title="سبد خرید"
+        >
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+          <span class="badge-count" id="cartCountBadge">۰</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- محتوای اصلی صفحه خانه و فروشگاه -->
+  <main id="homeMainContent">
+
+    <!-- ۱. بنر بزرگ تبلیغاتی (Hero Section) -->
+    <section class="hero-section" id="heroSection">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="hero-eyebrow">ALVARO COUTURE • NEW COLLECTION</div>
+          <h1 class="hero-title">
+            زیبایی در <span>انتخاب استایل شما</span>
+          </h1>
+          <p class="hero-lead">
+            تجربه‌ای متمایز از مد معاصر در خانه مد <strong>ALVARO FASHION</strong>؛ تلفیق پارچه‌های اصیل، برش‌های دقیق مزونی و هارمونی ماندگار سفید، مشکی و طلایی برای بانوانی که به اصالت پوشش خود اهمیت می‌دهند.
+          </p>
+          <div class="hero-cta-group">
+            <a href="#shopSection" class="btn btn-gold" data-nav-target="shopSection">
+              ورود به فروشگاه
+              <span aria-hidden="true">←</span>
+            </a>
+            <a href="#specialOffersSection" class="btn btn-outline-light" data-nav-target="specialOffersSection">
+              مشاهده پیشنهادهای ویژه
+            </a>
+          </div>
+          <div class="hero-metrics">
+            <div>
+              <span class="hero-metric-num">+۱۶ استایل</span>
+              <span class="hero-metric-label">در ۸ دسته‌بندی تخصصی</span>
+            </div>
+            <div>
+              <span class="hero-metric-num">۱۰۰٪ مزونی</span>
+              <span class="hero-metric-label">دوخت دقیق و پارچه ممتاز</span>
+            </div>
+            <div>
+              <span class="hero-metric-num">۷ روز ضمانت</span>
+              <span class="hero-metric-label">تعویض آسان سایز و مدل</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="hero-image-frame">
+            <img
+              src="assets/images/hero-banner.jpg"
+              alt="کالکشن لوکس زنانه ALVARO FASHION — زیبایی در انتخاب استایل شما"
+            />
+            <div class="hero-floating-card">
+              <strong>کالکشن اختصاصی وایت اند گلد</strong>
+              <span>طراحی محدود با جزئیات یراق طلایی مات</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- نوار مزیت‌های تجاری -->
+    <section class="pillars-strip" aria-label="مزیت‌های خرید از آلوارو فشن">
+      <div class="container pillars-grid">
+        <div class="pillar-item">
+          <div class="pillar-icon">✦</div>
+          <div>
+            <strong>پارچه‌های منتخب وارداتی</strong>
+            <span>ابریشم، مخمل، کرپ و چرم طبیعی</span>
+          </div>
+        </div>
+        <div class="pillar-item">
+          <div class="pillar-icon">♛</div>
+          <div>
+            <strong>بسته‌بندی هدیه VIP</strong>
+            <span>جعبه سخت مشکی با روبان طلایی آلوارو</span>
+          </div>
+        </div>
+        <div class="pillar-item">
+          <div class="pillar-icon">⚡</div>
+          <div>
+            <strong>ارسال سریع سراسر ایران</strong>
+            <span>پیک اختصاصی تهران و پست ویژه شهرستان</span>
+          </div>
+        </div>
+        <div class="pillar-item">
+          <div class="pillar-icon">↺</div>
+          <div>
+            <strong>ضمانت تعویض سایز</strong>
+            <span>پشتیبانی تخصصی انتخاب سایز قبل از خرید</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ۲. دسته‌بندی محصولات -->
+    <section class="section-block" id="categoriesSection">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-eyebrow">CURATED CATEGORIES</span>
+            <h2 class="section-title">دسته‌بندی محصولات آلوارو</h2>
+            <p class="section-desc">برای مشاهده مدل‌های هر بخش، روی دسته‌بندی دلخواه خود کلیک کنید.</p>
+          </div>
+        </div>
+        <div class="categories-grid" id="categoriesGrid"></div>
+      </div>
+    </section>
+
+    <!-- ۳. محصولات پرفروش -->
+    <section class="section-block" id="bestSellersSection" style="background: var(--clr-stone);">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-eyebrow">MOST LOVED PIECES</span>
+            <h2 class="section-title">محصولات پرفروش</h2>
+            <p class="section-desc">محبوب‌ترین انتخاب‌های مشتریان ALVARO FASHION در فصل جاری</p>
+          </div>
+          <a href="#shopSection" class="btn btn-outline-dark" data-nav-target="shopSection">مشاهده کل فروشگاه</a>
+        </div>
+        <div class="products-grid" id="bestSellersGrid"></div>
+      </div>
+    </section>
+
+    <!-- ۴. فروشگاه کامل با جست‌وجو، فیلتر دسته‌بندی و مرتب‌سازی قیمت -->
+    <section class="section-block" id="shopSection">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-eyebrow">ALVARO BOUTIQUE</span>
+            <h2 class="section-title">فروشگاه آنلاین آلوارو فشن</h2>
+            <p class="section-desc">جست‌وجو، فیلتر بر اساس دسته‌بندی و مرتب‌سازی هوشمند قیمت به تومان</p>
+          </div>
+        </div>
+
+        <!-- نوار ابزار جست‌وجو و فیلتر -->
+        <div class="shop-toolbar">
+          <div class="toolbar-top">
+            <!-- جست‌وجوی محصولات -->
+            <div class="search-box">
+              <span class="search-icon" aria-hidden="true">🔍</span>
+              <input
+                type="search"
+                id="productSearchInput"
+                placeholder="جست‌وجوی نام محصول، جنس پارچه یا دسته‌بندی (مثلاً: مانتو، مخمل، کیف)..."
+                aria-label="جست‌وجوی محصولات"
+              />
+              <button
+                type="button"
+                class="search-clear-btn hidden"
+                id="clearSearchBtn"
+                aria-label="پاک کردن جست‌وجو"
+              >
+                ✕
+              </button>
+            </div>
+
+            <!-- فیلتر کشویی دسته‌بندی -->
+            <div>
+              <select id="categorySelect" class="toolbar-select" aria-label="فیلتر دسته‌بندی">
+                <option value="all">همه محصولات</option>
+              </select>
+            </div>
+
+            <!-- مرتب‌سازی قیمت -->
+            <div>
+              <select id="sortSelect" class="toolbar-select" aria-label="مرتب‌سازی محصولات">
+                <option value="featured">مرتب‌سازی: پیشنهاد مزون آلوارو</option>
+                <option value="price-asc">قیمت: ارزان‌ترین به گران‌ترین</option>
+                <option value="price-desc">قیمت: گران‌ترین به ارزان‌ترین</option>
+                <option value="newest">جدیدترین کالکشن</option>
+                <option value="discount">بیشترین درصد تخفیف</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- دکمه‌های قرصی فیلتر سریع -->
+          <div class="filter-pills" id="categoryFilterPills"></div>
+        </div>
+
+        <div class="results-meta">
+          <span id="shopResultsCount">در حال بارگذاری محصولات...</span>
+          <button
+            type="button"
+            class="btn-card-view hidden"
+            id="resetFiltersBtn"
+            style="padding: 4px 12px; min-height: 32px;"
+          >
+            پاک‌سازی همه فیلترها ✕
+          </button>
+        </div>
+
+        <div class="products-grid" id="shopProductsGrid"></div>
+      </div>
+    </section>
+
+    <!-- ۵. جدیدترین محصولات -->
+    <section class="section-block" id="newArrivalsSection" style="background: var(--clr-white); border-top: 1px solid var(--clr-border);">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-eyebrow">JUST ARRIVED</span>
+            <h2 class="section-title">جدیدترین محصولات</h2>
+            <p class="section-desc">تازه‌ترین طراحی‌های دوخته‌شده در آتلیه اختصاصی آلوارو</p>
+          </div>
+        </div>
+        <div class="products-grid" id="newArrivalsGrid"></div>
+      </div>
+    </section>
+
+    <!-- ۶. پیشنهادهای ویژه و تخفیف‌ها -->
+    <section class="section-block special-offers-section" id="specialOffersSection">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-eyebrow">EXCLUSIVE PRIVILEGE</span>
+            <h2 class="section-title">پیشنهادهای ویژه و تخفیف‌های فصل</h2>
+            <p class="section-desc">فرصت محدود تهیه استایل‌های منتخب ALVARO FASHION با قیمت ویژه</p>
+          </div>
+        </div>
+
+        <div class="promo-coupon-banner">
+          <div>
+            <strong style="color: var(--clr-gold-light); font-size: 1.02rem; display: block;">
+              هدیه ویژه بازدیدکنندگان فروشگاه: ۱۰٪ تخفیف مازاد روی کل سبد خرید
+            </strong>
+            <span style="font-size: 0.85rem; color: #d5cfc3;">
+              با کلیک روی دکمه روبه‌رو، کد تخفیف آزمایشی به صورت خودکار روی سبد خرید شما فعال می‌شود.
+            </span>
+          </div>
+          <button type="button" class="coupon-code-chip" id="copyPromoCouponBtn">
+            فعال‌سازی کد: ALVARO10
+          </button>
+        </div>
+
+        <div class="products-grid" id="specialOffersGrid"></div>
+      </div>
+    </section>
+
+    <!-- ۷. معرفی برند ALVARO FASHION -->
+    <section class="section-block" id="aboutBrandSection">
+      <div class="container brand-story-grid">
+        <div class="brand-story-copy">
+          <span class="section-eyebrow">THE HOUSE OF ALVARO</span>
+          <h2 class="section-title" style="margin-bottom: 16px;">معرفی برند ALVARO FASHION</h2>
+          <p style="color: #413e39; margin: 0 0 14px;">
+            خانه مد <strong>ALVARO FASHION</strong> با فلسفه «زیبایی در سادگی اصیل و جزئیات بی‌نقص» شکل گرفته است. ما باور داریم هر قطعه پوشاک باید فراتر از ترندهای زودگذر، سال‌ها در کمد لباس شما بدرخشد و امضای شخصی استایل شما باشد.
+          </p>
+          <p style="color: #66625b; margin: 0;">
+            از انتخاب دقیق کرپ‌ها، ابریشم‌ها و چرم‌های طبیعی تا دوخت ظریف یراق‌های طلایی و کنترل کیفی سه‌مرحله‌ای در آتلیه، تمام جزئیات برای خلق حسی از وقار، راحتی و اعتمادبه‌نفس طراحی شده‌اند.
+          </p>
+
+          <ul class="brand-values-list">
+            <li>الگوسازی استاندارد متناسب با اندام بانوان ایرانی</li>
+            <li>استفاده از یراق‌آلات فلزی با آبکاری طلایی ماندگار</li>
+            <li>تولید در تیراژ محدود جهت حفظ تمایز استایل شما</li>
+            <li>بسته‌بندی لوکس آماده هدیه بدون هزینه اضافه</li>
+          </ul>
+
+          <a href="#shopSection" class="btn btn-obsidian" data-nav-target="shopSection">
+            کشف کالکشن کامل آلوارو
+          </a>
+        </div>
+
+        <div class="brand-story-image">
+          <img
+            src="assets/images/brand-atelier.jpg"
+            alt="نمایشگاه و آتلیه طراحی برند ALVARO FASHION"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- ۸. بخش تماس با ما -->
+    <section class="section-block" id="contactSection" style="background: var(--clr-stone);">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-eyebrow">CLIENT CONCIERGE</span>
+            <h2 class="section-title">تماس با ما و مشاوره استایل</h2>
+            <p class="section-desc">سوالات خود درباره سایزبندی، سفارش عمده یا هماهنگی ست‌ها را با ما در میان بگذارید.</p>
+          </div>
+        </div>
+
+        <div class="contact-grid">
+          <div class="contact-info-card">
+            <h3>واحد امور مشتریان ALVARO</h3>
+            <p style="color: #cfc9bd; font-size: 0.88rem;">
+              این بخش به‌عنوان نمونه‌کار حرفه‌ای طراحی وب‌سایت فروشگاهی پیاده‌سازی شده است و در زمان تحویل به کارفرما، اطلاعات تماس رسمی برند جایگزین مقادیر نمونه زیر می‌گردد.
+            </p>
+            <ul class="contact-info-list">
+              <li>
+                <strong style="color: var(--clr-gold-light);">ساعات پاسخگویی مزون:</strong><br />
+                شنبه تا پنج‌شنبه — ساعت ۱۰:۰۰ الی ۲۱:۰۰
+              </li>
+              <li>
+                <strong style="color: var(--clr-gold-light);">پست الکترونیک نمونه:</strong><br />
+                concierge@alvaro-fashion.example
+              </li>
+              <li>
+                <strong style="color: var(--clr-gold-light);">تلفن نمونه نمایشگاه:</strong><br />
+                ۰۲۱-۰۰۰۰۰۰۰۰ (شماره نمایشی دمو)
+              </li>
+              <li>
+                <strong style="color: var(--clr-gold-light);">نشانی نمونه شوروم:</strong><br />
+                تهران، بلوار نمونه، پلاک آزمایشی (ویژه پیش‌نمایش قالب فروشگاهی)
+              </li>
+            </ul>
+          </div>
+
+          <div class="contact-form-card">
+            <form id="contactUsForm">
+              <div class="form-row-2">
+                <div class="field-group">
+                  <label for="contactName">نام و نام خانوادگی *</label>
+                  <input type="text" id="contactName" required placeholder="نام خود را وارد کنید" />
+                </div>
+                <div class="field-group">
+                  <label for="contactPhone">شماره تماس یا ایمیل *</label>
+                  <input type="text" id="contactPhone" required placeholder="مثلاً ۰۹۱۲۰۰۰۰۰۰۰" />
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label for="contactTopic">موضوع پیام</label>
+                <select id="contactTopic">
+                  <option value="مشاوره انتخاب سایز و استایل">مشاوره انتخاب سایز و استایل</option>
+                  <option value="پیگیری سفارش آزمایشی">پیگیری سفارش آزمایشی</option>
+                  <option value="همکاری تجاری و سفارش طراحی سایت">همکاری تجاری و سفارش طراحی سایت</option>
+                </select>
+              </div>
+
+              <div class="field-group">
+                <label for="contactMessage">متن پیام شما *</label>
+                <textarea
+                  id="contactMessage"
+                  rows="4"
+                  required
+                  placeholder="پیام یا درخواست خود را بنویسید..."
+                ></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-obsidian" style="width: 100%;">
+                ارسال پیام به واحد پشتیبانی
+              </button>
+
+              <div
+                id="contactSuccessNotice"
+                class="hidden"
+                style="margin-top: 14px; padding: 12px 14px; border-radius: 6px; background: rgba(31,111,80,0.1); border: 1px solid #1f6f50; color: #1f6f50; font-size: 0.86rem; font-weight: 700;"
+              ></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- صفحه مستقل جزئیات محصول (Product Detail View) -->
+  <section id="productDetailView" class="product-detail-page hidden" aria-live="polite">
+    <div class="container" id="productDetailContainer"></div>
+  </section>
+
+  <!-- ۹. فوتر کامل و حرفه‌ای -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <img
+            src="assets/images/logo-alvaro-light.svg"
+            alt="ALVARO FASHION"
+            width="195"
+            height="48"
+            style="margin-bottom: 14px;"
+          />
+          <p style="font-size: 0.86rem; line-height: 1.85; color: #bdb6a8; margin: 0;">
+            فروشگاه اینترنتی پوشاک، کیف و کفش لوکس زنانه ALVARO FASHION؛ ترکیب طراحی مینیمال مدرن، کیفیت دوخت مزونی و تجربه خرید آنلاین سریع و لذت‌بخش در موبایل و دسکتاپ.
+          </p>
+        </div>
+
+        <div>
+          <h3 class="footer-title">دسترسی سریع</h3>
+          <ul class="footer-links">
+            <li><a href="#heroSection" data-nav-target="heroSection">صفحه اصلی</a></li>
+            <li><a href="#shopSection" data-nav-target="shopSection">فروشگاه آنلاین</a></li>
+            <li><a href="#newArrivalsSection" data-nav-target="newArrivalsSection">محصولات جدید</a></li>
+            <li><a href="#specialOffersSection" data-nav-target="specialOffersSection">پیشنهادهای ویژه</a></li>
+            <li><a href="#aboutBrandSection" data-nav-target="aboutBrandSection">درباره برند آلوارو</a></li>
+            <li><a href="#contactSection" data-nav-target="contactSection">تماس با ما</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="footer-title">دسته‌بندی‌های منتخب</h3>
+          <ul class="footer-links">
+            <li><button type="button" data-nav-target="shopSection" data-nav-cat="manto">مانتو زنانه مزونی</button></li>
+            <li><button type="button" data-nav-target="shopSection" data-nav-cat="majlesi">لباس مجلسی شب</button></li>
+            <li><button type="button" data-nav-target="shopSection" data-nav-cat="shomiz">شومیز ابریشمی</button></li>
+            <li><button type="button" data-nav-target="shopSection" data-nav-cat="coat">کت و بلیزر زنانه</button></li>
+            <li><button type="button" data-nav-target="shopSection" data-nav-cat="bag">کیف دستی چرم</button></li>
+            <li><button type="button" data-nav-target="shopSection" data-nav-cat="shoes">کفش پاشنه‌بلند</button></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="footer-title">عضویت در باشگاه استایل VIP</h3>
+          <p style="font-size: 0.83rem; color: #bdb6a8; margin: 0;">
+            از زمان عرضه کالکشن‌های محدود و تخفیف‌های خصوصی فصل زودتر از دیگران باخبر شوید.
+          </p>
+          <form class="newsletter-form" id="newsletterForm">
+            <input
+              type="email"
+              required
+              placeholder="ایمیل خود را وارد کنید..."
+              aria-label="ایمیل برای عضویت در خبرنامه"
+            />
+            <button type="submit" class="btn btn-gold" style="padding: 0 18px; min-height: 44px;">
+              ثبت
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© تمامی حقوق طراحی قالب و هویت بصری متعلق به نمونه‌کار فروشگاهی <strong>ALVARO FASHION</strong> است.</span>
+        <span>نسخه آزمایشی استاندارد HTML5 / CSS3 / JS — بدون درگاه بانکی واقعی</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- پس‌زمینه محو کشوها -->
+  <div class="backdrop" id="globalBackdrop"></div>
+
+  <!-- کشوی سبد خرید فعال -->
+  <aside class="drawer drawer-left" id="cartDrawer" aria-label="سبد خرید شما">
+    <div class="drawer-header">
+      <strong style="font-size: 1.02rem;">🛍️ سبد خرید ALVARO</strong>
+      <button type="button" class="icon-btn" id="closeCartBtn" aria-label="بستن سبد خرید" style="width: 36px; height: 36px;">✕</button>
+    </div>
+
+    <div class="drawer-body" id="cartItemsContainer"></div>
+
+    <div class="drawer-footer hidden" id="cartDrawerFooter">
+      <div class="cart-coupon-row">
+        <input
+          type="text"
+          id="cartCouponInput"
+          placeholder="کد تخفیف (مثلاً ALVARO10)"
+          aria-label="کد تخفیف"
+        />
+        <button type="button" class="btn-card-quickadd" id="applyCouponBtn">اعمال کد</button>
+      </div>
+
+      <div class="summary-line">
+        <span>جمع جزء کالاها:</span>
+        <strong id="cartSubtotalText">۰ تومان</strong>
+      </div>
+      <div class="summary-line" style="color: #1f6f50;">
+        <span>کسر کد تخفیف:</span>
+        <strong id="cartDiscountText">۰ تومان</strong>
+      </div>
+      <div class="summary-line">
+        <span>هزینه ارسال:</span>
+        <strong id="cartShippingText">رایگان</strong>
+      </div>
+      <div class="summary-total">
+        <span>مبلغ قابل پرداخت:</span>
+        <span id="cartTotalPayableText" style="color: var(--clr-gold-dark);">۰ تومان</span>
+      </div>
+
+      <button type="button" class="btn btn-gold" id="proceedDemoCheckoutBtn" style="width: 100%;">
+        ثبت سفارش آزمایشی (دمو)
+      </button>
+    </div>
+  </aside>
+
+  <!-- کشوی منوی موبایل -->
+  <aside class="drawer drawer-right" id="mobileMenuDrawer" aria-label="منوی موبایل">
+    <div class="drawer-header">
+      <img src="assets/images/logo-alvaro-light.svg" alt="ALVARO FASHION" width="165" height="40" />
+      <button
+        type="button"
+        class="icon-btn"
+        id="closeMobileMenuBtn"
+        aria-label="بستن منو"
+        style="width: 36px; height: 36px; background: rgba(255,255,255,0.08); color:#fff; border-color:rgba(255,255,255,0.2);"
+      >
+        ✕
+      </button>
+    </div>
+    <div class="drawer-body">
+      <ul class="mobile-nav-list">
+        <li><a href="#heroSection" data-nav-target="heroSection"><span>خانه</span><span>←</span></a></li>
+        <li><a href="#shopSection" data-nav-target="shopSection"><span>فروشگاه (همه مدل‌ها)</span><span>←</span></a></li>
+        <li><a href="#newArrivalsSection" data-nav-target="newArrivalsSection"><span>محصولات جدید</span><span>←</span></a></li>
+        <li><a href="#specialOffersSection" data-nav-target="specialOffersSection"><span>تخفیف‌ها و پیشنهاد ویژه</span><span>←</span></a></li>
+        <li><a href="#aboutBrandSection" data-nav-target="aboutBrandSection"><span>معرفی برند آلوارو</span><span>←</span></a></li>
+        <li><a href="#contactSection" data-nav-target="contactSection"><span>تماس با ما</span><span>←</span></a></li>
+      </ul>
+
+      <div style="margin-top: 26px; padding: 16px; border: 1px solid rgba(197,160,89,0.35); border-radius: 10px; background: rgba(197,160,89,0.08);">
+        <strong style="color: var(--clr-gold-light); display: block; margin-bottom: 6px; font-size: 0.88rem;">
+          دسته‌بندی‌های سریع پوشاک
+        </strong>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;">
+          <button type="button" class="filter-pill" data-nav-target="shopSection" data-nav-cat="manto">مانتو زنانه</button>
+          <button type="button" class="filter-pill" data-nav-target="shopSection" data-nav-cat="shomiz">شومیز</button>
+          <button type="button" class="filter-pill" data-nav-target="shopSection" data-nav-cat="majlesi">لباس مجلسی</button>
+          <button type="button" class="filter-pill" data-nav-target="shopSection" data-nav-cat="coat">کت زنانه</button>
+          <button type="button" class="filter-pill" data-nav-target="shopSection" data-nav-cat="bag">کیف دستی</button>
+          <button type="button" class="filter-pill" data-nav-target="shopSection" data-nav-cat="shoes">کفش زنانه</button>
+          <button type="button" class="filter-pill" data-nav-target="shopSection" data-nav-cat="pants">شلوار زنانه</button>
+          <button type="button" class="filter-pill" data-nav-target="shopSection" data-nav-cat="set">ست لباس</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- مودال ثبت سفارش آزمایشی (بدون درگاه واقعی) -->
+  <div class="modal-wrap" id="demoCheckoutModal" role="dialog" aria-modal="true" aria-labelledby="chkModalTitle">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 id="chkModalTitle" style="margin: 0;">تکمیل سفارش آزمایشی (نسخه دمو)</h3>
+        <button type="button" class="icon-btn" id="closeCheckoutModalBtn" style="width: 34px; height: 34px;">✕</button>
+      </div>
+
+      <div id="demoCheckoutFormWrap">
+        <p style="font-size: 0.83rem; background: var(--clr-ivory); border-right: 3px solid var(--clr-gold); padding: 10px 12px; margin-top: 0;">
+          توجه: این بخش صرفاً جهت نمایش فرآیند کامل خرید به کارفرمایان طراحی سایت است و <strong>هیچ درگاه پرداخت واقعی یا تراکنش بانکی</strong> وجود ندارد.
+        </p>
+
+        <div style="margin-bottom: 14px; font-size: 0.92rem;">
+          مبلغ نهایی سفارش آزمایشی: <strong id="checkoutModalPayable" style="color: var(--clr-gold-dark);">۰ تومان</strong>
+        </div>
+
+        <form id="demoCheckoutForm">
+          <div class="field-group">
+            <label for="chkName">نام تحویل‌گیرنده (آزمایشی) *</label>
+            <input type="text" id="chkName" required placeholder="مثلاً سارا محمدی (تست)" />
+          </div>
+          <div class="field-group">
+            <label for="chkCity">شهر و نشانی تحویل (آزمایشی) *</label>
+            <input type="text" id="chkCity" required placeholder="مثلاً تهران — ارسال آزمایشی" />
+          </div>
+          <button type="submit" class="btn btn-gold" style="width: 100%;">
+            تأیید نهایی و صدور رسید آزمایشی
+          </button>
+        </form>
+      </div>
+
+      <div id="demoCheckoutSuccessWrap" class="hidden" style="text-align: center; padding: 14px 6px;">
+        <div style="font-size: 2.6rem; margin-bottom: 8px;">✨</div>
+        <h4 style="margin: 0 0 8px; font-size: 1.15rem;">
+          <span id="demoCustomerGreeting"></span>، سفارش آزمایشی شما با موفقیت ثبت شد!
+        </h4>
+        <p style="font-size: 0.88rem; color: var(--clr-muted); margin: 0 0 14px;">
+          کد رهگیری نمایشی سفارش شما: <strong id="demoTrackingCode" style="color: var(--clr-obsidian); letter-spacing: 1px;"></strong>
+        </p>
+        <p style="font-size: 0.81rem; color: #1f6f50; margin-bottom: 18px;">
+          در هنگام راه‌اندازی نهایی سایت برای مشتری، این مرحله به درگاه پرداخت رسمی دارای اینماد و سامانه پیامک متصل می‌گردد.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال راهنمای سایز -->
+  <div class="modal-wrap" id="sizeGuideModal" role="dialog" aria-modal="true" aria-labelledby="sizeModalTitle">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 id="sizeModalTitle" style="margin: 0;">جدول استاندارد راهنمای سایز ALVARO</h3>
+        <button type="button" class="icon-btn" id="closeSizeGuideModalBtn" style="width: 34px; height: 34px;">✕</button>
+      </div>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.86rem; text-align: center;">
+          <thead>
+            <tr style="background: var(--clr-obsidian); color: var(--clr-gold-light);">
+              <th style="padding: 10px;">سایز</th>
+              <th style="padding: 10px;">دور سینه (cm)</th>
+              <th style="padding: 10px;">دور کمر (cm)</th>
+              <th style="padding: 10px;">دور باسن (cm)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid var(--clr-border);">
+              <td style="padding: 9px; font-weight: 700;">S (۳۶-۳۸)</td>
+              <td>۸۴ تا ۸۸</td>
+              <td>۶۶ تا ۷۰</td>
+              <td>۹۰ تا ۹۴</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--clr-border);">
+              <td style="padding: 9px; font-weight: 700;">M (۳۸-۴۰)</td>
+              <td>۸۹ تا ۹۴</td>
+              <td>۷۱ تا ۷۶</td>
+              <td>۹۵ تا ۱۰۰</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--clr-border);">
+              <td style="padding: 9px; font-weight: 700;">L (۴۰-۴۲)</td>
+              <td>۹۵ تا ۱۰۰</td>
+              <td>۷۷ تا ۸۲</td>
+              <td>۱۰۱ تا ۱۰۶</td>
+            </tr>
+            <tr>
+              <td style="padding: 9px; font-weight: 700;">XL (۴۲-۴۴)</td>
+              <td>۱۰۱ تا ۱۰۶</td>
+              <td>۸۳ تا ۸۸</td>
+              <td>۱۰۷ تا ۱۱۲</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- محل نمایش اعلان‌های فوری (Toast) -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+  <!-- اسکریپت‌های استاندارد بدون نیاز به سرور (سازگار با اجرای مستقیم و هاست) -->
+  <script src="assets/js/products-data.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

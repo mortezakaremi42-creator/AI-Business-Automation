@@ -1,0 +1,16 @@
+services:
+  phantom-diphunter:
+    build: .
+    container_name: phantom-diphunter-pro
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - SOLANA_RPC_URL=${SOLANA_RPC_URL:-https://api.mainnet-beta.solana.com}
+      - VAULT_MASTER_PASSWORD=${VAULT_MASTER_PASSWORD:-ChangeMeStrongPassword}
+      - DEFAULT_TRADING_MODE=${DEFAULT_TRADING_MODE:-PAPER}
+    volumes:
+      - ./data:/app/data

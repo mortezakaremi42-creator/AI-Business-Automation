@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+data/
+*.enc
+*.enc.json
+.bit24-pro-vault.enc
+*.key
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+.vite/
+.cache/
+coverage/
+.DS_Store

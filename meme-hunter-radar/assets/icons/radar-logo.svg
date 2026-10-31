@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <radialGradient id="rg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.32"/>
+      <stop offset="100%" stop-color="#070B12" stop-opacity="0.98"/>
+    </radialGradient>
+    <linearGradient id="sweep" x1="60" y1="60" x2="108" y2="20" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34D399" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#10B981" stop-opacity="0.72"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="112" height="112" rx="28" fill="url(#rg)" stroke="#10B981" stroke-opacity="0.55" stroke-width="2.5"/>
+  <circle cx="60" cy="60" r="44" stroke="#10B981" stroke-opacity="0.55" stroke-width="1.8"/>
+  <circle cx="60" cy="60" r="31" stroke="#10B981" stroke-opacity="0.35" stroke-width="1.4" stroke-dasharray="4 3"/>
+  <circle cx="60" cy="60" r="18" stroke="#10B981" stroke-opacity="0.3" stroke-width="1.2"/>
+  <line x1="16" y1="60" x2="104" y2="60" stroke="#10B981" stroke-opacity="0.25" stroke-width="1.2"/>
+  <line x1="60" y1="16" x2="60" y2="104" stroke="#10B981" stroke-opacity="0.25" stroke-width="1.2"/>
+  <path d="M60 60 L96 34 A44 44 0 0 1 104 60 Z" fill="url(#sweep)"/>
+  <line x1="60" y1="60" x2="96" y2="34" stroke="#6EE7B7" stroke-width="2.6" stroke-linecap="round"/>
+  <circle cx="82" cy="43" r="8" stroke="#FACC15" stroke-opacity="0.6" stroke-width="1.6"/>
+  <circle cx="82" cy="43" r="4" fill="#FACC15"/>
+  <circle cx="60" cy="60" r="4.5" fill="#34D399"/>
+</svg>

@@ -1,0 +1,18 @@
+{
+  "name": "ALVARO FASHION | مزون و فروشگاه آنلاین پوشاک لوکس زنانه",
+  "short_name": "ALVARO FASHION",
+  "description": "زیبایی در انتخاب استایل شما — کالکشن اختصاصی پوشاک، کیف و کفش لوکس زنانه آلوارو فشن",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "dir": "rtl",
+  "lang": "fa-IR",
+  "background_color": "#FAF8F5",
+  "theme_color": "#0D0D0F",
+  "icons": [
+    {
+      "src": "./assets/images/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

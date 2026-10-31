@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#06090F" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="رادار میم‌کوین" />
+  <title>رادار شکار میم‌کوین | MEME HUNTER RADAR</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="assets/icons/radar-logo.svg" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  <link rel="stylesheet" href="assets/css/radar.css" />
+</head>
+<body>
+  <div id="radarToastWrap" aria-live="polite"></div>
+
+  <div class="app-shell">
+    <!-- TOP STICKY RADAR BAR -->
+    <header class="top-header">
+      <div class="brand-wrap">
+        <img src="assets/icons/radar-logo.svg" alt="Meme Radar" class="brand-logo-img" />
+        <div>
+          <div class="brand-title">
+            <span>رادار شکار میم‌کوین</span>
+            <span class="only-meme-tag">ویژه میم‌کوین</span>
+          </div>
+          <div class="brand-sub">
+            <span class="pulse-dot"></span>
+            <span id="liveSourceStatus">در حال اسکن استخرهای DEX...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" id="soundToggleBtn" class="btn-sound-toggle" title="صدای هشدار رادار">🔔</button>
+        <button type="button" id="installPwaBtn" class="btn-install-app">📲 نصب روی گوشی</button>
+      </div>
+    </header>
+
+    <!-- PRO WALLET COMMAND CARD WITH DEPOSIT & WITHDRAW KEYS -->
+    <section class="wallet-command-card" aria-label="مدیریت سرمایه، واریز و برداشت">
+      <div class="wallet-top-row">
+        <div>
+          <div class="wallet-mode-badge" id="walletModeBadge">⚡ کیف‌پول هوشمند ربات</div>
+          <div class="equity-label">ارزش کل پرتفوی شکار (نقد + پوزیشن‌های باز)</div>
+          <div class="equity-value ltr-num" id="totalEquityText">$500.00</div>
+        </div>
+      </div>
+
+      <div class="wallet-stats-mini">
+        <div class="w-stat-box">
+          <div class="lbl">موجودی نقد آماده شکار</div>
+          <div class="val ltr-num" id="cashBalanceText">$500.00</div>
+        </div>
+        <div class="w-stat-box">
+          <div class="lbl">درگیر در پوزیشن باز</div>
+          <div class="val ltr-num" id="inPositionsText">$0.00</div>
+        </div>
+        <div class="w-stat-box">
+          <div class="lbl">سود خالص ثبت‌شده</div>
+          <div class="val ltr-num pos" id="realizedPnlText">+$0.00</div>
+        </div>
+      </div>
+
+      <div class="wallet-keys-row">
+        <button type="button" class="btn-deposit-key" data-open-modal="depositModal">📥 واریز</button>
+        <button type="button" class="btn-withdraw-key" data-open-modal="withdrawModal">📤 برداشت</button>
+        <button type="button" class="btn-web3-connect" id="headerWeb3Btn">🔗 اتصال کیف‌پول Web3</button>
+      </div>
+    </section>
+
+    <!-- LIVE SONAR RADAR + AUTO-HUNTER BOT ENGINE -->
+    <section class="radar-bot-grid">
+      <div class="sonar-card">
+        <div class="sonar-scope">
+          <div class="sonar-ring r1"></div>
+          <div class="sonar-ring r2"></div>
+          <div class="sonar-ring r3"></div>
+          <div class="sonar-cross-h"></div>
+          <div class="sonar-cross-v"></div>
+          <div class="sonar-sweep"></div>
+          <div id="sonarBlipsContainer"></div>
+        </div>
+        <div class="sonar-caption">رادار کف‌یاب و سپر ضدتقلبی</div>
+      </div>
+
+      <div class="bot-control-card">
+        <div class="bot-header-line">
+          <div class="bot-status-title">🤖 موتور شکار کف و فروش در پامپ</div>
+          <button type="button" id="toggleAutoBotBtn" class="btn-toggle-autobot off">▶️ روشن کردن شکار خودکار</button>
+        </div>
+
+        <div class="strategy-pills">
+          <button type="button" class="strat-pill active" data-strat-mode="SAFE_BOTTOM">🎯 شکار امن از کف بازار</button>
+          <button type="button" class="strat-pill" data-strat-mode="WHALE_PUMP">⚡ شکار موج ورود نهنگ</button>
+        </div>
+
+        <div class="bot-rules-summary" id="ruleSummaryChips"></div>
+      </div>
+    </section>
+
+    <!-- CHAIN & SEARCH FILTER TOOLBAR -->
+    <div class="filter-bar" id="radarFilterToolbar">
+      <button type="button" class="chain-chip active" data-chain="all">همه شبکه‌ها</button>
+      <button type="button" class="chain-chip" data-chain="solana">Solana</button>
+      <button type="button" class="chain-chip" data-chain="base">Base</button>
+      <button type="button" class="chain-chip" data-chain="bsc">BSC</button>
+      <button type="button" class="chain-chip" data-chain="ethereum">ETH</button>
+      <input type="search" id="radarSearchInput" class="search-box-input" placeholder="جست‌وجوی نماد یا آدرس میم‌کوین..." />
+      <button type="button" id="manualScanBtn" class="btn-refresh-now">🔄 اسکن فوری</button>
+    </div>
+
+    <!-- DYNAMIC VIEW CONTAINER -->
+    <main id="mainDynamicView"></main>
+  </div>
+
+  <!-- STICKY MOBILE BOTTOM NAVIGATION -->
+  <nav class="bottom-nav" aria-label="منوی اصلی رادار">
+    <button type="button" class="bnav-btn active" data-tab="radar">
+      <span>📡</span>
+      <span>رادار شکار</span>
+    </button>
+    <button type="button" class="bnav-btn" data-tab="positions">
+      <span id="openPosBadge" class="bnav-badge" hidden>0</span>
+      <span>🎯</span>
+      <span>پوزیشن‌ها</span>
+    </button>
+    <button type="button" class="bnav-btn" data-tab="scams">
+      <span id="blockedScamBadge" class="bnav-badge" style="background:#ef4444;color:#fff;" hidden>0</span>
+      <span>🛡️</span>
+      <span>ضدتقلبی</span>
+    </button>
+    <button type="button" class="bnav-btn" data-tab="wallet">
+      <span>💼</span>
+      <span>واریز/برداشت</span>
+    </button>
+    <button type="button" class="bnav-btn" data-tab="settings">
+      <span>⚙️</span>
+      <span>تنظیمات</span>
+    </button>
+  </nav>
+
+  <!-- ==========================================
+       MODAL 1: DEPOSIT (کلید واریز حرفه‌ای)
+       ========================================== -->
+  <div id="depositModal" class="modal-backdrop" hidden>
+    <div class="modal-sheet">
+      <div class="modal-head">
+        <h3>📥 واریز موجودی شکار (Deposit)</h3>
+        <button type="button" class="btn-close-modal" data-close-modal>✕</button>
+      </div>
+
+      <form id="depositForm">
+        <div class="form-field">
+          <label>انتخاب شبکه واریز</label>
+          <select id="depNetworkSelect">
+            <option value="solana">Solana (SPL — کارمزد نزدیک صفر • پیشنهادی میم‌کوین)</option>
+            <option value="bsc">BNB Smart Chain (BEP-20)</option>
+            <option value="base">Base Network (ETH / USDC)</option>
+            <option value="trc20">Tron Network (USDT TRC-20)</option>
+          </select>
+        </div>
+
+        <div class="qr-box">
+          <div id="depQrContainer"></div>
+          <div class="addr-copy-box ltr-num" id="depAddressText"></div>
+          <button type="button" id="copyDepAddrBtn" class="btn-dex-link" style="margin-top:8px;width:100%;">📋 کپی آدرس اختصاصی کیف‌پول</button>
+        </div>
+
+        <div class="form-field">
+          <label>مبلغ شارژ مستقیم کیف‌پول هوشمند شکار (دلار / تتر)</label>
+          <input type="number" id="depAmountInput" class="ltr-num" min="5" step="1" value="200" required />
+          <div class="quick-amt-row">
+            <button type="button" class="quick-amt-btn" data-dep-amt="100">+$100</button>
+            <button type="button" class="quick-amt-btn" data-dep-amt="250">+$250</button>
+            <button type="button" class="quick-amt-btn" data-dep-amt="500">+$500</button>
+            <button type="button" class="quick-amt-btn" data-dep-amt="1000">+$1,000</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-deposit-key" style="width:100%;">✅ تأیید و افزودن آنی به موجودی ربات</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: WITHDRAW (کلید برداشت حرفه‌ای)
+       ========================================== -->
+  <div id="withdrawModal" class="modal-backdrop" hidden>
+    <div class="modal-sheet">
+      <div class="modal-head">
+        <h3>📤 برداشت سود و موجودی (Withdraw)</h3>
+        <button type="button" class="btn-close-modal" data-close-modal>✕</button>
+      </div>
+
+      <form id="withdrawForm">
+        <div style="background:rgba(250,204,21,0.1);border:1px solid rgba(250,204,21,0.3);border-radius:11px;padding:10px 12px;margin-bottom:12px;font-size:0.8rem;display:flex;justify-content:space-between;">
+          <span>موجودی آزاد قابل برداشت:</span>
+          <strong class="ltr-num" id="wdAvailableLabel">$500.00</strong>
+        </div>
+
+        <div class="form-field">
+          <label>شبکه انتقال مقصد</label>
+          <select id="wdNetworkSelect">
+            <option value="solana">Solana (SPL — کارمزد شبکه $0.20)</option>
+            <option value="bsc">BNB Smart Chain (BEP-20 — کارمزد $0.35)</option>
+            <option value="base">Base Network (کارمزد $0.25)</option>
+            <option value="trc20">USDT (TRC-20 — کارمزد $1.00)</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>آدرس کیف‌پول شخصی مقصد (اعتبارسنجی هوشمند فرمت آدرس)</label>
+          <input type="text" id="wdDestAddress" class="ltr-num" placeholder="آدرس کیف‌پول مقصد را وارد کنید..." required />
+        </div>
+
+        <div class="form-field">
+          <label>مبلغ برداشت (دلار / تتر)</label>
+          <input type="number" id="wdAmountInput" class="ltr-num" min="5" step="0.01" placeholder="100.00" required />
+          <div class="quick-amt-row">
+            <button type="button" class="quick-amt-btn" data-wd-pct="25">۲۵٪</button>
+            <button type="button" class="quick-amt-btn" data-wd-pct="50">۵۰٪</button>
+            <button type="button" class="quick-amt-btn" data-wd-pct="75">۷۵٪</button>
+            <button type="button" class="quick-amt-btn" data-wd-pct="100">کل موجودی (MAX)</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-withdraw-key" style="width:100%;">🚀 تأیید و ارسال آنی برداشت</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 3: INSTALL ON PHONE GUIDE
+       ========================================== -->
+  <div id="installGuideModal" class="modal-backdrop" hidden>
+    <div class="modal-sheet">
+      <div class="modal-head">
+        <h3>📲 راهنمای نصب مستقیم روی صفحه اصلی گوشی</h3>
+        <button type="button" class="btn-close-modal" data-close-modal>✕</button>
+      </div>
+      <div style="font-size:0.86rem;line-height:1.8;color:#cbd5e1;">
+        <p style="margin-bottom:10px;"><strong>در گوشی‌های اندروید (مرورگر Chrome):</strong></p>
+        <p style="margin-bottom:14px;">۱. روی سه نقطه <strong>(⋮)</strong> بالای مرورگر کروم بزنید.<br/>۲. گزینه <strong>«Add to Home screen»</strong> یا <strong>«Install app / نصب برنامه»</strong> را بزنید تا آیکون اختصاصی رادار روی صفحه اصلی گوشی نصب شود.</p>
+        <p style="margin-bottom:10px;"><strong>در آیفون (مرورگر Safari):</strong></p>
+        <p>۱. روی دکمه اشتراک‌گذاری <strong>(Share ⬆️)</strong> پایین صفحه بزنید.<br/>۲. گزینه <strong>«Add to Home Screen»</strong> را انتخاب نمایید.</p>
+      </div>
+      <button type="button" class="btn-snipe-buy" style="width:100%;margin-top:16px;" data-close-modal>متوجه شدم</button>
+    </div>
+  </div>
+
+  <script src="assets/js/security-shield.js"></script>
+  <script src="assets/js/radar-engine.js"></script>
+  <script src="assets/js/wallet-vault.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
