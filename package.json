@@ -9,24 +9,34 @@
     "build:client": "vite build",
     "build:pages": "vite build --outDir docs --emptyOutDir",
     "build": "vite build && tsc -p tsconfig.server.json",
-    "start": "NODE_ENV=production node dist/server/server/index.js",
+    "start": "node dist/server/server/index.js",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "android:apk": "bash scripts/build-android-apk.sh"
+    "android:apk": "bash scripts/build-android-apk.sh",
+    "test:mobile": "tsx scripts/test-mobile.ts",
+    "package:demo": "python3 scripts/package-demo.py"
   },
   "dependencies": {
+    "@capacitor/android": "7.6.10",
+    "@capacitor/core": "7.6.10",
     "@fontsource/vazirmatn": "^5.1.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "lucide-react": "^0.475.0",
+    "proper-lockfile": "4.1.2",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
+    "@capacitor/cli": "7.6.10",
+    "@playwright/test": "1.56.1",
+    "@sparticuz/chromium": "141.0.0",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.5",
+    "@types/proper-lockfile": "4.1.4",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
@@ -37,7 +47,7 @@
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
-    "vite": "^6.0.7",
-    "vitest": "^2.1.8"
+    "vite": "6.4.5",
+    "vitest": "4.1.12"
   }
 }

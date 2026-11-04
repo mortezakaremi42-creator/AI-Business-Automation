@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BIT24 AI TRADER PRO</string>
+    <string name="title_activity_main">BIT24 AI TRADER PRO</string>
+    <string name="package_name">com.bit24.trader</string>
+    <string name="custom_url_scheme">com.bit24.trader</string>
+</resources>

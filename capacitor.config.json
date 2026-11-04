@@ -1,0 +1,6 @@
+{
+  "appId": "com.bit24.trader",
+  "appName": "BIT24 AI TRADER PRO",
+  "webDir": "dist/client",
+  "server": { "androidScheme": "http", "cleartext": false }
+}

@@ -1,12 +1,12 @@
-export type AppLanguage = 'fa' | 'en';
+export type AppLanguage = "fa" | "en";
 
-export type AssetSegment = 'CRYPTO' | 'GOLD';
+export type AssetSegment = "CRYPTO" | "GOLD";
 
 export type SignalTier =
-  | 'REJECTED' // 0..59: رد سیگنال
-  | 'ALERT_ONLY' // 60..74: فقط هشدار
-  | 'REVIEW_OPPORTUNITY' // 75..84: فرصت قابل بررسی
-  | 'STRONG_TEST_SIGNAL'; // 85..100: سیگنال قوی برای آزمایش
+  | "REJECTED" // 0..59: رد سیگنال
+  | "ALERT_ONLY" // 60..74: فقط هشدار
+  | "REVIEW_OPPORTUNITY" // 75..84: فرصت قابل بررسی
+  | "STRONG_TEST_SIGNAL"; // 85..100: سیگنال قوی برای آزمایش
 
 export interface CandleBar {
   t: number; // Unix seconds
@@ -32,7 +32,7 @@ export interface OrderBookDepth {
 export interface Bit24TickerMarket {
   symbol: string; // e.g. "BTC/IRT", "PAXG/IRT", "XAUT/IRT"
   baseCoin: string;
-  quoteCoin: 'IRT' | 'USDT';
+  quoteCoin: "IRT" | "USDT";
   faName: string;
   enName: string;
   segment: AssetSegment; // CRYPTO vs GOLD (strictly isolated)
@@ -50,7 +50,7 @@ export interface Bit24TickerMarket {
   minOrderIrt: number;
   feePctPerSide: number;
   updatedAt: number;
-  dataFeedType: 'LIVE_BIT24_API' | 'SIMULATED_MARKET_FEED';
+  dataFeedType: "LIVE_BIT24_API" | "SIMULATED_MARKET_FEED";
 }
 
 export interface TechnicalIndicators {
@@ -81,7 +81,7 @@ export interface PumpOpportunitySignal {
   priceIrt: number;
   opportunityScore: number; // 0..100
   tier: SignalTier;
-  entryStyle: 'BREAKOUT' | 'PULLBACK' | 'NO_ENTRY';
+  entryStyle: "BREAKOUT" | "PULLBACK" | "NO_ENTRY";
   change1mPct: number;
   change5mPct: number;
   change15mPct: number;
@@ -101,15 +101,15 @@ export interface PumpOpportunitySignal {
 }
 
 export interface GoldMarketSignal {
-  symbol: 'PAXG/IRT' | 'XAUT/IRT';
-  baseCoin: 'PAXG' | 'XAUT';
+  symbol: "PAXG/IRT" | "XAUT/IRT";
+  baseCoin: "PAXG" | "XAUT";
   faName: string;
   enName: string;
   verifiedTradableOnBit24: boolean;
   tradabilityNoteFa: string;
   tradabilityNoteEn: string;
   priceIrt: number;
-  shortTermTrend: 'BULLISH' | 'BEARISH' | 'NEUTRAL';
+  shortTermTrend: "BULLISH" | "BEARISH" | "NEUTRAL";
   supportIrt: number;
   resistanceIrt: number;
   rsi14: number;
@@ -120,10 +120,10 @@ export interface GoldMarketSignal {
   suggestedTakeProfitIrt: number;
   goldScore: number;
   action:
-    | 'GOLD_BUY_CANDIDATE'
-    | 'HOLD_WATCH'
-    | 'AVOID_HIGH_SPREAD_OR_OVERBOUGHT'
-    | 'NOT_TRADABLE';
+    | "GOLD_BUY_CANDIDATE"
+    | "HOLD_WATCH"
+    | "AVOID_HIGH_SPREAD_OR_OVERBOUGHT"
+    | "NOT_TRADABLE";
   rationaleFa: string;
   rationaleEn: string;
   evaluatedAt: number;
@@ -152,11 +152,12 @@ export interface ExitStrategyConfig {
 }
 
 export interface ActivePosition {
+  exitSettings?: ExitStrategyConfig;
   id: string;
   symbol: string;
   baseCoin: string;
   segment: AssetSegment;
-  mode: 'DEMO' | 'LIVE';
+  mode: "DEMO" | "LIVE";
   entryPriceIrt: number;
   currentPriceIrt: number;
   highestPriceIrt: number;
@@ -180,10 +181,11 @@ export interface ActivePosition {
 }
 
 export interface TradeHistoryRecord {
+  positionId?: string;
   id: string;
   symbol: string; // ۱. نماد ارز
   segment: AssetSegment;
-  mode: 'DEMO' | 'LIVE';
+  mode: "DEMO" | "LIVE";
   buyTime: number; // ۲. زمان خرید
   buyPriceIrt: number; // ۳. قیمت خرید
   sellTime: number; // ۴. زمان فروش
@@ -205,23 +207,23 @@ export interface TradeRejectionLog {
   timestamp: number;
   symbol: string;
   code:
-    | 'EMERGENCY_STOP_ACTIVE'
-    | 'API_DISCONNECTED'
-    | 'STALE_DATA'
-    | 'DUPLICATE_ORDER'
-    | 'DAILY_LOSS_LIMIT'
-    | 'MAX_CONCURRENT_REACHED'
-    | 'FAKE_PUMP_RISK'
-    | 'LOW_LIQUIDITY'
-    | 'HIGH_SPREAD'
-    | 'ABNORMAL_MARKET'
-    | 'INSUFFICIENT_BALANCE';
+    | "EMERGENCY_STOP_ACTIVE"
+    | "API_DISCONNECTED"
+    | "STALE_DATA"
+    | "DUPLICATE_ORDER"
+    | "DAILY_LOSS_LIMIT"
+    | "MAX_CONCURRENT_REACHED"
+    | "FAKE_PUMP_RISK"
+    | "LOW_LIQUIDITY"
+    | "HIGH_SPREAD"
+    | "ABNORMAL_MARKET"
+    | "INSUFFICIENT_BALANCE";
   reasonFa: string;
   reasonEn: string;
 }
 
 export interface PeriodReportSummary {
-  period: 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  period: "DAILY" | "WEEKLY" | "MONTHLY";
   fromTimestamp: number;
   toTimestamp: number;
   tradesCount: number;
@@ -250,11 +252,11 @@ export interface GoldPortfolioReport {
 
 export interface Bit24ApiHealth {
   state:
-    | 'NOT_CONFIGURED'
-    | 'CONNECTED_TOKEN_ONLY'
-    | 'CONNECTED_PUBLIC_AND_PRIVATE'
-    | 'OFFLINE_OR_UNREACHABLE'
-    | 'AUTH_ERROR';
+    | "NOT_CONFIGURED"
+    | "CONNECTED_TOKEN_ONLY"
+    | "CONNECTED_PUBLIC_AND_PRIVATE"
+    | "OFFLINE_OR_UNREACHABLE"
+    | "AUTH_ERROR";
   hasApiKey: boolean;
   hasSecretKey: boolean;
   maskedApiKey: string;
@@ -262,18 +264,18 @@ export interface Bit24ApiHealth {
   baseUrl: string;
   lastCheckedAt: number | null;
   latencyMs: number | null;
-  activeMarketFeed: 'LIVE_BIT24_API' | 'SIMULATED_MARKET_FEED';
+  activeMarketFeed: "LIVE_BIT24_API" | "SIMULATED_MARKET_FEED";
   messageFa: string;
   messageEn: string;
 }
 
 export interface CapitalSecurityStatus {
   level:
-    | 'PROTECTED'
-    | 'CAUTION'
-    | 'HALTED_DAILY_LOSS'
-    | 'HALTED_EMERGENCY'
-    | 'HALTED_API_ERROR';
+    | "PROTECTED"
+    | "CAUTION"
+    | "HALTED_DAILY_LOSS"
+    | "HALTED_EMERGENCY"
+    | "HALTED_API_ERROR";
   dailyLossUsedPct: number;
   maxDailyLossPct: number;
   openTradesCount: number;
@@ -284,14 +286,14 @@ export interface CapitalSecurityStatus {
 }
 
 export type TelegramEventType =
-  | 'PUMP_CANDIDATE'
-  | 'BUY_SIGNAL'
-  | 'DEMO_BUY'
-  | 'DEMO_SELL'
-  | 'STOP_LOSS_HIT'
-  | 'TAKE_PROFIT_HIT'
-  | 'BOT_STOPPED'
-  | 'DAILY_PNL_REPORT';
+  | "PUMP_CANDIDATE"
+  | "BUY_SIGNAL"
+  | "DEMO_BUY"
+  | "DEMO_SELL"
+  | "STOP_LOSS_HIT"
+  | "TAKE_PROFIT_HIT"
+  | "BOT_STOPPED"
+  | "DAILY_PNL_REPORT";
 
 export interface TelegramNotificationLog {
   id: string;
@@ -308,7 +310,7 @@ export interface ProVerificationReport {
   targetMinimumTrades: number;
   dataSufficiencyNoteFa: string;
   dataSufficiencyNoteEn: string;
-  dataSourceType: 'LIVE_BIT24_CANDLES' | 'SIMULATED_MULTI_REGIME_CANDLES';
+  dataSourceType: "LIVE_BIT24_CANDLES" | "SIMULATED_MULTI_REGIME_CANDLES";
   startingCapitalIrt: number;
   endingCapitalIrt: number;
   netSimulatedPnlIrt: number;
@@ -331,10 +333,24 @@ export interface ProVerificationReport {
 }
 
 export interface AppStatusSnapshot {
-  appName: 'BIT24 AI TRADER PRO';
+  demo: {
+    paperOrders: PaperOrder[];
+    cashAdjustments: { id: string; amountIrt: number; at: number }[];
+    daily: {
+      day: string;
+      baseline: number;
+      cashFlow: number;
+      halted: boolean;
+      pnlIrt: number;
+      pnlPct: number;
+    };
+    chartSeries: Record<string, CandleBar[]>;
+    goldCashIrt: number;
+  };
+  appName: "BIT24 AI TRADER PRO";
   subtitleFa: string;
   scannerRunning: boolean;
-  tradingMode: 'STOPPED' | 'DEMO' | 'LIVE';
+  tradingMode: "STOPPED" | "DEMO" | "LIVE";
   liveTradingUserConfirmed: boolean;
   emergencyStopped: boolean;
   goldTradingEnabled: boolean;
@@ -369,4 +385,16 @@ export interface AppStatusSnapshot {
   };
   latestVerificationReport: ProVerificationReport | null;
   serverTimestamp: number;
+}
+
+export interface PaperOrder {
+  id: string;
+  symbol: string;
+  side: "BUY" | "SELL";
+  mode: "DEMO";
+  quantity: number;
+  priceIrt: number;
+  feeIrt: number;
+  at: number;
+  source: "MANUAL_OR_AUTO" | "TAKE_PROFIT" | "STOP_LOSS";
 }

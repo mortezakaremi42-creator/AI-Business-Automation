@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   AppLanguage,
   CapitalRiskConfig,
   ExitStrategyConfig,
-} from '../../shared/contracts.js';
+} from "../../shared/contracts.js";
 
 interface Props {
   lang: AppLanguage;
@@ -21,7 +21,7 @@ export const RiskManagementPanel: React.FC<Props> = ({
   exitConfig,
   onSave,
 }) => {
-  const isFa = lang === 'fa';
+  const isFa = lang === "fa";
   const [cap, setCap] = useState<CapitalRiskConfig>({ ...capitalConfig });
   const [ext, setExt] = useState<ExitStrategyConfig>({ ...exitConfig });
 
@@ -35,27 +35,32 @@ export const RiskManagementPanel: React.FC<Props> = ({
       <div className="section-title">
         <span>
           {isFa
-            ? '🛡️ مدیریت سرمایه حرفه‌ای + حد ضرر و فروش پله‌ای (قابل شخصی‌سازی)'
-            : '🛡️ Professional Capital Management, Trailing Stop & Stepped Take-Profit'}
+            ? "🛡️ مدیریت سرمایه حرفه‌ای + حد ضرر و فروش پله‌ای (قابل شخصی‌سازی)"
+            : "🛡️ Professional Capital Management, Trailing Stop & Stepped Take-Profit"}
         </span>
         <span className="badge badge-safe-lock">
           {isFa
-            ? 'قانون قطعی: ورود ۱۰۰٪ سرمایه در یک معامله برای همیشه ممنوع است'
-            : 'Hard Rule: 100% single-trade allocation permanently blocked'}
+            ? "قانون قطعی: ورود ۱۰۰٪ سرمایه در یک معامله برای همیشه ممنوع است"
+            : "Hard Rule: 100% single-trade allocation permanently blocked"}
         </span>
       </div>
 
-      <h4 style={{ margin: '10px 0 8px', color: '#38bdf8' }}>
+      <p>
+        حد سود/ضرر جدید فقط برای ورودی‌های بعدی است. سقف پوزیشن‌ها بین طلا و
+        کریپتو مشترک است؛ توقف روزانه بر پایهٔ ارزش خالص کل دو حساب و روز UTC
+        محاسبه می‌شود.
+      </p>
+      <h4 style={{ margin: "10px 0 8px", color: "#38bdf8" }}>
         {isFa
-          ? '۱. قوانین مدیریت سرمایه (پیش‌فرض‌های استاندارد)'
-          : '1. Capital Allocation Rules'}
+          ? "۱. قوانین مدیریت سرمایه — توقف روزانه همیشه فعال است"
+          : "1. Capital Allocation Rules"}
       </h4>
       <div className="form-grid">
         <label className="form-field">
           <span>
             {isFa
-              ? 'موجودی پایه آزمایشی (تومان)'
-              : 'Initial Demo Capital (IRT)'}
+              ? "موجودی اولیه (فقط پیش از اولین معامله/اصلاح؛ سپس از کیف پول استفاده کنید)"
+              : "Initial Demo Capital (IRT)"}
           </span>
           <input
             type="number"
@@ -71,8 +76,8 @@ export const RiskManagementPanel: React.FC<Props> = ({
         <label className="form-field">
           <span>
             {isFa
-              ? 'حداکثر ریسک هر معامله (% کل سرمایه — پیش‌فرض ۱٪)'
-              : 'Max Risk Per Trade (% of capital — default 1%)'}
+              ? "حداکثر ریسک هر معامله (% کل سرمایه — پیش‌فرض ۱٪)"
+              : "Max Risk Per Trade (% of capital — default 1%)"}
           </span>
           <input
             type="number"
@@ -89,8 +94,8 @@ export const RiskManagementPanel: React.FC<Props> = ({
         <label className="form-field">
           <span>
             {isFa
-              ? 'حداکثر سرمایه در هر معامله (% — پیش‌فرض ۱۰٪، سقف ایمنی ۳۵٪)'
-              : 'Max Capital Per Trade (% — default 10%, hard cap 35%)'}
+              ? "حداکثر سرمایه در هر معامله (% — پیش‌فرض ۱۰٪، سقف ایمنی ۳۵٪)"
+              : "Max Capital Per Trade (% — default 10%, hard cap 35%)"}
           </span>
           <input
             type="number"
@@ -107,8 +112,8 @@ export const RiskManagementPanel: React.FC<Props> = ({
         <label className="form-field">
           <span>
             {isFa
-              ? 'حداکثر معاملات هم‌زمان (پیش‌فرض ۳ معامله)'
-              : 'Max Concurrent Trades (default 3)'}
+              ? "حداکثر معاملات هم‌زمان (پیش‌فرض ۳ معامله)"
+              : "Max Concurrent Trades (default 3)"}
           </span>
           <input
             type="number"
@@ -125,8 +130,8 @@ export const RiskManagementPanel: React.FC<Props> = ({
         <label className="form-field">
           <span>
             {isFa
-              ? 'حداکثر ضرر روزانه مجاز (% — پیش‌فرض ۳٪ + توقف خودکار)'
-              : 'Max Daily Loss Limit (% — default 3% + auto-stop)'}
+              ? "حداکثر ضرر روزانه مجاز (% — پیش‌فرض ۳٪ + توقف خودکار)"
+              : "Max Daily Loss Limit (% — default 3% + auto-stop)"}
           </span>
           <input
             type="number"
@@ -141,17 +146,17 @@ export const RiskManagementPanel: React.FC<Props> = ({
         </label>
       </div>
 
-      <h4 style={{ margin: '18px 0 8px', color: '#f5b942' }}>
+      <h4 style={{ margin: "18px 0 8px", color: "#f5b942" }}>
         {isFa
-          ? '۲. حد ضرر، Trailing Stop و فروش پله‌ای (Stepped Take-Profit)'
-          : '2. Stop-Loss, Trailing Stop & 3-Stage Stepped Take-Profit'}
+          ? "۲. حد ضرر، Trailing Stop و فروش پله‌ای (Stepped Take-Profit)"
+          : "2. Stop-Loss, Trailing Stop & 3-Stage Stepped Take-Profit"}
       </h4>
       <div className="form-grid">
         <label className="form-field">
           <span>
             {isFa
-              ? 'حد ضرر اولیه (% — پیش‌فرض ۵٪)'
-              : 'Initial Stop-Loss (% — default 5%)'}
+              ? "حد ضرر اولیه (% — پیش‌فرض ۵٪)"
+              : "Initial Stop-Loss (% — default 5%)"}
           </span>
           <input
             type="number"
@@ -168,8 +173,8 @@ export const RiskManagementPanel: React.FC<Props> = ({
         <label className="form-field">
           <span>
             {isFa
-              ? 'فعال‌سازی Trailing Stop پس از سود (% — پیش‌فرض ۸٪)'
-              : 'Trailing Stop Activation Profit (% — default 8%)'}
+              ? "فعال‌سازی Trailing Stop پس از سود (% — پیش‌فرض ۸٪)"
+              : "Trailing Stop Activation Profit (% — default 8%)"}
           </span>
           <input
             type="number"
@@ -189,8 +194,8 @@ export const RiskManagementPanel: React.FC<Props> = ({
         <label className="form-field">
           <span>
             {isFa
-              ? 'فاصله Trailing Stop از بالاترین قیمت (% — پیش‌فرض ۳٪)'
-              : 'Trailing Distance Below Peak (% — default 3%)'}
+              ? "فاصله Trailing Stop از بالاترین قیمت (% — پیش‌فرض ۳٪)"
+              : "Trailing Distance Below Peak (% — default 3%)"}
           </span>
           <input
             type="number"
@@ -265,8 +270,8 @@ export const RiskManagementPanel: React.FC<Props> = ({
       <div style={{ marginTop: 16 }}>
         <button type="submit" className="cmd-btn cmd-btn-start">
           {isFa
-            ? 'ذخیره تنظیمات مدیریت سرمایه و حد سود/ضرر'
-            : 'Save Capital & Exit Settings'}
+            ? "ذخیره تنظیمات مدیریت سرمایه و حد سود/ضرر"
+            : "Save Capital & Exit Settings"}
         </button>
       </div>
     </form>

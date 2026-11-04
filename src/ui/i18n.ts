@@ -3,15 +3,15 @@ import { AppLanguage, SignalTier } from '../shared/contracts.js';
 export const UI_TEXT = {
   fa: {
     appTitle: 'BIT24 AI TRADER PRO',
-    appSubtitle: 'ربات هوشمند معامله‌گر ارز دیجیتال و طلای دیجیتال — انحصاری صرافی Bit24',
-    liveLockedBadge: 'حالت واقعی قفل است (فقط دمو فعال تا تأیید نهایی شما)',
+    appSubtitle: 'آزمایشگاه معاملات کاغذی ارز و طلا — اطلاعات فرضی',
+    liveLockedBadge: 'فقط Demo — حالت Live کاملاً غیرفعال است',
     liveActiveBadge: 'حالت واقعی فعال (با تأیید کاربر)',
     installAndroidBtn: 'نصب مستقیم روی اندروید (PWA)',
     langSwitchBtn: 'English (EN)',
 
     // 10 Main Android Metrics
     demoBalance: 'موجودی آزمایشی (تومان)',
-    dailyPnl: 'سود و زیان روزانه',
+    dailyPnl: 'سود و زیان روز UTC (کریپتو و طلا)',
     totalPnl: 'سود و زیان کل',
     winningTrades: 'معاملات برنده',
     losingTrades: 'معاملات بازنده',
@@ -37,7 +37,7 @@ export const UI_TEXT = {
     // Scanner & Pump Hunter
     topOpportunitiesTitle: 'بهترین فرصت‌های شکارچی پامپ در صرافی Bit24',
     disclaimerBanner:
-      'شفافیت و سلب مسئولیت: هیچ سیگنال یا امتیازی سود قطعی را تضمین نمی‌کند. ربات منحصراً به صرافی Bit24 محدود است و دسترسی برداشت وجه برای همیشه مسدود است.',
+      'اطلاعات فرضی: قیمت، تحلیل و بازده فقط شبیه‌سازی‌اند؛ هیچ اتصال صرافی، سفارش واقعی، واریز یا برداشت وجود ندارد.',
     scoreLabel: 'امتیاز فرصت',
     demoBuyNow: 'خرید آزمایشی (Demo)',
     openPositionsTitle: 'پوزیشن‌های باز فعلی (مدیریت خودکار حد ضرر و فروش پله‌ای)',
@@ -48,7 +48,7 @@ export const UI_TEXT = {
   en: {
     appTitle: 'BIT24 AI TRADER PRO',
     appSubtitle: 'Intelligent Crypto & Digital Gold Trading Bot — Exclusively for Bit24',
-    liveLockedBadge: 'LIVE LOCKED (Safe Demo Mode until your final approval)',
+    liveLockedBadge: 'DEMO ONLY — LIVE DISABLED',
     liveActiveBadge: 'LIVE MODE ACTIVE (User Confirmed)',
     installAndroidBtn: 'Install on Android (PWA)',
     langSwitchBtn: 'فارسی (FA)',

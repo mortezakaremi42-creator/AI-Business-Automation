@@ -1,3 +1,4 @@
+import { newRequestId } from "../shared/identifiers.js";
 import {
   ActivePosition,
   AppStatusSnapshot,
@@ -17,18 +18,18 @@ import {
   TelegramNotificationLog,
   TradeHistoryRecord,
   TradeRejectionLog,
-} from '../shared/contracts.js';
+} from "../shared/contracts.js";
 import {
   buildSimulatedOrderBook,
   createInitialBit24Catalog,
   roundIrtPrice,
-} from './bit24Catalog.js';
-import { computeMultiTimeframeChanges } from './mathIndicators.js';
-import { runProfessionalPreLiveVerification } from './proVerificationSuite.js';
+} from "./bit24Catalog.js";
+import { computeMultiTimeframeChanges } from "./mathIndicators.js";
+import { runProfessionalPreLiveVerification } from "./proVerificationSuite.js";
 import {
   analyzeBit24CryptoPumpOpportunity,
   analyzeGoldAiMarket,
-} from './pumpAndGoldAnalyzers.js';
+} from "./pumpAndGoldAnalyzers.js";
 import {
   calculateSafePositionCapitalIrt,
   DEFAULT_CAPITAL_RISK_CONFIG,
@@ -37,14 +38,18 @@ import {
   runSmartSecurityGate,
   sanitizeCapitalRiskConfig,
   sanitizeExitStrategyConfig,
-} from './smartSecurityAndCapital.js';
+} from "./smartSecurityAndCapital.js";
 
 export interface LiveOrderExecutor {
-  checkLiveIrtBalance(): Promise<{ ok: boolean; availableIrt: number; error?: string }>;
+  checkLiveIrtBalance(): Promise<{
+    ok: boolean;
+    availableIrt: number;
+    error?: string;
+  }>;
   submitAndVerifySpotOrder(params: {
     baseCoin: string;
     quoteCoin: string;
-    side: 'BUY' | 'SELL';
+    side: "BUY" | "SELL";
     amountBase: number;
     priceIrt: number;
   }): Promise<{
@@ -59,7 +64,7 @@ export interface LiveOrderExecutor {
 export type TelegramAlertDispatcher = (
   eventType: TelegramEventType,
   title: string,
-  safeSummary: string
+  safeSummary: string,
 ) => Promise<TelegramNotificationLog | void> | void;
 
 export class Bit24AiTraderOrchestrator {
@@ -68,7 +73,7 @@ export class Bit24AiTraderOrchestrator {
   private orderBooksBySymbol = new Map<string, OrderBookDepth>();
 
   private scannerRunning = true;
-  private tradingMode: 'STOPPED' | 'DEMO' | 'LIVE' = 'STOPPED';
+  private tradingMode: "STOPPED" | "DEMO" | "LIVE" = "STOPPED";
   private liveTradingUserConfirmed = false;
   private emergencyStopped = false;
   private goldAutoDemoEnabled = false;
@@ -95,55 +100,61 @@ export class Bit24AiTraderOrchestrator {
   private latestVerificationReport: ProVerificationReport | null = null;
 
   private bit24Health: Bit24ApiHealth = {
-    state: 'NOT_CONFIGURED',
+    state: "NOT_CONFIGURED",
     hasApiKey: false,
     hasSecretKey: false,
-    maskedApiKey: '',
+    maskedApiKey: "",
     withdrawalPermissionBlocked: true,
-    baseUrl: 'https://rest.bit24.cash',
+    baseUrl: "https://rest.bit24.cash",
     lastCheckedAt: null,
     latencyMs: null,
-    activeMarketFeed: 'SIMULATED_MARKET_FEED',
+    activeMarketFeed: "SIMULATED_MARKET_FEED",
     messageFa:
-      'کلید API صرافی Bit24 هنوز ثبت نشده است؛ ربات در حالت امن شبیه‌ساز دمو آماده به کار است (دسترسی برداشت وجه برای همیشه مسدود است).',
+      "اطلاعات فرضی — هیچ اتصال زنده، معاملهٔ واقعی یا ارسال تلگرام وجود ندارد.",
     messageEn:
-      'Bit24 API key not yet configured; running in safe Demo simulator mode (withdrawal access permanently blocked).',
+      "SIMULATED DATA ONLY; exchange connectivity, real trading and external notifications are disabled.",
   };
 
   private telegramState = {
     configured: false,
     enabled: false,
-    maskedChatId: '',
+    maskedChatId: "",
   };
 
-  private liveExecutor?: LiveOrderExecutor;
+  private liveExecutor?: LiveOrderExecutor; // Never attached in this DEMO-only build.
+  private paperOrders: import("../shared/contracts.js").PaperOrder[] = [];
+  private cashAdjustments: { id: string; amountIrt: number; at: number }[] = [];
+  private daily = {
+    day: new Date().toISOString().slice(0, 10),
+    baseline: 150_000_000,
+    cashFlow: 0,
+    halted: false,
+  };
+  private cycleBusy = false;
   private onTelegramDispatch?: TelegramAlertDispatcher;
 
   constructor(opts?: {
     liveExecutor?: LiveOrderExecutor;
     onTelegramDispatch?: TelegramAlertDispatcher;
   }) {
-    this.liveExecutor = opts?.liveExecutor;
-    this.onTelegramDispatch = opts?.onTelegramDispatch;
+    // Deliberately ignore outbound adapters: no exchange or Telegram traffic in Demo.
+    void opts;
 
     const init = createInitialBit24Catalog();
     this.markets = init.markets;
     this.candlesBySymbol = init.candlesBySymbol;
     for (const m of this.markets) {
       const candles = this.candlesBySymbol.get(m.symbol) || [];
-      this.orderBooksBySymbol.set(m.symbol, buildSimulatedOrderBook(m, candles));
+      this.orderBooksBySymbol.set(
+        m.symbol,
+        buildSimulatedOrderBook(m, candles),
+      );
     }
     this.refreshSignals();
   }
 
   public setBit24Health(health: Partial<Bit24ApiHealth>): void {
-    this.bit24Health = {
-      ...this.bit24Health,
-      ...health,
-      withdrawalPermissionBlocked: true,
-    };
-    this.apiDisconnectedFault =
-      this.tradingMode === 'LIVE' && this.bit24Health.state !== 'CONNECTED_PUBLIC_AND_PRIVATE';
+    void health; // External feed activation is disabled.
   }
 
   public setTelegramMeta(meta: {
@@ -162,7 +173,7 @@ export class Bit24AiTraderOrchestrator {
   private emitTelegram(
     eventType: TelegramEventType,
     title: string,
-    safeSummary: string
+    safeSummary: string,
   ): void {
     if (this.onTelegramDispatch) {
       Promise.resolve(this.onTelegramDispatch(eventType, title, safeSummary))
@@ -188,40 +199,8 @@ export class Bit24AiTraderOrchestrator {
    * Injects real Bit24 `/pro/capi/v2/markets` tickers when reachable over user's internet.
    */
   public applyLiveBit24Markets(liveMarkets: Bit24TickerMarket[]): void {
-    if (!liveMarkets || liveMarkets.length === 0) return;
-    const now = Date.now();
-    this.markets = liveMarkets.map((lm) => {
-      const existingBars = this.candlesBySymbol.get(lm.symbol) || [];
-      const nextBar: CandleBar = {
-        t: Math.floor(now / 1000),
-        o: existingBars[existingBars.length - 1]?.c || lm.priceIrt,
-        h: Math.max(lm.priceIrt, existingBars[existingBars.length - 1]?.c || lm.priceIrt),
-        l: Math.min(lm.priceIrt, existingBars[existingBars.length - 1]?.c || lm.priceIrt),
-        c: lm.priceIrt,
-        v: Math.max(1, lm.volume24hBase / 1440),
-      };
-      const updatedBars = [...existingBars.slice(-199), nextBar];
-      this.candlesBySymbol.set(lm.symbol, updatedBars);
-      const mtf = computeMultiTimeframeChanges(updatedBars);
-      const merged: Bit24TickerMarket = {
-        ...lm,
-        change1mPct: mtf.change1mPct,
-        change5mPct: mtf.change5mPct,
-        change15mPct: mtf.change15mPct,
-        change60mPct: mtf.change60mPct,
-        updatedAt: now,
-        dataFeedType: 'LIVE_BIT24_API',
-      };
-      if (!this.orderBooksBySymbol.get(lm.symbol)?.fromLiveOrderBook) {
-        this.orderBooksBySymbol.set(
-          lm.symbol,
-          buildSimulatedOrderBook(merged, updatedBars)
-        );
-      }
-      return merged;
-    });
-    this.bit24Health.activeMarketFeed = 'LIVE_BIT24_API';
-    this.refreshSignals();
+    void liveMarkets;
+    throw new Error("LIVE_DISABLED_DEMO_ONLY");
   }
 
   /**
@@ -229,36 +208,52 @@ export class Bit24AiTraderOrchestrator {
    * updates open positions (SL, Trailing Stop, Stepped TP), and executes Demo/Live signals!
    */
   public async stepCycle(): Promise<void> {
+    if (this.cycleBusy) throw new Error("CYCLE_ALREADY_RUNNING");
+    this.cycleBusy = true;
+    try {
+      await this.advanceCycle();
+    } finally {
+      this.cycleBusy = false;
+    }
+  }
+  private async advanceCycle(): Promise<void> {
+    this.rollDay();
     const now = Date.now();
 
     // Update simulated ticks when not receiving live API stream
-    if (this.bit24Health.activeMarketFeed === 'SIMULATED_MARKET_FEED') {
+    if (this.bit24Health.activeMarketFeed === "SIMULATED_MARKET_FEED") {
       for (const m of this.markets) {
         const bars = this.candlesBySymbol.get(m.symbol) || [];
         const prev = bars[bars.length - 1]?.c || m.priceIrt;
-        const seedBias =
-          m.symbol === 'PEPE/IRT'
-            ? -0.0015
-            : m.segment === 'GOLD'
-            ? 0.0006
-            : 0.0012;
-        const jitter = (Math.sin(now / 7000 + m.symbol.charCodeAt(0)) * 0.0038) + seedBias;
+        const jitter = Math.sin(now / 7000 + m.symbol.charCodeAt(0)) * 0.0006;
         const nextPrice = roundIrtPrice(Math.max(0.0001, prev * (1 + jitter)));
         const high = roundIrtPrice(Math.max(prev, nextPrice) * 1.0015);
         const low = roundIrtPrice(Math.min(prev, nextPrice) * 0.9985);
-        const avgVol =
-          bars.length > 0 ? bars[bars.length - 1].v : 100;
+        const avgVol = Math.max(
+          1,
+          m.volume24hIrt / 1440 / Math.max(0.0001, m.priceIrt),
+        );
         const volMult = jitter > 0.001 ? 1.55 : 0.98;
 
         const bar: CandleBar = {
-          t: Math.floor(now / 1000),
+          t: Math.floor(now / 60_000) * 60,
           o: prev,
           h: high,
           l: low,
           c: nextPrice,
           v: Number((avgVol * volMult).toFixed(4)),
         };
-        const nextBars = [...bars.slice(-179), bar];
+        const sameMinute = bars[bars.length - 1]?.t === bar.t;
+        if (sameMinute) {
+          const old = bars[bars.length - 1];
+          bar.o = old.o;
+          bar.h = Math.max(old.h, bar.h);
+          bar.l = Math.min(old.l, bar.l);
+        }
+        const nextBars = [
+          ...bars.slice(sameMinute ? -180 : -179, sameMinute ? -1 : undefined),
+          bar,
+        ];
         this.candlesBySymbol.set(m.symbol, nextBars);
         const mtf = computeMultiTimeframeChanges(nextBars);
 
@@ -269,26 +264,26 @@ export class Bit24AiTraderOrchestrator {
         m.change60mPct = mtf.change60mPct;
         m.updatedAt = now;
 
-        this.orderBooksBySymbol.set(m.symbol, buildSimulatedOrderBook(m, nextBars));
+        this.orderBooksBySymbol.set(
+          m.symbol,
+          buildSimulatedOrderBook(m, nextBars),
+        );
       }
     }
 
-    // Always manage open positions (Stop-Loss / Trailing Stop / Stepped Take-Profit)
+    // Latch observed drawdown before exits can reduce exposure or realize gains.
+    this.enforceDailyLimit();
+    // Existing protective exits continue even while new entries are halted.
     await this.manageOpenPositions(now);
+
+    this.enforceDailyLimit();
 
     // Refresh scanner signals if scanner is running
     if (this.scannerRunning) {
       this.refreshSignals();
     }
 
-    // Auto-execute Demo or confirmed Live entries when trading is active and not emergency-stopped
-    if (
-      !this.emergencyStopped &&
-      (this.tradingMode === 'DEMO' ||
-        (this.tradingMode === 'LIVE' && this.liveTradingUserConfirmed))
-    ) {
-      await this.evaluateNewEntries(now);
-    }
+    // Every entry needs a manual warning/confirmation. Protective exits remain automatic.
   }
 
   public refreshSignals(): void {
@@ -298,9 +293,10 @@ export class Bit24AiTraderOrchestrator {
     for (const m of this.markets) {
       const candles = this.candlesBySymbol.get(m.symbol) || [];
       const ob =
-        this.orderBooksBySymbol.get(m.symbol) || buildSimulatedOrderBook(m, candles);
+        this.orderBooksBySymbol.get(m.symbol) ||
+        buildSimulatedOrderBook(m, candles);
 
-      if (m.segment === 'CRYPTO') {
+      if (m.segment === "CRYPTO") {
         const sig = analyzeBit24CryptoPumpOpportunity(m, candles, ob);
         nextCrypto.push(sig);
 
@@ -310,9 +306,9 @@ export class Bit24AiTraderOrchestrator {
           if (Date.now() - prevAlert > 15 * 60_000) {
             this.lastAlertedPumpBySymbol.set(sig.symbol, Date.now());
             this.emitTelegram(
-              'PUMP_CANDIDATE',
+              "PUMP_CANDIDATE",
               `رمزارز مستعد رشد: ${sig.symbol} (${sig.opportunityScore}/100)`,
-              `قیمت: ${sig.priceIrt.toLocaleString()} تومان | قدرت خریدار: ${sig.indicators.buyerPowerPct}% | حجم: ${sig.indicators.volumeSurgeRatio}x`
+              `قیمت: ${sig.priceIrt.toLocaleString()} تومان | قدرت خریدار: ${sig.indicators.buyerPowerPct}% | حجم: ${sig.indicators.volumeSurgeRatio}x`,
             );
           }
         }
@@ -320,9 +316,11 @@ export class Bit24AiTraderOrchestrator {
     }
 
     // Evaluate PAXG/IRT and XAUT/IRT independently for GOLD AI TRADER
-    for (const goldCoin of ['PAXG', 'XAUT'] as const) {
+    for (const goldCoin of ["PAXG", "XAUT"] as const) {
       const sym = `${goldCoin}/IRT` as const;
-      const gm = this.markets.find((x) => x.symbol === sym && x.segment === 'GOLD');
+      const gm = this.markets.find(
+        (x) => x.symbol === sym && x.segment === "GOLD",
+      );
       const gCandles = this.candlesBySymbol.get(sym) || [];
       const gBook = gm ? this.orderBooksBySymbol.get(sym) : undefined;
       nextGold.push(analyzeGoldAiMarket(sym, goldCoin, gm, gCandles, gBook));
@@ -341,28 +339,21 @@ export class Bit24AiTraderOrchestrator {
 
       const candles = this.candlesBySymbol.get(pos.symbol) || [];
       const lastBar = candles[candles.length - 1];
-      const barLow = lastBar ? Math.min(lastBar.l, market.priceIrt) : market.priceIrt;
-      const barHigh = lastBar ? Math.max(lastBar.h, market.priceIrt) : market.priceIrt;
+      const barLow = lastBar
+        ? Math.min(lastBar.l, market.priceIrt)
+        : market.priceIrt;
+      const barHigh = lastBar
+        ? Math.max(lastBar.h, market.priceIrt)
+        : market.priceIrt;
 
-      const exitCfg =
-        pos.segment === 'GOLD'
-          ? {
-              ...this.exitConfig,
-              initialStopLossPct: 2.5,
-              trailingActivationProfitPct: 4.5,
-              trailingDistanceFromPeakPct: 1.5,
-              tpStage1ProfitPct: 4,
-              tpStage2ProfitPct: 7,
-              tpStage3ProfitPct: 11,
-            }
-          : this.exitConfig;
+      const exitCfg = pos.exitSettings ?? this.exitConfig;
 
       const decision = evaluatePositionStepExit(
         pos,
         market.priceIrt,
-        barLow,
-        barHigh,
-        exitCfg
+        market.priceIrt,
+        market.priceIrt,
+        exitCfg,
       );
 
       if (!decision) continue;
@@ -375,7 +366,7 @@ export class Bit24AiTraderOrchestrator {
         decision.stageTriggered,
         decision.sellReasonFa,
         decision.sellReasonEn,
-        nowMs
+        nowMs,
       );
     }
   }
@@ -388,7 +379,7 @@ export class Bit24AiTraderOrchestrator {
     stageTriggered: 1 | 2 | 3 | undefined,
     sellReasonFa: string,
     sellReasonEn: string,
-    nowMs: number
+    nowMs: number,
   ): Promise<void> {
     const market = this.markets.find((m) => m.symbol === pos.symbol);
     const ob = this.orderBooksBySymbol.get(pos.symbol);
@@ -398,30 +389,11 @@ export class Bit24AiTraderOrchestrator {
     let filledSellPrice = roundIrtPrice(rawPrice * (1 - slippagePct / 100));
     let sellFeeIrt = sellQuantity * filledSellPrice * 0.002;
 
-    if (pos.mode === 'LIVE' && this.liveExecutor) {
-      const liveRes = await this.liveExecutor.submitAndVerifySpotOrder({
-        baseCoin: pos.baseCoin,
-        quoteCoin: 'IRT',
-        side: 'SELL',
-        amountBase: sellQuantity,
-        priceIrt: filledSellPrice,
-      });
-      if (!liveRes.ok) {
-        this.consecutiveTradeErrors += 1;
-        this.recordRejection({
-          id: `rej-sell-${nowMs}`,
-          timestamp: nowMs,
-          symbol: pos.symbol,
-          code: 'ABNORMAL_MARKET',
-          reasonFa: `خطا در تأیید سفارش فروش واقعی Bit24: ${liveRes.error || 'نامشخص'}`,
-          reasonEn: `Live Bit24 sell order verification failed: ${liveRes.error || 'Unknown'}`,
-        });
-        return;
-      }
-      if (liveRes.filledPriceIrt) filledSellPrice = liveRes.filledPriceIrt;
-      if (typeof liveRes.feeIrt === 'number') sellFeeIrt = liveRes.feeIrt;
-      this.consecutiveTradeErrors = 0;
-    }
+    if (pos.mode !== "DEMO") throw new Error("LIVE_DISABLED_DEMO_ONLY");
+    sellQuantity = Math.min(sellQuantity, pos.remainingQuantity);
+    if (!Number.isFinite(sellQuantity) || sellQuantity <= 0)
+      throw new Error("INVALID_SELL_QUANTITY");
+    sellFeeIrt = sellQuantity * filledSellPrice * 0.002;
 
     if (stageTriggered === 1) pos.tpStage1Filled = true;
     if (stageTriggered === 2) pos.tpStage2Filled = true;
@@ -429,17 +401,22 @@ export class Bit24AiTraderOrchestrator {
 
     const grossProceedsIrt = sellQuantity * filledSellPrice;
     const netProceedsIrt = grossProceedsIrt - sellFeeIrt;
-    const fraction = Math.min(1, sellQuantity / Math.max(1e-9, pos.remainingQuantity));
+    const fraction = Math.min(1, sellQuantity / pos.remainingQuantity);
     const capitalPortion = pos.remainingCapitalIrt * fraction;
-    const entryFeePortion = capitalPortion * 0.002;
-    const totalFeeIrt = Math.round(entryFeePortion + sellFeeIrt);
-    const slippageCostIrt = Math.round(sellQuantity * rawPrice * (slippagePct / 100));
-    const netPnlIrt = Math.round(netProceedsIrt - capitalPortion);
+    const entryFeePortion =
+      pos.entryFeeIrt * (sellQuantity / pos.initialQuantity);
+    const totalFeeIrt = entryFeePortion + sellFeeIrt;
+    const slippageCostIrt = Math.round(
+      sellQuantity * rawPrice * (slippagePct / 100),
+    );
+    const netPnlIrt = netProceedsIrt - capitalPortion;
     const netPnlPct =
-      capitalPortion > 0 ? Number(((netPnlIrt / capitalPortion) * 100).toFixed(2)) : 0;
+      capitalPortion > 0
+        ? Number(((netPnlIrt / capitalPortion) * 100).toFixed(2))
+        : 0;
 
-    if (pos.mode === 'DEMO') {
-      if (pos.segment === 'GOLD') {
+    if (pos.mode === "DEMO") {
+      if (pos.segment === "GOLD") {
         this.goldDedicatedCashIrt += netProceedsIrt;
       } else {
         this.demoCashIrt += netProceedsIrt;
@@ -447,7 +424,8 @@ export class Bit24AiTraderOrchestrator {
     }
 
     const record: TradeHistoryRecord = {
-      id: `trd-${nowMs}-${Math.random().toString(36).slice(2, 6)}`,
+      id: "trd-" + newRequestId(),
+      positionId: pos.id,
       symbol: pos.symbol,
       segment: pos.segment,
       mode: pos.mode,
@@ -455,8 +433,8 @@ export class Bit24AiTraderOrchestrator {
       buyPriceIrt: pos.entryPriceIrt,
       sellTime: nowMs,
       sellPriceIrt: filledSellPrice,
-      quantity: Number(sellQuantity.toFixed(6)),
-      capitalEnteredIrt: Math.round(capitalPortion),
+      quantity: sellQuantity,
+      capitalEnteredIrt: capitalPortion,
       totalFeeIrt,
       slippageCostIrt,
       netPnlIrt,
@@ -468,87 +446,71 @@ export class Bit24AiTraderOrchestrator {
     };
 
     this.tradeHistory.unshift(record);
-    if (this.tradeHistory.length > 500) this.tradeHistory.length = 500;
+    this.paperOrders.push({
+      id: `order-sell-${record.id}`,
+      symbol: pos.symbol,
+      side: "SELL",
+      mode: "DEMO",
+      quantity: sellQuantity,
+      priceIrt: filledSellPrice,
+      feeIrt: sellFeeIrt,
+      at: nowMs,
+      source: stageTriggered
+        ? "TAKE_PROFIT"
+        : sellReasonEn.includes("Stop")
+          ? "STOP_LOSS"
+          : "MANUAL_OR_AUTO",
+    });
 
     pos.remainingQuantity = Math.max(0, pos.remainingQuantity - sellQuantity);
-    pos.remainingCapitalIrt = Math.max(0, pos.remainingCapitalIrt - capitalPortion);
+    pos.remainingCapitalIrt = Math.max(
+      0,
+      pos.remainingCapitalIrt - capitalPortion,
+    );
 
-    if (closeEntirePosition || pos.remainingQuantity <= 1e-8) {
+    if (
+      closeEntirePosition ||
+      pos.remainingQuantity <= pos.initialQuantity * 1e-12
+    ) {
       this.openPositions.splice(posIndex, 1);
     }
 
     const tgType: TelegramEventType = stageTriggered
-      ? 'TAKE_PROFIT_HIT'
+      ? "TAKE_PROFIT_HIT"
       : netPnlIrt < 0
-      ? 'STOP_LOSS_HIT'
-      : 'DEMO_SELL';
+        ? "STOP_LOSS_HIT"
+        : "DEMO_SELL";
     this.emitTelegram(
       tgType,
-      `فروش ${pos.mode === 'DEMO' ? 'دمو' : 'واقعی'} ${pos.symbol}`,
-      `قیمت فروش: ${filledSellPrice.toLocaleString()} تومان | سود/زیان خالص: ${netPnlIrt.toLocaleString()} تومان (${netPnlPct}%) | علت: ${sellReasonFa}`
+      `فروش ${pos.mode === "DEMO" ? "دمو" : "واقعی"} ${pos.symbol}`,
+      `قیمت فروش: ${filledSellPrice.toLocaleString()} تومان | سود/زیان خالص: ${netPnlIrt.toLocaleString()} تومان (${netPnlPct}%) | علت: ${sellReasonFa}`,
     );
 
-    // Check if Daily Loss Limit (-3%) was breached after a realized loss -> Auto-Stop!
-    const dailyPct = this.getCryptoDailyPnlPct();
-    if (
-      this.capitalConfig.autoStopOnDailyLoss &&
-      dailyPct <= -Math.abs(this.capitalConfig.maxDailyLossPct) &&
-      this.tradingMode !== 'STOPPED'
-    ) {
-      this.tradingMode = 'STOPPED';
-      this.emitTelegram(
-        'BOT_STOPPED',
-        'توقف خودکار محافظ سرمایه (سقف ضرر روزانه)',
-        `ضرر روزانه به ${dailyPct.toFixed(2)}% رسید (حد مجاز: -${this.capitalConfig.maxDailyLossPct}%). معاملات جدید متوقف شدند.`
-      );
-    }
-  }
-
-  private async evaluateNewEntries(nowMs: number): Promise<void> {
-    // 1. Evaluate Top Crypto Strong Signals (85 - 100)
-    const strongSignals = this.cryptoSignals.filter(
-      (s) => s.tier === 'STRONG_TEST_SIGNAL' && s.opportunityScore >= 85
-    );
-
-    for (const sig of strongSignals) {
-      await this.tryOpenCryptoPosition(sig, nowMs);
-    }
-
-    // 2. Evaluate Gold AI Trader independently if enabled
-    if (this.goldAutoDemoEnabled && this.tradingMode === 'DEMO') {
-      for (const gs of this.goldSignals) {
-        if (gs.verifiedTradableOnBit24 && gs.action === 'GOLD_BUY_CANDIDATE') {
-          await this.tryOpenGoldDemoPosition(gs.symbol, nowMs);
-        }
-      }
-    }
+    this.markPositions();
+    this.enforceDailyLimit();
   }
 
   public async tryOpenCryptoPosition(
     sig: PumpOpportunitySignal,
-    nowMs = Date.now()
-  ): Promise<{ ok: boolean; messageFa: string; messageEn: string }> {
+    nowMs = Date.now(),
+  ): Promise<{
+    ok: boolean;
+    code?: string;
+    messageFa: string;
+    messageEn: string;
+  }> {
     const market = this.markets.find((m) => m.symbol === sig.symbol);
     const ob = this.orderBooksBySymbol.get(sig.symbol);
     if (!market || !ob) {
       return {
         ok: false,
-        messageFa: 'بازار موردنظر در لیست Bit24 یافت نشد.',
-        messageEn: 'Market not found on Bit24.',
+        messageFa: "بازار موردنظر در لیست Bit24 یافت نشد.",
+        messageEn: "Market not found on Bit24.",
       };
     }
 
-    const mode: 'DEMO' | 'LIVE' = this.tradingMode === 'LIVE' ? 'LIVE' : 'DEMO';
-
-    // HARD GUARD: Never allow LIVE trade without explicit user confirmation!
-    if (mode === 'LIVE' && !this.liveTradingUserConfirmed) {
-      return {
-        ok: false,
-        messageFa: 'معامله واقعی تا زمان تأیید نهایی کاربر به صورت سخت‌افزاری قفل است.',
-        messageEn: 'Live trading is locked until explicit user confirmation.',
-      };
-    }
-
+    this.enforceDailyLimit();
+    const mode = "DEMO" as const;
     const gate = runSmartSecurityGate({
       nowMs,
       symbol: sig.symbol,
@@ -557,7 +519,9 @@ export class Bit24AiTraderOrchestrator {
       orderBook: ob,
       openPositions: this.openPositions,
       inFlightSymbols: this.inFlightSymbols,
-      dailyLossPctSoFar: this.getCryptoDailyPnlPct(),
+      dailyLossPctSoFar: this.daily.halted
+        ? -this.capitalConfig.maxDailyLossPct
+        : this.getCryptoDailyPnlPct(),
       capitalConfig: this.capitalConfig,
       emergencyStopped: this.emergencyStopped,
       apiDisconnectedFault: this.apiDisconnectedFault,
@@ -571,6 +535,7 @@ export class Bit24AiTraderOrchestrator {
       this.recordRejection(gate.rejection);
       return {
         ok: false,
+        code: gate.rejection.code,
         messageFa: gate.rejection.reasonFa,
         messageEn: gate.rejection.reasonEn,
       };
@@ -579,32 +544,10 @@ export class Bit24AiTraderOrchestrator {
     let availableCashIrt = this.demoCashIrt;
     let totalEquityIrt = this.getCryptoDemoTotalEquityIrt();
 
-    // In LIVE mode: strictly verify balance from Bit24 API BEFORE submitting any order
-    if (mode === 'LIVE') {
-      if (!this.liveExecutor) {
-        return {
-          ok: false,
-          messageFa: 'اجراکننده رسمی Bit24 متصل نیست.',
-          messageEn: 'Live Bit24 executor is not attached.',
-        };
-      }
-      const bal = await this.liveExecutor.checkLiveIrtBalance();
-      if (!bal.ok) {
-        this.consecutiveTradeErrors += 1;
-        return {
-          ok: false,
-          messageFa: `خطا در استعلام موجودی Bit24 پیش از خرید: ${bal.error}`,
-          messageEn: `Pre-order Bit24 balance check failed: ${bal.error}`,
-        };
-      }
-      availableCashIrt = bal.availableIrt;
-      totalEquityIrt = bal.availableIrt;
-    }
-
     const capitalIrt = calculateSafePositionCapitalIrt({
       totalEquityIrt,
       availableCashIrt,
-      stopLossPct: this.exitConfig.initialStopLossPct,
+      stopLossPct: this.exitConfig.initialStopLossPct + 0.6,
       capitalConfig: this.capitalConfig,
     });
 
@@ -613,7 +556,7 @@ export class Bit24AiTraderOrchestrator {
         id: `rej-bal-${nowMs}`,
         timestamp: nowMs,
         symbol: sig.symbol,
-        code: 'INSUFFICIENT_BALANCE',
+        code: "INSUFFICIENT_BALANCE",
         reasonFa: `موجودی قابل تخصیص (${capitalIrt.toLocaleString()} تومان) کمتر از حداقل سفارش Bit24 (${market.minOrderIrt.toLocaleString()} تومان) است.`,
         reasonEn: `Allocated capital (${capitalIrt.toLocaleString()} IRT) is below Bit24 minimum order (${market.minOrderIrt.toLocaleString()} IRT).`,
       };
@@ -625,48 +568,29 @@ export class Bit24AiTraderOrchestrator {
     this.inFlightSymbols.add(sig.symbol);
     try {
       const slippagePct = ob.estimatedSlippagePct || 0.08;
-      let filledPriceIrt = roundIrtPrice(market.priceIrt * (1 + slippagePct / 100));
+      let filledPriceIrt = roundIrtPrice(
+        market.priceIrt * (1 + slippagePct / 100),
+      );
       let entryFeeIrt = Math.round(capitalIrt * 0.002);
       const estQty = (capitalIrt - entryFeeIrt) / filledPriceIrt;
 
-      if (mode === 'LIVE' && this.liveExecutor) {
-        // Submit AND verify order result BEFORE releasing lock or allowing next order
-        const orderRes = await this.liveExecutor.submitAndVerifySpotOrder({
-          baseCoin: market.baseCoin,
-          quoteCoin: 'IRT',
-          side: 'BUY',
-          amountBase: Number(estQty.toFixed(6)),
-          priceIrt: filledPriceIrt,
-        });
-        if (!orderRes.ok) {
-          this.consecutiveTradeErrors += 1;
-          return {
-            ok: false,
-            messageFa: `سفارش خرید در صرافی Bit24 تأیید نشد: ${orderRes.error}`,
-            messageEn: `Bit24 spot buy order not verified: ${orderRes.error}`,
-          };
-        }
-        if (orderRes.filledPriceIrt) filledPriceIrt = orderRes.filledPriceIrt;
-        if (typeof orderRes.feeIrt === 'number') entryFeeIrt = orderRes.feeIrt;
-        this.consecutiveTradeErrors = 0;
-      } else {
-        this.demoCashIrt -= capitalIrt;
-      }
+      this.demoCashIrt -= capitalIrt;
 
       const finalQty = (capitalIrt - entryFeeIrt) / filledPriceIrt;
       const initialSlIrt = roundIrtPrice(
-        filledPriceIrt * (1 - this.exitConfig.initialStopLossPct / 100)
+        filledPriceIrt * (1 - this.exitConfig.initialStopLossPct / 100),
       );
 
-      const buyReasonFa = `امتیاز هوش مصنوعی ${sig.opportunityScore}/100 | ${sig.reasonsFa.slice(0, 2).join(' + ')}`;
-      const buyReasonEn = `AI Score ${sig.opportunityScore}/100 | ${sig.reasonsEn.slice(0, 2).join(' + ')}`;
+      const buyReasonFa = `امتیاز هوش مصنوعی ${sig.opportunityScore}/100 | ${sig.reasonsFa.slice(0, 2).join(" + ")}`;
+      const buyReasonEn = `AI Score ${sig.opportunityScore}/100 | ${sig.reasonsEn.slice(0, 2).join(" + ")}`;
 
       this.openPositions.push({
-        id: `pos-${nowMs}-${sig.baseCoin}`,
+        id: "pos-" + newRequestId(),
         symbol: sig.symbol,
         baseCoin: sig.baseCoin,
-        segment: 'CRYPTO',
+        segment: "CRYPTO",
         mode,
+        exitSettings: { ...this.exitConfig },
         entryPriceIrt: filledPriceIrt,
         currentPriceIrt: filledPriceIrt,
         highestPriceIrt: filledPriceIrt,
@@ -689,15 +613,28 @@ export class Bit24AiTraderOrchestrator {
         openedAt: nowMs,
       });
 
+      this.paperOrders.push({
+        id: "order-" + newRequestId(),
+        symbol: sig.symbol,
+        side: "BUY",
+        mode: "DEMO",
+        quantity: finalQty,
+        priceIrt: filledPriceIrt,
+        feeIrt: entryFeeIrt,
+        at: nowMs,
+        source: "MANUAL_OR_AUTO",
+      });
+      this.markPositions();
+      this.enforceDailyLimit();
       this.emitTelegram(
-        mode === 'DEMO' ? 'DEMO_BUY' : 'BUY_SIGNAL',
-        `خرید ${mode === 'DEMO' ? 'آزمایشی (Demo)' : 'واقعی'} ${sig.symbol}`,
-        `سرمایه: ${capitalIrt.toLocaleString()} تومان | قیمت ورود: ${filledPriceIrt.toLocaleString()} تومان | حد ضرر: ${initialSlIrt.toLocaleString()} تومان`
+        "DEMO_BUY",
+        `خرید ${mode === "DEMO" ? "آزمایشی (Demo)" : "واقعی"} ${sig.symbol}`,
+        `سرمایه: ${capitalIrt.toLocaleString()} تومان | قیمت ورود: ${filledPriceIrt.toLocaleString()} تومان | حد ضرر: ${initialSlIrt.toLocaleString()} تومان`,
       );
 
       return {
         ok: true,
-        messageFa: `خرید ${mode === 'DEMO' ? 'آزمایشی' : 'واقعی'} ${sig.symbol} با موفقیت ثبت شد.`,
+        messageFa: `خرید ${mode === "DEMO" ? "آزمایشی" : "واقعی"} ${sig.symbol} با موفقیت ثبت شد.`,
         messageEn: `${mode} buy opened on ${sig.symbol}.`,
       };
     } finally {
@@ -709,11 +646,18 @@ export class Bit24AiTraderOrchestrator {
    * Dedicated GOLD AI TRADER Demo Execution (strictly isolated from Crypto capital & PnL!)
    */
   public async tryOpenGoldDemoPosition(
-    symbol: 'PAXG/IRT' | 'XAUT/IRT',
-    nowMs = Date.now()
-  ): Promise<{ ok: boolean; messageFa: string; messageEn: string }> {
+    symbol: "PAXG/IRT" | "XAUT/IRT",
+    nowMs = Date.now(),
+  ): Promise<{
+    ok: boolean;
+    code?: string;
+    messageFa: string;
+    messageEn: string;
+  }> {
     const goldSig = this.goldSignals.find((g) => g.symbol === symbol);
-    const market = this.markets.find((m) => m.symbol === symbol && m.segment === 'GOLD');
+    const market = this.markets.find(
+      (m) => m.symbol === symbol && m.segment === "GOLD",
+    );
     if (!goldSig || !goldSig.verifiedTradableOnBit24 || !market) {
       return {
         ok: false,
@@ -722,44 +666,63 @@ export class Bit24AiTraderOrchestrator {
       };
     }
 
-    if (this.emergencyStopped) {
+    this.enforceDailyLimit();
+    if (this.emergencyStopped || this.daily.halted)
       return {
         ok: false,
-        messageFa: 'توقف اضطراری فعال است؛ خرید طلای دیجیتال مسدود است.',
-        messageEn: 'Emergency stop is active; Gold buy blocked.',
+        code: this.daily.halted ? "DAILY_LOSS_LIMIT" : "EMERGENCY_STOP_ACTIVE",
+        messageFa: "توقف ایمنی فعال است.",
+        messageEn: "Safety halt active.",
       };
-    }
-
-    if (this.openPositions.some((p) => p.symbol === symbol)) {
+    if (this.openPositions.some((p) => p.symbol === symbol))
       return {
         ok: false,
-        messageFa: `پوزیشن باز روی ${symbol} از قبل فعال است (جلوگیری از خرید تکراری).`,
-        messageEn: `Position already open on ${symbol} (duplicate blocked).`,
+        code: "DUPLICATE_ORDER",
+        messageFa: "روی این نماد پوزیشن باز وجود دارد.",
+        messageEn: "Duplicate position.",
       };
-    }
-
-    const goldNotionalIrt = Math.min(5_000_000, Math.floor(this.goldDedicatedCashIrt * 0.2));
+    if (this.openPositions.length >= this.capitalConfig.maxConcurrentTrades)
+      return {
+        ok: false,
+        code: "MAX_CONCURRENT_REACHED",
+        messageFa: "سقف مشترک معاملات هم‌زمان تکمیل است.",
+        messageEn: "Global capacity full.",
+      };
+    const equity =
+      this.goldDedicatedCashIrt +
+      this.openPositions
+        .filter((p) => p.segment === "GOLD")
+        .reduce((v, p) => v + p.remainingQuantity * p.currentPriceIrt, 0);
+    const goldNotionalIrt = calculateSafePositionCapitalIrt({
+      totalEquityIrt: equity,
+      availableCashIrt: this.goldDedicatedCashIrt,
+      stopLossPct: this.exitConfig.initialStopLossPct + 0.6,
+      capitalConfig: this.capitalConfig,
+    });
     if (goldNotionalIrt < market.minOrderIrt) {
       return {
         ok: false,
-        messageFa: 'موجودی پرتفوی اختصاصی طلای دیجیتال کافی نیست.',
-        messageEn: 'Insufficient dedicated Gold Demo balance.',
+        messageFa: "موجودی پرتفوی اختصاصی طلای دیجیتال کافی نیست.",
+        messageEn: "Insufficient dedicated Gold Demo balance.",
       };
     }
 
     const filledPrice = roundIrtPrice(market.priceIrt * 1.0008);
     const feeIrt = Math.round(goldNotionalIrt * 0.002);
     const qty = (goldNotionalIrt - feeIrt) / filledPrice;
-    const slIrt = roundIrtPrice(filledPrice * 0.975); // 2.5% Gold Stop-Loss
+    const slIrt = roundIrtPrice(
+      filledPrice * (1 - this.exitConfig.initialStopLossPct / 100),
+    ); // 2.5% Gold Stop-Loss
 
     this.goldDedicatedCashIrt -= goldNotionalIrt;
 
     this.openPositions.push({
-      id: `gold-pos-${nowMs}-${market.baseCoin}`,
+      id: "gold-pos-" + newRequestId(),
       symbol,
       baseCoin: market.baseCoin,
-      segment: 'GOLD',
-      mode: 'DEMO',
+      segment: "GOLD",
+      mode: "DEMO",
+      exitSettings: { ...this.exitConfig },
       entryPriceIrt: filledPrice,
       currentPriceIrt: filledPrice,
       highestPriceIrt: filledPrice,
@@ -783,11 +746,24 @@ export class Bit24AiTraderOrchestrator {
     });
 
     this.emitTelegram(
-      'DEMO_BUY',
+      "DEMO_BUY",
       `خرید دمو طلای دیجیتال ${symbol}`,
-      `مبلغ: ${goldNotionalIrt.toLocaleString()} تومان | قیمت ورود: ${filledPrice.toLocaleString()} تومان`
+      `مبلغ: ${goldNotionalIrt.toLocaleString()} تومان | قیمت ورود: ${filledPrice.toLocaleString()} تومان`,
     );
 
+    this.paperOrders.push({
+      id: "order-" + newRequestId(),
+      symbol,
+      side: "BUY",
+      mode: "DEMO",
+      quantity: qty,
+      priceIrt: filledPrice,
+      feeIrt,
+      at: nowMs,
+      source: "MANUAL_OR_AUTO",
+    });
+    this.markPositions();
+    this.enforceDailyLimit();
     return {
       ok: true,
       messageFa: `پوزیشن آزمایشی طلای دیجیتال ${symbol} در پرتفوی مجزای طلا باز شد.`,
@@ -801,7 +777,7 @@ export class Bit24AiTraderOrchestrator {
       (r) =>
         r.symbol === rej.symbol &&
         r.code === rej.code &&
-        rej.timestamp - r.timestamp < 25_000
+        rej.timestamp - r.timestamp < 25_000,
     );
     if (recentSame) return;
 
@@ -820,48 +796,80 @@ export class Bit24AiTraderOrchestrator {
   }
 
   public startDemoTrading(): void {
-    this.emergencyStopped = false;
+    this.enforceDailyLimit();
+    if (this.emergencyStopped || this.daily.halted)
+      throw new Error("SAFETY_HALT_ACTIVE");
     this.scannerRunning = true;
-    this.tradingMode = 'DEMO';
+    this.tradingMode = "DEMO";
     this.refreshSignals();
   }
 
   public stopTrading(): void {
-    this.tradingMode = 'STOPPED';
+    this.tradingMode = "STOPPED";
     this.emitTelegram(
-      'BOT_STOPPED',
-      'توقف معاملات ربات',
-      'معاملات خودکار توسط کاربر متوقف شد.'
+      "BOT_STOPPED",
+      "توقف معاملات ربات",
+      "معاملات خودکار توسط کاربر متوقف شد.",
     );
+  }
+
+  public async closeDemoPosition(
+    symbol: string,
+  ): Promise<{ ok: boolean; error?: string; messageFa: string }> {
+    const index = this.openPositions.findIndex((p) => p.symbol === symbol);
+    if (index < 0)
+      return {
+        ok: false,
+        error: "POSITION_NOT_FOUND",
+        messageFa: "پوزیشن باز برای این نماد وجود ندارد.",
+      };
+    const pos = this.openPositions[index];
+    if (pos.mode !== "DEMO")
+      return {
+        ok: false,
+        error: "DEMO_ONLY",
+        messageFa: "این مسیر فقط فروش آزمایشی انجام می‌دهد.",
+      };
+    await this.executeExitOrder(
+      pos,
+      index,
+      pos.remainingQuantity,
+      true,
+      undefined,
+      "فروش دستی آزمایشی از پنل",
+      "Manual demo sell from dashboard",
+      Date.now(),
+    );
+    return { ok: true, messageFa: "فروش آزمایشی انجام شد." };
   }
 
   public async triggerEmergencyStop(liquidateDemoOpen = true): Promise<void> {
     this.emergencyStopped = true;
-    this.tradingMode = 'STOPPED';
+    this.tradingMode = "STOPPED";
 
     if (liquidateDemoOpen) {
       const now = Date.now();
       for (let i = this.openPositions.length - 1; i >= 0; i--) {
         const pos = this.openPositions[i];
-        if (pos.mode === 'DEMO') {
+        if (pos.mode === "DEMO") {
           await this.executeExitOrder(
             pos,
             i,
             pos.remainingQuantity,
             true,
             undefined,
-            'بستن فوری در توقف اضطراری (EMERGENCY STOP)',
-            'Immediate close triggered by EMERGENCY STOP',
-            now
+            "بستن فوری در توقف اضطراری (EMERGENCY STOP)",
+            "Immediate close triggered by EMERGENCY STOP",
+            now,
           );
         }
       }
     }
 
     this.emitTelegram(
-      'BOT_STOPPED',
-      'توقف اضطراری (EMERGENCY STOP) فعال شد',
-      'کلیه سفارش‌های جدید مسدود و پوزیشن‌های آزمایشی تسویه شدند.'
+      "BOT_STOPPED",
+      "توقف اضطراری (EMERGENCY STOP) فعال شد",
+      "کلیه سفارش‌های جدید مسدود و پوزیشن‌های آزمایشی تسویه شدند.",
     );
   }
 
@@ -871,7 +879,8 @@ export class Bit24AiTraderOrchestrator {
   }
 
   public setGoldAutoDemo(enabled: boolean): void {
-    this.goldAutoDemoEnabled = enabled;
+    if (enabled) throw new Error("MANUAL_CONFIRMATION_REQUIRED");
+    this.goldAutoDemoEnabled = false;
   }
 
   public updateRiskAndExitSettings(params: {
@@ -881,20 +890,38 @@ export class Bit24AiTraderOrchestrator {
     if (params.capital) {
       const prevInit = this.capitalConfig.initialDemoBalanceIrt;
       this.capitalConfig = sanitizeCapitalRiskConfig(
-        params.capital,
-        this.capitalConfig
+        {
+          ...params.capital,
+          initialDemoBalanceIrt:
+            this.tradeHistory.length ||
+            this.openPositions.length ||
+            this.cashAdjustments.length
+              ? this.capitalConfig.initialDemoBalanceIrt
+              : (params.capital.initialDemoBalanceIrt ??
+                this.capitalConfig.initialDemoBalanceIrt),
+          autoStopOnDailyLoss: true,
+        },
+        this.capitalConfig,
       );
       if (
-        this.openPositions.filter((p) => p.segment === 'CRYPTO').length === 0 &&
-        this.tradeHistory.filter((t) => t.segment === 'CRYPTO').length === 0 &&
+        this.openPositions.filter((p) => p.segment === "CRYPTO").length === 0 &&
+        this.tradeHistory.filter((t) => t.segment === "CRYPTO").length === 0 &&
         this.capitalConfig.initialDemoBalanceIrt !== prevInit
       ) {
+        const delta =
+          this.capitalConfig.initialDemoBalanceIrt - this.demoCashIrt;
         this.demoCashIrt = this.capitalConfig.initialDemoBalanceIrt;
+        this.daily.baseline += delta;
       }
     }
     if (params.exit) {
-      this.exitConfig = sanitizeExitStrategyConfig(params.exit, this.exitConfig);
+      this.exitConfig = sanitizeExitStrategyConfig(
+        params.exit,
+        this.exitConfig,
+      );
+      // Existing positions retain their entry stop: settings apply to future positions.
     }
+    this.enforceDailyLimit();
   }
 
   /**
@@ -905,30 +932,144 @@ export class Bit24AiTraderOrchestrator {
     messageFa: string;
     messageEn: string;
   } {
-    if (confirmationPhrase.trim() !== 'CONFIRM_BIT24_LIVE') {
-      return {
-        ok: false,
-        messageFa: 'عبارت تأیید نهایی نامعتبر است؛ حالت واقعی همچنان قفل است.',
-        messageEn: 'Invalid confirmation phrase; Live mode remains locked.',
+    void confirmationPhrase;
+    return {
+      ok: false,
+      messageFa: "حالت Live در این نسخه کاملاً غیرفعال است.",
+      messageEn: "LIVE_DISABLED_DEMO_ONLY",
+    };
+  }
+
+  private rollDay(): void {
+    const day = new Date().toISOString().slice(0, 10);
+    if (day !== this.daily.day)
+      this.daily = {
+        day,
+        baseline: this.totalLiquidationEquity(),
+        cashFlow: 0,
+        halted: false,
       };
+  }
+  private totalLiquidationEquity(): number {
+    return (
+      this.demoCashIrt +
+      this.goldDedicatedCashIrt +
+      this.openPositions.reduce(
+        (v, p) => v + p.remainingCapitalIrt + p.unrealizedPnlIrt,
+        0,
+      )
+    );
+  }
+  private markPositions(): void {
+    for (const p of this.openPositions) {
+      const m = this.markets.find((m) => m.symbol === p.symbol);
+      if (!m) continue;
+      p.currentPriceIrt = m.priceIrt;
+      const slip =
+        this.orderBooksBySymbol.get(p.symbol)?.estimatedSlippagePct ?? 0.08;
+      const liquidationPrice = roundIrtPrice(m.priceIrt * (1 - slip / 100));
+      p.unrealizedPnlIrt =
+        p.remainingQuantity * liquidationPrice * 0.998 - p.remainingCapitalIrt;
+      p.unrealizedPnlPct =
+        (p.unrealizedPnlIrt / Math.max(1, p.remainingCapitalIrt)) * 100;
     }
-    if (this.bit24Health.state !== 'CONNECTED_PUBLIC_AND_PRIVATE') {
-      return {
-        ok: false,
-        messageFa:
-          'کلید API و کلید اختصاصی Bit24 هنوز به سرور رسمی متصل و تأیید نشده‌اند؛ ورود به حالت واقعی مجاز نیست.',
-        messageEn:
-          'Bit24 API & Secret keys are not verified against rest.bit24.cash; Live activation refused.',
-      };
-    }
-    this.liveTradingUserConfirmed = true;
-    this.emergencyStopped = false;
-    this.tradingMode = 'LIVE';
+  }
+  private enforceDailyLimit(): void {
+    this.rollDay();
+    this.markPositions();
+    if (this.getCryptoDailyPnlPct() <= -this.capitalConfig.maxDailyLossPct)
+      this.daily.halted = true;
+    if (this.daily.halted) this.tradingMode = "STOPPED";
+  }
+  public adjustDemoCash(amountIrt: number): { ok: boolean; messageFa: string } {
+    this.rollDay();
+    if (
+      !Number.isSafeInteger(amountIrt) ||
+      amountIrt === 0 ||
+      Math.abs(amountIrt) > 1_000_000_000 ||
+      this.demoCashIrt + amountIrt < 0
+    )
+      throw new Error("INVALID_PAPER_CASH_ADJUSTMENT");
+    this.demoCashIrt += amountIrt;
+    this.daily.cashFlow += amountIrt;
+    this.cashAdjustments.push({
+      id: `cash-${Date.now()}-${this.cashAdjustments.length}`,
+      amountIrt,
+      at: Date.now(),
+    });
     return {
       ok: true,
-      messageFa: 'حالت معامله واقعی Bit24 با تأیید صریح شما فعال شد.',
-      messageEn: 'Bit24 Live Trading activated with your explicit confirmation.',
+      messageFa: "موجودی کاغذی اصلاح شد؛ هیچ واریز یا برداشت واقعی انجام نشد.",
     };
+  }
+  /** Deterministic test/replay hook, intentionally NOT exposed through HTTP. */
+  public async observeDemoPrice(symbol: string, price: number): Promise<void> {
+    if (!Number.isFinite(price) || price <= 0) throw new Error("INVALID_PRICE");
+    const market = this.markets.find((m) => m.symbol === symbol);
+    if (!market) throw new Error("UNKNOWN_SYMBOL");
+    market.priceIrt = price;
+    market.updatedAt = Date.now();
+    this.enforceDailyLimit();
+    await this.manageOpenPositions(Date.now());
+    this.markPositions();
+    this.enforceDailyLimit();
+    this.refreshSignals();
+  }
+  public exportDemoState() {
+    return structuredClone({
+      capitalConfig: this.capitalConfig,
+      exitConfig: this.exitConfig,
+      demoCashIrt: this.demoCashIrt,
+      goldDedicatedCashIrt: this.goldDedicatedCashIrt,
+      openPositions: this.openPositions,
+      tradeHistory: this.tradeHistory,
+      paperOrders: this.paperOrders,
+      cashAdjustments: this.cashAdjustments,
+      daily: this.daily,
+      markets: this.markets,
+      candles: [...this.candlesBySymbol],
+      books: [...this.orderBooksBySymbol],
+      emergencyStopped: this.emergencyStopped,
+      scannerRunning: this.scannerRunning,
+      tradingMode: this.tradingMode,
+      goldAutoDemoEnabled: this.goldAutoDemoEnabled,
+      rejectionLogs: this.rejectionLogs,
+    });
+  }
+  public restoreDemoState(
+    state: ReturnType<Bit24AiTraderOrchestrator["exportDemoState"]>,
+  ): void {
+    if (
+      state.tradingMode === "LIVE" ||
+      state.openPositions.some((p) => p.mode !== "DEMO") ||
+      state.tradeHistory.some((t) => t.mode !== "DEMO") ||
+      state.demoCashIrt < 0 ||
+      state.goldDedicatedCashIrt < 0
+    )
+      throw new Error("INVALID_DEMO_STATE");
+    const x = structuredClone(state);
+    this.capitalConfig = x.capitalConfig;
+    this.exitConfig = x.exitConfig;
+    this.demoCashIrt = x.demoCashIrt;
+    this.goldDedicatedCashIrt = x.goldDedicatedCashIrt;
+    this.openPositions = x.openPositions;
+    this.tradeHistory = x.tradeHistory;
+    this.paperOrders = x.paperOrders;
+    this.cashAdjustments = x.cashAdjustments;
+    this.daily = x.daily;
+    this.markets = x.markets;
+    this.candlesBySymbol = new Map(x.candles);
+    this.orderBooksBySymbol = new Map(x.books);
+    this.emergencyStopped = x.emergencyStopped;
+    this.scannerRunning = x.scannerRunning;
+    this.tradingMode = x.tradingMode;
+    this.goldAutoDemoEnabled = x.goldAutoDemoEnabled;
+    this.rejectionLogs = x.rejectionLogs;
+    this.inFlightSymbols.clear();
+    this.liveTradingUserConfirmed = false;
+    this.markPositions();
+    this.enforceDailyLimit();
+    this.refreshSignals();
   }
 
   public runPro100Verification(): ProVerificationReport {
@@ -942,53 +1083,67 @@ export class Bit24AiTraderOrchestrator {
   // ==================== METRICS & REPORTS (CRYPTO VS GOLD SEPARATED) ====================
   public getCryptoDemoTotalEquityIrt(): number {
     const openCryptoVal = this.openPositions
-      .filter((p) => p.segment === 'CRYPTO' && p.mode === 'DEMO')
-      .reduce((acc, p) => acc + p.remainingQuantity * p.currentPriceIrt, 0);
+      .filter((p) => p.segment === "CRYPTO" && p.mode === "DEMO")
+      .reduce((acc, p) => acc + p.remainingCapitalIrt + p.unrealizedPnlIrt, 0);
     return Math.round(this.demoCashIrt + openCryptoVal);
   }
 
   public getCryptoDailyPnlIrt(): number {
-    const cutoff = Date.now() - 24 * 3600_000;
-    const realized24h = this.tradeHistory
-      .filter((t) => t.segment === 'CRYPTO' && t.sellTime >= cutoff)
-      .reduce((s, t) => s + t.netPnlIrt, 0);
-    const unrealized = this.openPositions
-      .filter((p) => p.segment === 'CRYPTO')
-      .reduce((s, p) => s + p.unrealizedPnlIrt, 0);
-    return Math.round(realized24h + unrealized);
+    this.rollDay();
+    return (
+      this.totalLiquidationEquity() - this.daily.baseline - this.daily.cashFlow
+    );
+  }
+  public getCryptoDailyPnlPct(): number {
+    return (
+      (this.getCryptoDailyPnlIrt() / Math.max(1, this.daily.baseline)) * 100
+    );
   }
 
-  public getCryptoDailyPnlPct(): number {
-    const base = Math.max(1, this.capitalConfig.initialDemoBalanceIrt);
-    return Number(((this.getCryptoDailyPnlIrt() / base) * 100).toFixed(2));
+  private completedPositions(segment: "CRYPTO" | "GOLD" | "ALL") {
+    const groups = new Map<string, { pnl: number; closedAt: number }>();
+    const openIds = new Set(this.openPositions.map((p) => p.id));
+    for (const t of this.tradeHistory) {
+      if (segment !== "ALL" && t.segment !== segment) continue;
+      const id = t.positionId ?? t.id;
+      if (openIds.has(id)) continue;
+      const g = groups.get(id) ?? { pnl: 0, closedAt: 0 };
+      g.pnl += t.netPnlIrt;
+      g.closedAt = Math.max(g.closedAt, t.sellTime);
+      groups.set(id, g);
+    }
+    return [...groups.values()];
   }
 
   public buildPeriodSummary(
-    period: 'DAILY' | 'WEEKLY' | 'MONTHLY',
-    segmentFilter: 'CRYPTO' | 'GOLD' | 'ALL' = 'CRYPTO'
+    period: "DAILY" | "WEEKLY" | "MONTHLY",
+    segmentFilter: "CRYPTO" | "GOLD" | "ALL" = "CRYPTO",
   ): PeriodReportSummary {
     const now = Date.now();
     const windowMs =
-      period === 'DAILY'
+      period === "DAILY"
         ? 24 * 3600_000
-        : period === 'WEEKLY'
-        ? 7 * 24 * 3600_000
-        : 30 * 24 * 3600_000;
+        : period === "WEEKLY"
+          ? 7 * 24 * 3600_000
+          : 30 * 24 * 3600_000;
     const fromTimestamp = now - windowMs;
 
     const trades = this.tradeHistory.filter(
       (t) =>
         t.sellTime >= fromTimestamp &&
-        (segmentFilter === 'ALL' || t.segment === segmentFilter)
+        (segmentFilter === "ALL" || t.segment === segmentFilter),
     );
 
-    const winningTrades = trades.filter((t) => t.netPnlIrt > 0).length;
-    const losingTrades = trades.filter((t) => t.netPnlIrt <= 0).length;
+    const completed = this.completedPositions(segmentFilter).filter(
+      (p) => p.closedAt >= fromTimestamp,
+    );
+    const winningTrades = completed.filter((p) => p.pnl > 0).length;
+    const losingTrades = completed.filter((p) => p.pnl <= 0).length;
     const totalFeesIrt = trades.reduce((s, t) => s + t.totalFeeIrt, 0);
     const netPnlIrt = trades.reduce((s, t) => s + t.netPnlIrt, 0);
     const grossPnlIrt = netPnlIrt + totalFeesIrt;
     const baseCap =
-      segmentFilter === 'GOLD'
+      segmentFilter === "GOLD"
         ? 50_000_000
         : this.capitalConfig.initialDemoBalanceIrt;
 
@@ -996,12 +1151,12 @@ export class Bit24AiTraderOrchestrator {
       period,
       fromTimestamp,
       toTimestamp: now,
-      tradesCount: trades.length,
+      tradesCount: completed.length,
       winningTrades,
       losingTrades,
       winRatePct:
-        trades.length > 0
-          ? Number(((winningTrades / trades.length) * 100).toFixed(1))
+        completed.length > 0
+          ? Number(((winningTrades / completed.length) * 100).toFixed(1))
           : 0,
       grossPnlIrt: Math.round(grossPnlIrt),
       totalFeesIrt: Math.round(totalFeesIrt),
@@ -1012,29 +1167,32 @@ export class Bit24AiTraderOrchestrator {
   }
 
   public buildGoldPortfolioReport(): GoldPortfolioReport {
-    const goldTrades = this.tradeHistory.filter((t) => t.segment === 'GOLD');
-    const goldOpen = this.openPositions.filter((p) => p.segment === 'GOLD');
-    const wins = goldTrades.filter((t) => t.netPnlIrt > 0).length;
-    const losses = goldTrades.filter((t) => t.netPnlIrt <= 0).length;
+    const goldTrades = this.tradeHistory.filter((t) => t.segment === "GOLD");
+    const goldOpen = this.openPositions.filter((p) => p.segment === "GOLD");
+    const completed = this.completedPositions("GOLD");
+    const wins = completed.filter((t) => t.pnl > 0).length;
+    const losses = completed.filter((t) => t.pnl <= 0).length;
     const netRealized = goldTrades.reduce((s, t) => s + t.netPnlIrt, 0);
     const fees = goldTrades.reduce((s, t) => s + t.totalFeeIrt, 0);
 
     return {
       paxgTradableOnBit24: Boolean(
-        this.goldSignals.find((g) => g.baseCoin === 'PAXG')?.verifiedTradableOnBit24
+        this.goldSignals.find((g) => g.baseCoin === "PAXG")
+          ?.verifiedTradableOnBit24,
       ),
       xautTradableOnBit24: Boolean(
-        this.goldSignals.find((g) => g.baseCoin === 'XAUT')?.verifiedTradableOnBit24
+        this.goldSignals.find((g) => g.baseCoin === "XAUT")
+          ?.verifiedTradableOnBit24,
       ),
       goldSignals: this.goldSignals,
       goldOpenPositions: goldOpen,
       goldClosedTrades: goldTrades,
-      goldTotalTrades: goldTrades.length,
+      goldTotalTrades: completed.length,
       goldWinningTrades: wins,
       goldLosingTrades: losses,
       goldWinRatePct:
-        goldTrades.length > 0
-          ? Number(((wins / goldTrades.length) * 100).toFixed(1))
+        completed.length > 0
+          ? Number(((wins / completed.length) * 100).toFixed(1))
           : 0,
       goldNetPnlIrt: Math.round(netRealized),
       goldTotalFeesIrt: Math.round(fees),
@@ -1043,20 +1201,20 @@ export class Bit24AiTraderOrchestrator {
 
   public exportTradeHistoryCsv(): string {
     const header = [
-      'Symbol',
-      'Segment',
-      'Mode',
-      'BuyTimeISO',
-      'BuyPriceIRT',
-      'SellTimeISO',
-      'SellPriceIRT',
-      'CapitalEnteredIRT',
-      'FeePaidIRT',
-      'NetPnLIRT',
-      'ReturnPct',
-      'BuyReason',
-      'SellReason',
-    ].join(',');
+      "Symbol",
+      "Segment",
+      "Mode",
+      "BuyTimeISO",
+      "BuyPriceIRT",
+      "SellTimeISO",
+      "SellPriceIRT",
+      "CapitalEnteredIRT",
+      "FeePaidIRT",
+      "NetPnLIRT",
+      "ReturnPct",
+      "BuyReason",
+      "SellReason",
+    ].join(",");
 
     const escapeCsv = (val: string | number) =>
       `"${String(val).replace(/"/g, '""')}"`;
@@ -1076,54 +1234,56 @@ export class Bit24AiTraderOrchestrator {
         t.netPnlPct,
         escapeCsv(t.buyReasonFa),
         escapeCsv(t.sellReasonFa),
-      ].join(',')
+      ].join(","),
     );
 
-    return [header, ...rows].join('\n');
+    return [header, ...rows].join("\n");
   }
 
   public getSnapshot(): AppStatusSnapshot {
-    const cryptoTrades = this.tradeHistory.filter((t) => t.segment === 'CRYPTO');
-    const cryptoOpen = this.openPositions.filter((p) => p.segment === 'CRYPTO');
-    const wins = cryptoTrades.filter((t) => t.netPnlIrt > 0).length;
-    const losses = cryptoTrades.filter((t) => t.netPnlIrt <= 0).length;
+    const cryptoTrades = this.tradeHistory.filter(
+      (t) => t.segment === "CRYPTO",
+    );
+    const cryptoOpen = this.openPositions.filter((p) => p.segment === "CRYPTO");
+    const completed = this.completedPositions("CRYPTO");
+    const wins = completed.filter((t) => t.pnl > 0).length;
+    const losses = completed.filter((t) => t.pnl <= 0).length;
     const realizedCryptoPnl = cryptoTrades.reduce((s, t) => s + t.netPnlIrt, 0);
     const unrealizedCryptoPnl = cryptoOpen.reduce(
       (s, p) => s + p.unrealizedPnlIrt,
-      0
+      0,
     );
     const totalPnlIrt = Math.round(realizedCryptoPnl + unrealizedCryptoPnl);
     const initBal = Math.max(1, this.capitalConfig.initialDemoBalanceIrt);
     const dailyPct = this.getCryptoDailyPnlPct();
 
-    let capLevel: CapitalSecurityStatus['level'] = 'PROTECTED';
+    let capLevel: CapitalSecurityStatus["level"] = "PROTECTED";
     let capFa = `ایمن و محافظت‌شده | سقف ریسک ${this.capitalConfig.riskPerTradePct}%، حداکثر ${this.capitalConfig.maxCapitalPerTradePct}% سرمایه در هر پوزیشن، دسترسی برداشت مسدود`;
     let capEn = `Protected | ${this.capitalConfig.riskPerTradePct}% risk/trade, max ${this.capitalConfig.maxCapitalPerTradePct}% allocation, withdrawal blocked`;
 
     if (this.emergencyStopped) {
-      capLevel = 'HALTED_EMERGENCY';
-      capFa = 'توقف اضطراری (EMERGENCY STOP) فعال است — هیچ سفارش جدیدی ارسال نمی‌شود';
-      capEn = 'EMERGENCY STOP active — all new orders halted';
-    } else if (
-      this.capitalConfig.autoStopOnDailyLoss &&
-      dailyPct <= -Math.abs(this.capitalConfig.maxDailyLossPct)
-    ) {
-      capLevel = 'HALTED_DAILY_LOSS';
+      capLevel = "HALTED_EMERGENCY";
+      capFa =
+        "توقف اضطراری (EMERGENCY STOP) فعال است — هیچ سفارش جدیدی ارسال نمی‌شود";
+      capEn = "EMERGENCY STOP active — all new orders halted";
+    } else if (this.daily.halted) {
+      capLevel = "HALTED_DAILY_LOSS";
       capFa = `توقف خودکار در حد ضرر روزانه (${dailyPct}%)`;
       capEn = `Auto-halted on Daily Loss Limit (${dailyPct}%)`;
     } else if (this.apiDisconnectedFault) {
-      capLevel = 'HALTED_API_ERROR';
-      capFa = 'توقف ایمن به دلیل قطعی ارتباط با API صرافی Bit24';
-      capEn = 'Safely halted due to Bit24 API connection drop';
+      capLevel = "HALTED_API_ERROR";
+      capFa = "توقف ایمن به دلیل قطعی ارتباط با API صرافی Bit24";
+      capEn = "Safely halted due to Bit24 API connection drop";
     } else if (dailyPct < -1.5) {
-      capLevel = 'CAUTION';
+      capLevel = "CAUTION";
       capFa = `هشدار مراقبت سرمایه: افت روزانه ${dailyPct}% (سقف مجاز -${this.capitalConfig.maxDailyLossPct}%)`;
       capEn = `Capital caution: Daily drawdown ${dailyPct}% (limit -${this.capitalConfig.maxDailyLossPct}%)`;
     }
 
     return {
-      appName: 'BIT24 AI TRADER PRO',
-      subtitleFa: 'ربات هوشمند معامله‌گر ارز دیجیتال و طلای دیجیتال (ویژه صرافی Bit24)',
+      appName: "BIT24 AI TRADER PRO",
+      subtitleFa:
+        "آزمایشگاه معاملات کاغذی — تمام قیمت‌ها و تحلیل‌ها اطلاعات فرضی هستند",
       scannerRunning: this.scannerRunning,
       tradingMode: this.tradingMode,
       liveTradingUserConfirmed: this.liveTradingUserConfirmed,
@@ -1132,14 +1292,14 @@ export class Bit24AiTraderOrchestrator {
       demoBalanceIrt: this.getCryptoDemoTotalEquityIrt(),
       demoAvailableCashIrt: Math.round(this.demoCashIrt),
       dailyPnlIrt: this.getCryptoDailyPnlIrt(),
-      dailyPnlPct: dailyPct,
+      dailyPnlPct: Number(dailyPct.toFixed(2)),
       totalPnlIrt,
       totalPnlPct: Number(((totalPnlIrt / initBal) * 100).toFixed(2)),
       winningTrades: wins,
       losingTrades: losses,
       winRatePct:
-        cryptoTrades.length > 0
-          ? Number(((wins / cryptoTrades.length) * 100).toFixed(1))
+        completed.length > 0
+          ? Number(((wins / completed.length) * 100).toFixed(1))
           : 0,
       openPositions: cryptoOpen,
       topOpportunities: this.cryptoSignals,
@@ -1148,7 +1308,7 @@ export class Bit24AiTraderOrchestrator {
         level: capLevel,
         dailyLossUsedPct: dailyPct,
         maxDailyLossPct: this.capitalConfig.maxDailyLossPct,
-        openTradesCount: cryptoOpen.length,
+        openTradesCount: this.openPositions.length,
         maxConcurrentTrades: this.capitalConfig.maxConcurrentTrades,
         consecutiveTradeErrors: this.consecutiveTradeErrors,
         summaryFa: capFa,
@@ -1158,11 +1318,24 @@ export class Bit24AiTraderOrchestrator {
       exitConfig: this.exitConfig,
       goldReport: this.buildGoldPortfolioReport(),
       recentRejections: this.rejectionLogs.slice(0, 25),
-      tradeHistory: this.tradeHistory.slice(0, 120),
+      tradeHistory: this.tradeHistory,
+      demo: {
+        paperOrders: this.paperOrders,
+        cashAdjustments: this.cashAdjustments,
+        daily: {
+          ...this.daily,
+          pnlIrt: this.getCryptoDailyPnlIrt(),
+          pnlPct: this.getCryptoDailyPnlPct(),
+        },
+        chartSeries: Object.fromEntries(
+          [...this.candlesBySymbol].map(([k, v]) => [k, v.slice(-60)]),
+        ),
+        goldCashIrt: this.goldDedicatedCashIrt,
+      },
       periodReports: {
-        daily: this.buildPeriodSummary('DAILY', 'CRYPTO'),
-        weekly: this.buildPeriodSummary('WEEKLY', 'CRYPTO'),
-        monthly: this.buildPeriodSummary('MONTHLY', 'CRYPTO'),
+        daily: this.buildPeriodSummary("DAILY", "CRYPTO"),
+        weekly: this.buildPeriodSummary("WEEKLY", "CRYPTO"),
+        monthly: this.buildPeriodSummary("MONTHLY", "CRYPTO"),
       },
       telegram: {
         ...this.telegramState,

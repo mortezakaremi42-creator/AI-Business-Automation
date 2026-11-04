@@ -15,3 +15,8 @@ npm-debug.log*
 .cache/
 coverage/
 .DS_Store
+
+# Android signing secrets / local build products
+*.jks
+*.keystore
+*.apk

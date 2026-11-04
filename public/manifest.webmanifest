@@ -1,14 +1,14 @@
 {
   "name": "BIT24 AI TRADER PRO",
   "short_name": "BIT24 PRO",
-  "description": "ربات هوشمند معامله‌گر ارز دیجیتال و طلای دیجیتال (GOLD AI TRADER) اختصاصی صرافی بیت۲۴",
+  "description": "داشبورد معاملات کاغذی؛ تمام قیمت‌ها و تحلیل‌ها اطلاعات فرضی هستند. اتصال زنده غیرفعال است.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#070B14",
   "theme_color": "#070B14",
-  "dir": "auto",
+  "dir": "rtl",
   "lang": "fa-IR",
   "icons": [
     {

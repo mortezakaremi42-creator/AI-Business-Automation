@@ -1,388 +1,315 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Bit24AiTraderOrchestrator } from '../engine/traderOrchestrator.js';
-import {
+import { newRequestId } from "../shared/identifiers.js";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type {
   AppStatusSnapshot,
   CapitalRiskConfig,
   ExitStrategyConfig,
   ProVerificationReport,
-} from '../shared/contracts.js';
+} from "../shared/contracts.js";
 import {
-  clearEncryptedBrowserVault,
-  loadEncryptedBrowserVault,
-  maskKey,
-  saveEncryptedBrowserVault,
-} from './browserVault.js';
-
-export function useBit24Controller() {
-  const localOrchestratorRef = useRef<Bit24AiTraderOrchestrator | null>(null);
-  if (!localOrchestratorRef.current) {
-    localOrchestratorRef.current = new Bit24AiTraderOrchestrator();
+  BackendClient,
+  BackendError,
+  normalizeBackendBase,
+} from "./backendClient.js";
+function savedBase() {
+  try {
+    return normalizeBackendBase(
+      localStorage.getItem("bit24.backend") ?? window.BIT24_API_BASE ?? "",
+    );
+  } catch {
+    return "";
   }
-
-  const [snapshot, setSnapshot] = useState<AppStatusSnapshot>(() =>
-    localOrchestratorRef.current!.getSnapshot()
+}
+function savedToken() {
+  try {
+    return sessionStorage.getItem("bit24.dashboardToken") ?? "";
+  } catch {
+    return "";
+  }
+}
+interface Pending {
+  requestId: string;
+  action: string;
+  at: number;
+}
+function readPending(key: string): Pending | null {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+export function useBit24Controller() {
+  const [config, setConfig] = useState(() => ({
+    baseUrl: savedBase(),
+    token: savedToken(),
+  }));
+  const client = useMemo(() => new BackendClient(config), [config]);
+  const key = "bit24.demo.pending.v2." + client.baseUrl;
+  const [snapshot, setSnapshot] = useState<AppStatusSnapshot | null>(null);
+  const [backendConnected, setConnected] = useState(false),
+    [connectionError, setConnectionError] = useState(
+      "در حال اتصال به سرور آزمایشی…",
+    );
+  const [busyAction, setBusy] = useState<string | null>(null),
+    [toastMessage, setToast] = useState<string | null>(null);
+  const [pending, setPending] = useState<Pending | null>(() =>
+    readPending(key),
   );
-  const [backendConnected, setBackendConnected] = useState<boolean>(false);
-  const [busyAction, setBusyAction] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const showToast = useCallback((msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage((cur) => (cur === msg ? null : cur));
-    }, 4500);
+  const busy = useRef(false),
+    generation = useRef(0),
+    toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showToast = useCallback((message: string) => {
+    setToast(message);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 8000);
   }, []);
-
-  // Probe relative `/api/status` & attach WebSocket `/ws`; otherwise run standalone PWA loop
+  const accept = useCallback(
+    (data: AppStatusSnapshot) =>
+      setSnapshot((prev) =>
+        !prev || data.serverTimestamp >= prev.serverTimestamp ? data : prev,
+      ),
+    [],
+  );
+  useEffect(
+    () => () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    },
+    [],
+  );
   useEffect(() => {
-    let cancelled = false;
-    let ws: WebSocket | null = null;
-    let fallbackTimer: ReturnType<typeof setInterval> | null = null;
-
-    const startStandalonePwaLoop = async () => {
-      const stored = await loadEncryptedBrowserVault();
-      const orch = localOrchestratorRef.current!;
-      if (stored.bit24ApiKey) {
-        orch.setBit24Health({
-          state: 'OFFLINE_OR_UNREACHABLE',
-          hasApiKey: true,
-          hasSecretKey: Boolean(stored.bit24SecretKey),
-          maskedApiKey: maskKey(stored.bit24ApiKey),
-          messageFa:
-            'حالت مستقل PWA اندروید فعال است (برای اتصال مستقیم بدون محدودیت CORS مرورگر، سرور پروکسی Bit24 را اجرا نمایید).',
-          messageEn:
-            'Standalone Android PWA mode active (run the Bit24 proxy server for CORS-free live API calls).',
-        });
-      }
-      orch.setTelegramMeta({
-        configured: Boolean(stored.telegramBotToken && stored.telegramChatId),
-        enabled: stored.telegramEnabled,
-        maskedChatId: maskKey(stored.telegramChatId),
-      });
-      if (!cancelled) {
-        setSnapshot(orch.getSnapshot());
-      }
-      fallbackTimer = setInterval(async () => {
-        if (cancelled) return;
-        await orch.stepCycle();
-        setSnapshot(orch.getSnapshot());
-      }, 3_500);
-    };
-
-    const connectServerOrFallback = async () => {
+    let cancelled = false,
+      failures = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const abort = new AbortController();
+    generation.current++;
+    setSnapshot(null);
+    setConnected(false);
+    setPending(readPending(key));
+    async function poll() {
       try {
-        const resp = await fetch('./api/status', {
-          headers: { Accept: 'application/json' },
-        });
-        if (!resp.ok) throw new Error('NO_API_SERVER');
-        const initialSnap = (await resp.json()) as AppStatusSnapshot;
-        if (!initialSnap?.appName) throw new Error('INVALID_SNAPSHOT');
+        const data = await client.sync(abort.signal);
         if (cancelled) return;
-
-        setBackendConnected(true);
-        setSnapshot(initialSnap);
-
-        const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        ws = new WebSocket(`${proto}//${window.location.host}/ws`);
-        ws.onmessage = (ev) => {
-          try {
-            const msg = JSON.parse(ev.data);
-            if (msg?.type === 'SNAPSHOT' && msg.data && !cancelled) {
-              setSnapshot(msg.data);
-            }
-          } catch {
-            // Ignore malformed frame
-          }
-        };
-        ws.onclose = () => {
-          if (!cancelled) {
-            // Poll `/api/status` gently if WS closes
-            fallbackTimer = setInterval(async () => {
-              try {
-                const r = await fetch('./api/status');
-                if (r.ok && !cancelled) setSnapshot(await r.json());
-              } catch {
-                // Keep existing state
-              }
-            }, 4_000);
-          }
-        };
-      } catch {
-        setBackendConnected(false);
-        await startStandalonePwaLoop();
+        accept(data);
+        setConnected(true);
+        setConnectionError("");
+        failures = 0;
+      } catch (error) {
+        if (cancelled) return;
+        setConnected(false);
+        setConnectionError(
+          error instanceof Error ? error.message : "خطای اتصال",
+        );
+        failures++;
       }
-    };
-
-    connectServerOrFallback();
-
+      if (!cancelled)
+        timer = setTimeout(
+          poll,
+          failures
+            ? Math.min(30_000, 2000 * 2 ** Math.min(failures - 1, 4))
+            : 2000,
+        );
+    }
+    void poll();
     return () => {
       cancelled = true;
-      if (ws) ws.close();
-      if (fallbackTimer) clearInterval(fallbackTimer);
+      abort.abort();
+      clearTimeout(timer);
     };
-  }, []);
-
-  const callAction = useCallback(
+  }, [client, key, accept]);
+  const saveBackendConnection = (baseUrl: string, token: string) => {
+    if (busy.current) {
+      showToast("تا پایان درخواست، آدرس را تغییر ندهید.");
+      return;
+    }
+    try {
+      const base = normalizeBackendBase(baseUrl);
+      localStorage.setItem("bit24.backend", base);
+      sessionStorage.setItem("bit24.dashboardToken", token.trim());
+      setConfig({ baseUrl: base, token: token.trim() });
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "خطای تنظیم اتصال");
+    }
+  };
+  const call = useCallback(
     async (
-      actionName: string,
-      apiPath: string,
-      body: Record<string, unknown> | undefined,
-      localFallback: (orch: Bit24AiTraderOrchestrator) => Promise<void> | void
-    ) => {
-      setBusyAction(actionName);
-      try {
-        if (backendConnected) {
-          const resp = await fetch(apiPath, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body || {}),
-          });
-          const data = await resp.json().catch(() => null);
-          if (data?.snapshot) setSnapshot(data.snapshot);
-          if (data?.messageFa) showToast(data.messageFa);
-          return data;
-        } else {
-          const orch = localOrchestratorRef.current!;
-          await localFallback(orch);
-          setSnapshot(orch.getSnapshot());
-          return { ok: true };
+      action: string,
+      path: string,
+      body: Record<string, unknown> = {},
+      financial = false,
+    ): Promise<any> => {
+      if (busy.current) return { ok: false };
+      if (!backendConnected) {
+        showToast("سرور در دسترس نیست؛ معاملهٔ محلی جایگزین نمی‌شود.");
+        return { ok: false };
+      }
+      if (financial && (pending || readPending(key))) {
+        showToast("ابتدا نتیجهٔ درخواست قبلی را با رسید سرور بررسی کنید.");
+        return { ok: false };
+      }
+      if (
+        financial &&
+        !window.confirm(
+          "هشدار معاملهٔ آزمایشی — اطلاعات فرضی\n" +
+            action +
+            "\nکارمزد هر طرف ۰٫۲٪ و لغزش فرضی اعمال می‌شود. سقف ریسک و ظرفیت دوباره روی سرور بررسی می‌شوند. حد ضرر/حد سود این پوزیشن ممکن است بدون تأیید مجدد فروش حفاظتی انجام دهند. هیچ پول واقعی جابه‌جا نمی‌شود. ادامه؟",
+        )
+      )
+        return { ok: false };
+      busy.current = true;
+      setBusy(action);
+      const version = generation.current;
+      const requestId = financial ? newRequestId() : undefined;
+      if (financial) {
+        const value = { requestId: requestId!, action, at: Date.now() };
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+          setPending(value);
+        } catch {
+          busy.current = false;
+          setBusy(null);
+          showToast(
+            "ذخیرهٔ شناسه درخواست روی دستگاه ممکن نشد؛ معامله ارسال نشد.",
+          );
+          return { ok: false };
         }
+      }
+      try {
+        const data = await client.request(path, {
+          ...body,
+          ...(requestId ? { requestId } : {}),
+        });
+        if (version !== generation.current) return data;
+        if (financial) {
+          localStorage.removeItem(key);
+          setPending(null);
+        }
+        if (data?.snapshot) accept(data.snapshot);
+        if (data?.messageFa) showToast(data.messageFa);
+        try {
+          accept(await client.sync());
+        } catch {
+          setConnected(false);
+          setConnectionError(
+            "نتیجهٔ عملیات دریافت شد، اما همگام‌سازی تازه ناموفق بود.",
+          );
+        }
+        return data;
+      } catch (error) {
+        if (version !== generation.current) return { ok: false };
+        if (financial && error instanceof BackendError && !error.unknownWrite) {
+          localStorage.removeItem(key);
+          setPending(null);
+        }
+        showToast(
+          (error instanceof Error ? error.message : "خطای درخواست") +
+            (financial &&
+            (!(error instanceof BackendError) || error.unknownWrite)
+              ? " نتیجه نامعلوم است؛ درخواست تکرار نشد."
+              : ""),
+        );
+        return { ok: false };
       } finally {
-        setBusyAction(null);
+        busy.current = false;
+        setBusy(null);
       }
     },
-    [backendConnected, showToast]
+    [client, key, pending, backendConnected, accept, showToast],
   );
-
+  const reconcilePending = async () => {
+    if (!pending || busy.current) return;
+    busy.current = true;
+    setBusy("reconcile");
+    try {
+      const r = await client.request(
+        "/api/demo/receipts/" + encodeURIComponent(pending.requestId),
+      );
+      if (r.found) {
+        localStorage.removeItem(key);
+        setPending(null);
+        showToast(
+          r.result?.ok
+            ? "رسید ذخیره‌شده تأیید شد؛ عملیات قبلاً انجام شده است."
+            : "رسید سرور نشان می‌دهد عملیات رد شده بود.",
+        );
+        accept(await client.sync());
+      } else
+        showToast(
+          "رسید قطعی روی سرور پیدا نشد؛ قفل باقی ماند. هیچ درخواست خرید یا فروش دوباره ارسال نشد.",
+        );
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "خطای بررسی رسید");
+    } finally {
+      busy.current = false;
+      setBusy(null);
+    }
+  };
+  const disabled = () => {
+    showToast("کلید صرافی، اتصال زنده و تلگرام در این نسخه غیرفعال‌اند.");
+    return Promise.resolve({ ok: false });
+  };
   return {
     snapshot,
     backendConnected,
     busyAction,
     toastMessage,
-    startScanner: () =>
-      callAction('startScanner', './api/scanner/start', undefined, (o) => {
-        o.startScanner();
-        showToast('اسکنر هوشمند بازار Bit24 فعال شد.');
-      }),
-    stopScanner: () =>
-      callAction('stopScanner', './api/scanner/stop', undefined, (o) => {
-        o.stopScanner();
-        showToast('اسکنر متوقف شد.');
-      }),
-    startDemoTrading: () =>
-      callAction('startDemo', './api/trading/start-demo', undefined, (o) => {
-        o.startDemoTrading();
-        showToast('معامله خودکار آزمایشی (Demo) با کارمزد واقعی Bit24 فعال شد.');
-      }),
-    stopTrading: () =>
-      callAction('stopTrading', './api/trading/stop', undefined, (o) => {
-        o.stopTrading();
-        showToast('معاملات خودکار متوقف شد.');
-      }),
-    emergencyStop: () =>
-      callAction(
-        'emergencyStop',
-        './api/trading/emergency-stop',
-        undefined,
-        async (o) => {
-          await o.triggerEmergencyStop(true);
-          showToast('توقف اضطراری (EMERGENCY STOP) اجرا و پوزیشن‌های دمو بسته شدند.');
-        }
-      ),
+    connectionError,
+    backendBase: config.baseUrl,
+    saveBackendConnection,
+    uncertainWrite: pending?.action ?? null,
+    reconcilePending,
+    startScanner: () => call("startScanner", "/api/scanner/start"),
+    stopScanner: () => call("stopScanner", "/api/scanner/stop"),
+    startDemoTrading: () => call("startDemo", "/api/trading/start-demo"),
+    stopTrading: () => call("stopTrading", "/api/trading/stop"),
+    emergencyStop: () => call("emergencyStop", "/api/trading/emergency-stop"),
     clearEmergencyStop: () =>
-      callAction(
-        'clearEmergency',
-        './api/trading/clear-emergency',
-        undefined,
-        (o) => {
-          o.clearEmergencyStop();
-          showToast('قفل توقف اضطراری باز شد.');
-        }
-      ),
+      call("clearEmergency", "/api/trading/clear-emergency"),
     manualDemoBuy: (symbol: string) =>
-      callAction(
-        `buy-${symbol}`,
-        './api/trading/manual-demo-buy',
-        { symbol },
-        async (o) => {
-          const sig = o
-            .getSnapshot()
-            .topOpportunities.find((s) => s.symbol === symbol);
-          if (sig) {
-            const res = await o.tryOpenCryptoPosition(sig);
-            showToast(res.messageFa);
-          }
-        }
-      ),
+      call("خرید کاغذی " + symbol, "/api/buy", { symbol }, true),
+    manualDemoSell: (symbol: string) =>
+      call("فروش کاغذی " + symbol, "/api/sell", { symbol }, true),
+    adjustDemoCash: (amountIrt: number) =>
+      call("اصلاح موجودی کاغذی", "/api/demo/balance", { amountIrt }, true),
     toggleGoldAutoDemo: (enabled: boolean) =>
-      callAction('goldAuto', './api/gold/toggle-auto', { enabled }, (o) => {
-        o.setGoldAutoDemo(enabled);
-        showToast(
-          enabled
-            ? 'معامله آزمایشی خودکار طلای دیجیتال (PAXG/XAUT) فعال شد.'
-            : 'معامله خودکار طلای دیجیتال متوقف شد.'
-        );
-      }),
-    manualGoldDemoBuy: (symbol: 'PAXG/IRT' | 'XAUT/IRT') =>
-      callAction(`goldBuy-${symbol}`, './api/gold/demo-buy', { symbol }, async (o) => {
-        const res = await o.tryOpenGoldDemoPosition(symbol);
-        showToast(res.messageFa);
-      }),
+      call("goldAuto", "/api/gold/toggle-auto", { enabled }),
+    manualGoldDemoBuy: (symbol: "PAXG/IRT" | "XAUT/IRT") =>
+      call("خرید کاغذی طلا " + symbol, "/api/gold/demo-buy", { symbol }, true),
     updateRiskSettings: (params: {
       capital?: Partial<CapitalRiskConfig>;
       exit?: Partial<ExitStrategyConfig>;
-    }) =>
-      callAction('riskUpdate', './api/risk/update', params, (o) => {
-        o.updateRiskAndExitSettings(params);
-        showToast('تنظیمات مدیریت سرمایه و حد سود/ضرر ذخیره شد.');
-      }),
-    saveBit24Credentials: async (apiKey: string, secretKey: string) => {
-      if (backendConnected) {
-        return callAction(
-          'saveBit24',
-          './api/settings/bit24',
-          { apiKey, secretKey },
-          () => {}
-        );
-      }
-      const existing = await loadEncryptedBrowserVault();
-      await saveEncryptedBrowserVault({
-        ...existing,
-        bit24ApiKey: apiKey.trim(),
-        bit24SecretKey: secretKey.trim(),
-      });
-      const orch = localOrchestratorRef.current!;
-      orch.setBit24Health({
-        state: 'OFFLINE_OR_UNREACHABLE',
-        hasApiKey: Boolean(apiKey.trim()),
-        hasSecretKey: Boolean(secretKey.trim()),
-        maskedApiKey: maskKey(apiKey),
-        messageFa:
-          'کلیدها با رمزنگاری AES-256-GCM ذخیره شدند (برای اتصال زنده به Bit24، سرور بک‌اند را اجرا کنید).',
-        messageEn:
-          'Keys encrypted via AES-256-GCM (run backend server for live Bit24 connection).',
-      });
-      setSnapshot(orch.getSnapshot());
-      showToast('کلیدهای Bit24 به صورت رمزنگاری‌شده ذخیره شدند.');
-    },
-    verifyBit24Connection: () =>
-      callAction(
-        'verifyBit24',
-        './api/settings/bit24/verify',
-        undefined,
-        () => {
-          showToast('در حالت مستقل PWA، فید شبیه‌ساز دمو فعال است.');
-        }
-      ),
-    clearBit24Credentials: async () => {
-      if (backendConnected) {
-        return callAction(
-          'clearBit24',
-          './api/settings/bit24/clear',
-          undefined,
-          () => {}
-        );
-      }
-      clearEncryptedBrowserVault();
-      const orch = localOrchestratorRef.current!;
-      orch.setBit24Health({
-        state: 'NOT_CONFIGURED',
-        hasApiKey: false,
-        hasSecretKey: false,
-        maskedApiKey: '',
-      });
-      setSnapshot(orch.getSnapshot());
-      showToast('کلیدهای ذخیره شده پاک شدند.');
-    },
-    saveTelegramSettings: async (params: {
+    }) => call("riskUpdate", "/api/risk/update", params),
+    saveBit24Credentials: (_apiKey: string, _secretKey: string) => disabled(),
+    verifyBit24Connection: disabled,
+    clearBit24Credentials: disabled,
+    saveTelegramSettings: (_params: {
       botToken?: string;
       chatId?: string;
       enabled: boolean;
-    }) => {
-      if (backendConnected) {
-        return callAction(
-          'saveTelegram',
-          './api/settings/telegram',
-          params,
-          () => {}
-        );
-      }
-      const existing = await loadEncryptedBrowserVault();
-      await saveEncryptedBrowserVault({
-        ...existing,
-        telegramBotToken: params.botToken || existing.telegramBotToken,
-        telegramChatId: params.chatId || existing.telegramChatId,
-        telegramEnabled: params.enabled,
-      });
-      const orch = localOrchestratorRef.current!;
-      orch.setTelegramMeta({
-        configured: Boolean(
-          (params.botToken || existing.telegramBotToken) &&
-            (params.chatId || existing.telegramChatId)
-        ),
-        enabled: params.enabled,
-        maskedChatId: maskKey(params.chatId || existing.telegramChatId),
-      });
-      setSnapshot(orch.getSnapshot());
-      showToast('تنظیمات اعلان امن تلگرام ذخیره شد.');
-    },
-    sendDailyTelegramReport: () =>
-      callAction(
-        'tgDaily',
-        './api/settings/telegram/daily-report',
-        undefined,
-        (o) => {
-          const d = o.getSnapshot().periodReports.daily;
-          o.pushTelegramLog({
-            id: `tg-${Date.now()}`,
-            timestamp: Date.now(),
-            eventType: 'DAILY_PNL_REPORT',
-            deliveredToTelegram: false,
-            title: 'گزارش روزانه سود و زیان',
-            safeMessagePreview: `معاملات: ${d.tradesCount} | سود خالص: ${d.netPnlIrt.toLocaleString()} تومان`,
-          });
-          showToast('پیش‌نمایش امن گزارش روزانه تلگرام ثبت شد.');
-        }
-      ),
+    }) => disabled(),
+    sendDailyTelegramReport: disabled,
     runPro100Test: async (): Promise<ProVerificationReport | undefined> => {
-      setBusyAction('pro100');
-      try {
-        if (backendConnected) {
-          const resp = await fetch('./api/verification/run-100', {
-            method: 'POST',
-          });
-          const data = await resp.json();
-          if (data?.snapshot) setSnapshot(data.snapshot);
-          showToast(
-            `تست حرفه‌ای تکمیل شد: ${data?.report?.simulatedTradesExecuted || 0} معامله شبیه‌سازی‌شده با کارمزد واقعی.`
-          );
-          return data?.report;
-        } else {
-          const orch = localOrchestratorRef.current!;
-          const report = orch.runPro100Verification();
-          setSnapshot(orch.getSnapshot());
-          showToast(
-            `تست حرفه‌ای تکمیل شد: ${report.simulatedTradesExecuted} معامله شبیه‌سازی‌شده.`
-          );
-          return report;
-        }
-      } finally {
-        setBusyAction(null);
-      }
+      const data = await call("pro100", "/api/verification/run-100");
+      return data?.report;
     },
-    downloadTradesCsv: () => {
-      if (backendConnected) {
-        window.open('./api/reports/trades.csv', '_blank');
-        return;
+    downloadTradesCsv: async () => {
+      try {
+        const response = await fetch(client.url("/api/reports/trades.csv"), {
+          headers: config.token ? { "X-API-Token": config.token } : {},
+          signal: AbortSignal.timeout(10000),
+          redirect: "error",
+        });
+        if (!response.ok) throw Error();
+        const url = URL.createObjectURL(await response.blob());
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "demo-trades.csv";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch {
+        showToast("گزارش دریافت نشد.");
       }
-      const csv = '\uFEFF' + localOrchestratorRef.current!.exportTradeHistoryCsv();
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'bit24-ai-trader-pro-history.csv';
-      a.click();
-      URL.revokeObjectURL(url);
     },
   };
 }

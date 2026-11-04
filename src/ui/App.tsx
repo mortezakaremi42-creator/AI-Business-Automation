@@ -1,34 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import { AppLanguage } from '../shared/contracts.js';
-import { ApiAndTelegramPanel } from './components/ApiAndTelegramPanel.js';
-import { GoldTraderPanel } from './components/GoldTraderPanel.js';
-import { ProVerificationPanel } from './components/ProVerificationPanel.js';
-import { RiskManagementPanel } from './components/RiskManagementPanel.js';
-import { TradeHistoryPanel } from './components/TradeHistoryPanel.js';
-import { formatIrt, formatTierBadge, UI_TEXT } from './i18n.js';
-import { useBit24Controller } from './useBit24Controller.js';
+import React, { useEffect, useState } from "react";
+import { DemoWorkspace } from "./components/DemoWorkspace.js";
+import { BackendConnectionPanel } from "./components/BackendConnectionPanel.js";
+import { AppLanguage } from "../shared/contracts.js";
+import { GoldTraderPanel } from "./components/GoldTraderPanel.js";
+import { ProVerificationPanel } from "./components/ProVerificationPanel.js";
+import { RiskManagementPanel } from "./components/RiskManagementPanel.js";
+import { TradeHistoryPanel } from "./components/TradeHistoryPanel.js";
+import { formatIrt, formatTierBadge, UI_TEXT } from "./i18n.js";
+import { useBit24Controller } from "./useBit24Controller.js";
 
 type ActiveSection =
-  | 'MAIN'
-  | 'GOLD'
-  | 'RISK'
-  | 'HISTORY'
-  | 'API_SETTINGS'
-  | 'PRO_TEST';
+  | "MAIN"
+  | "GOLD"
+  | "RISK"
+  | "HISTORY"
+  | "API_SETTINGS"
+  | "PRO_TEST";
 
 export const App: React.FC = () => {
-  const [lang, setLang] = useState<AppLanguage>('fa');
-  const [activeSection, setActiveSection] = useState<ActiveSection>('MAIN');
+  const [lang, setLang] = useState<AppLanguage>("fa");
+  const [activeSection, setActiveSection] = useState<ActiveSection>("MAIN");
   const [deferredPwaPrompt, setDeferredPwaPrompt] = useState<any>(null);
 
   const ctrl = useBit24Controller();
   const snap = ctrl.snapshot;
   const t = UI_TEXT[lang];
-  const isFa = lang === 'fa';
+  const isFa = lang === "fa";
 
   useEffect(() => {
     document.documentElement.lang = lang;
-    document.documentElement.dir = isFa ? 'rtl' : 'ltr';
+    document.documentElement.dir = isFa ? "rtl" : "ltr";
   }, [lang, isFa]);
 
   useEffect(() => {
@@ -36,8 +37,8 @@ export const App: React.FC = () => {
       e.preventDefault();
       setDeferredPwaPrompt(e);
     };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
   const handleInstallAndroid = async () => {
@@ -48,14 +49,39 @@ export const App: React.FC = () => {
     } else {
       alert(
         isFa
-          ? 'برای نصب مستقیم روی اندروید: در مرورگر کروم (Chrome) منوی سه نقطه بالا را بزنید و گزینه «Add to Home screen / Install app» را انتخاب نمایید.'
-          : 'To install on Android: tap the Chrome 3-dot menu and choose "Install app / Add to Home screen".'
+          ? "برای نصب مستقیم روی اندروید: در مرورگر کروم (Chrome) منوی سه نقطه بالا را بزنید و گزینه «Add to Home screen / Install app» را انتخاب نمایید."
+          : 'To install on Android: tap the Chrome 3-dot menu and choose "Install app / Add to Home screen".',
       );
     }
   };
 
+  const connectionPanel = (
+    <BackendConnectionPanel
+      base={ctrl.backendBase}
+      connected={ctrl.backendConnected}
+      error={ctrl.connectionError}
+      uncertain={ctrl.uncertainWrite}
+      onSave={ctrl.saveBackendConnection}
+      onReconcile={ctrl.reconcilePending}
+    />
+  );
+  if (!snap)
+    return (
+      <div className="app-shell">
+        <header className="top-header">
+          <h1>BIT24 AI TRADER PRO</h1>
+          <p>پنل کنترل سرور — بدون شبیه‌سازی محلی</p>
+        </header>
+        {connectionPanel}
+        {ctrl.toastMessage && (
+          <div className="toast-banner">{ctrl.toastMessage}</div>
+        )}
+      </div>
+    );
+
   return (
     <div className="app-shell">
+      {connectionPanel}
       {/* Top Header */}
       <header className="top-header">
         <div>
@@ -66,16 +92,18 @@ export const App: React.FC = () => {
         <div className="header-badges">
           <span
             className={`badge ${
-              snap.liveTradingUserConfirmed ? 'badge-danger' : 'badge-safe-lock'
+              snap.liveTradingUserConfirmed ? "badge-danger" : "badge-safe-lock"
             }`}
           >
-            {snap.liveTradingUserConfirmed ? t.liveActiveBadge : t.liveLockedBadge}
+            {snap.liveTradingUserConfirmed
+              ? t.liveActiveBadge
+              : t.liveLockedBadge}
           </span>
 
           <button
             type="button"
             className="cmd-btn cmd-btn-gold"
-            style={{ minHeight: 36, padding: '6px 12px' }}
+            style={{ minHeight: 36, padding: "6px 12px" }}
             onClick={handleInstallAndroid}
           >
             📲 {t.installAndroidBtn}
@@ -84,14 +112,19 @@ export const App: React.FC = () => {
           <button
             type="button"
             className="cmd-btn"
-            style={{ minHeight: 36, padding: '6px 12px' }}
-            onClick={() => setLang(isFa ? 'en' : 'fa')}
+            style={{ minHeight: 36, padding: "6px 12px" }}
+            onClick={() => setLang(isFa ? "en" : "fa")}
           >
             🌐 {t.langSwitchBtn}
           </button>
         </div>
       </header>
 
+      <div className="demo-warning" role="note">
+        اطلاعات فرضی • تمام قیمت‌ها، نمودارها و تحلیل‌ها شبیه‌سازی‌شده‌اند.
+        Live، اتصال بیت۲۴، واریز و برداشت غیرفعال‌اند. خرید فقط با تأیید دستی؛
+        خروج حفاظتی خودکار است.
+      </div>
       {/* Strict Profit & Bit24-Only Disclaimer */}
       <div className="disclaimer-bar">{t.disclaimerBanner}</div>
 
@@ -112,7 +145,7 @@ export const App: React.FC = () => {
           <div className="metric-label">{t.dailyPnl}</div>
           <div
             className={`metric-value ${
-              snap.dailyPnlIrt >= 0 ? 'text-pos' : 'text-neg'
+              snap.dailyPnlIrt >= 0 ? "text-pos" : "text-neg"
             }`}
           >
             {formatIrt(snap.dailyPnlIrt, lang)} ({snap.dailyPnlPct}%)
@@ -123,7 +156,7 @@ export const App: React.FC = () => {
           <div className="metric-label">{t.totalPnl}</div>
           <div
             className={`metric-value ${
-              snap.totalPnlIrt >= 0 ? 'text-pos' : 'text-neg'
+              snap.totalPnlIrt >= 0 ? "text-pos" : "text-neg"
             }`}
           >
             {formatIrt(snap.totalPnlIrt, lang)} ({snap.totalPnlPct}%)
@@ -148,7 +181,8 @@ export const App: React.FC = () => {
         <div className="metric-card">
           <div className="metric-label">{t.openTrades}</div>
           <div className="metric-value">
-            {snap.openPositions.length} / {snap.capitalConfig.maxConcurrentTrades}
+            {snap.capitalSecurity.openTradesCount} /{" "}
+            {snap.capitalConfig.maxConcurrentTrades}
           </div>
         </div>
 
@@ -156,19 +190,15 @@ export const App: React.FC = () => {
           <div className="metric-label">{t.bit24Status}</div>
           <div
             className={`metric-value ${
-              snap.bit24Connection.activeMarketFeed === 'LIVE_BIT24_API'
-                ? 'text-pos'
-                : 'text-gold'
+              snap.bit24Connection.activeMarketFeed === "LIVE_BIT24_API"
+                ? "text-pos"
+                : "text-gold"
             }`}
-            style={{ fontSize: '0.88rem' }}
+            style={{ fontSize: "0.88rem" }}
           >
-            {snap.bit24Connection.activeMarketFeed === 'LIVE_BIT24_API'
-              ? isFa
-                ? 'API رسمی زنده Bit24'
-                : 'Live Official Bit24 API'
-              : isFa
-              ? 'فید شبیه‌ساز دمو Bit24'
-              : 'Bit24 Safe Demo Feed'}
+            {isFa
+              ? "اطلاعات فرضی — اتصال زنده غیرفعال"
+              : "SIMULATED — LIVE DISABLED"}
           </div>
         </div>
 
@@ -176,9 +206,11 @@ export const App: React.FC = () => {
           <div className="metric-label">{t.capitalSecurity}</div>
           <div
             className={`metric-value ${
-              snap.capitalSecurity.level === 'PROTECTED' ? 'text-pos' : 'text-neg'
+              snap.capitalSecurity.level === "PROTECTED"
+                ? "text-pos"
+                : "text-neg"
             }`}
-            style={{ fontSize: '0.88rem' }}
+            style={{ fontSize: "0.88rem" }}
           >
             {snap.capitalSecurity.level}
           </div>
@@ -186,11 +218,11 @@ export const App: React.FC = () => {
 
         <div className="metric-card">
           <div className="metric-label">{t.activeMode}</div>
-          <div className="metric-value" style={{ fontSize: '0.9rem' }}>
+          <div className="metric-value" style={{ fontSize: "0.9rem" }}>
             {snap.emergencyStopped
-              ? 'EMERGENCY HALTED'
+              ? "EMERGENCY HALTED"
               : `${snap.tradingMode} | ${
-                  snap.scannerRunning ? 'SCAN ON' : 'SCAN OFF'
+                  snap.scannerRunning ? "SCAN ON" : "SCAN OFF"
                 }`}
           </div>
         </div>
@@ -219,7 +251,7 @@ export const App: React.FC = () => {
         <button
           type="button"
           className="cmd-btn cmd-btn-start"
-          disabled={snap.tradingMode === 'DEMO'}
+          disabled={snap.tradingMode === "DEMO"}
           onClick={ctrl.startDemoTrading}
         >
           {t.btnStartDemo}
@@ -228,7 +260,7 @@ export const App: React.FC = () => {
         <button
           type="button"
           className="cmd-btn cmd-btn-stop"
-          disabled={snap.tradingMode === 'STOPPED'}
+          disabled={snap.tradingMode === "STOPPED"}
           onClick={ctrl.stopTrading}
         >
           {t.btnStopTrading}
@@ -243,17 +275,17 @@ export const App: React.FC = () => {
         >
           {snap.emergencyStopped
             ? isFa
-              ? 'رفع توقف اضطراری | CLEAR HALT'
-              : 'CLEAR EMERGENCY STOP'
+              ? "رفع توقف اضطراری | CLEAR HALT"
+              : "CLEAR EMERGENCY STOP"
             : t.btnEmergencyStop}
         </button>
 
         <button
           type="button"
           className={`cmd-btn cmd-btn-gold ${
-            activeSection === 'GOLD' ? 'cmd-btn-active-tab' : ''
+            activeSection === "GOLD" ? "cmd-btn-active-tab" : ""
           }`}
-          onClick={() => setActiveSection('GOLD')}
+          onClick={() => setActiveSection("GOLD")}
         >
           {t.btnGoldTrading}
         </button>
@@ -261,9 +293,9 @@ export const App: React.FC = () => {
         <button
           type="button"
           className={`cmd-btn ${
-            activeSection === 'RISK' ? 'cmd-btn-active-tab' : ''
+            activeSection === "RISK" ? "cmd-btn-active-tab" : ""
           }`}
-          onClick={() => setActiveSection('RISK')}
+          onClick={() => setActiveSection("RISK")}
         >
           {t.btnRiskManagement}
         </button>
@@ -271,9 +303,9 @@ export const App: React.FC = () => {
         <button
           type="button"
           className={`cmd-btn ${
-            activeSection === 'HISTORY' ? 'cmd-btn-active-tab' : ''
+            activeSection === "HISTORY" ? "cmd-btn-active-tab" : ""
           }`}
-          onClick={() => setActiveSection('HISTORY')}
+          onClick={() => setActiveSection("HISTORY")}
         >
           {t.btnTradeHistory}
         </button>
@@ -281,9 +313,9 @@ export const App: React.FC = () => {
         <button
           type="button"
           className={`cmd-btn ${
-            activeSection === 'API_SETTINGS' ? 'cmd-btn-active-tab' : ''
+            activeSection === "API_SETTINGS" ? "cmd-btn-active-tab" : ""
           }`}
-          onClick={() => setActiveSection('API_SETTINGS')}
+          onClick={() => setActiveSection("API_SETTINGS")}
         >
           {t.btnApiSettings}
         </button>
@@ -291,9 +323,9 @@ export const App: React.FC = () => {
         <button
           type="button"
           className={`cmd-btn ${
-            activeSection === 'PRO_TEST' ? 'cmd-btn-active-tab' : ''
+            activeSection === "PRO_TEST" ? "cmd-btn-active-tab" : ""
           }`}
-          onClick={() => setActiveSection('PRO_TEST')}
+          onClick={() => setActiveSection("PRO_TEST")}
         >
           {t.btnProTest}
         </button>
@@ -301,16 +333,16 @@ export const App: React.FC = () => {
         <button
           type="button"
           className={`cmd-btn ${
-            activeSection === 'MAIN' ? 'cmd-btn-active-tab' : ''
+            activeSection === "MAIN" ? "cmd-btn-active-tab" : ""
           }`}
-          onClick={() => setActiveSection('MAIN')}
+          onClick={() => setActiveSection("MAIN")}
         >
           {t.btnDashboard}
         </button>
       </nav>
 
       {/* Active View Body */}
-      {activeSection === 'GOLD' && (
+      {activeSection === "GOLD" && (
         <GoldTraderPanel
           lang={lang}
           goldReport={snap.goldReport}
@@ -320,7 +352,7 @@ export const App: React.FC = () => {
         />
       )}
 
-      {activeSection === 'RISK' && (
+      {activeSection === "RISK" && (
         <RiskManagementPanel
           lang={lang}
           capitalConfig={snap.capitalConfig}
@@ -329,7 +361,7 @@ export const App: React.FC = () => {
         />
       )}
 
-      {activeSection === 'HISTORY' && (
+      {activeSection === "HISTORY" && (
         <TradeHistoryPanel
           lang={lang}
           daily={snap.periodReports.daily}
@@ -340,41 +372,50 @@ export const App: React.FC = () => {
         />
       )}
 
-      {activeSection === 'API_SETTINGS' && (
-        <ApiAndTelegramPanel
-          lang={lang}
-          bit24Health={snap.bit24Connection}
-          telegramState={snap.telegram}
-          onSaveBit24={ctrl.saveBit24Credentials}
-          onVerifyBit24={ctrl.verifyBit24Connection}
-          onClearBit24={ctrl.clearBit24Credentials}
-          onSaveTelegram={ctrl.saveTelegramSettings}
-          onSendDailyTelegram={ctrl.sendDailyTelegramReport}
-        />
+      {activeSection === "API_SETTINGS" && (
+        <section className="section-card">
+          <h2>شبکهٔ خارجی غیرفعال</h2>
+          <p>
+            هیچ کلید صرافی یا تلگرام وارد نکنید. هیچ قیمت زنده‌ای دریافت
+            نمی‌شود. تمام پیام‌ها فقط در دفتر محلی آزمایش ثبت می‌شوند؛ Live و
+            انتقال وجه وجود ندارد.
+          </p>
+        </section>
       )}
 
-      {activeSection === 'PRO_TEST' && (
+      {activeSection === "PRO_TEST" && (
         <ProVerificationPanel
           lang={lang}
           report={snap.latestVerificationReport}
-          busy={ctrl.busyAction === 'pro100'}
+          busy={ctrl.busyAction === "pro100"}
           onRunTest={ctrl.runPro100Test}
         />
       )}
 
-      {activeSection === 'MAIN' && (
+      {activeSection === "MAIN" && (
         <>
+          <DemoWorkspace
+            snapshot={snap}
+            onAdjust={ctrl.adjustDemoCash}
+            busy={
+              Boolean(ctrl.busyAction) ||
+              !ctrl.backendConnected ||
+              Boolean(ctrl.uncertainWrite)
+            }
+          />
           {/* Open Positions Table */}
           <section className="section-card">
             <h2 className="section-title">
               <span>{t.openPositionsTitle}</span>
-              <span style={{ fontSize: '0.8rem', color: '#9db4c8' }}>
-                {isFa ? snap.capitalSecurity.summaryFa : snap.capitalSecurity.summaryEn}
+              <span style={{ fontSize: "0.8rem", color: "#9db4c8" }}>
+                {isFa
+                  ? snap.capitalSecurity.summaryFa
+                  : snap.capitalSecurity.summaryEn}
               </span>
             </h2>
 
             {snap.openPositions.length === 0 ? (
-              <div style={{ color: '#9db4c8', fontSize: '0.86rem' }}>
+              <div style={{ color: "#9db4c8", fontSize: "0.86rem" }}>
                 {t.noOpenPositions}
               </div>
             ) : (
@@ -382,14 +423,15 @@ export const App: React.FC = () => {
                 <table className="pro-table">
                   <thead>
                     <tr>
-                      <th>{isFa ? 'نماد' : 'Symbol'}</th>
-                      <th>{isFa ? 'قیمت ورود' : 'Entry'}</th>
-                      <th>{isFa ? 'قیمت فعلی' : 'Current'}</th>
-                      <th>{isFa ? 'سرمایه درگیر' : 'Capital'}</th>
-                      <th>{isFa ? 'حد ضرر فعال' : 'Active SL'}</th>
+                      <th>{isFa ? "نماد" : "Symbol"}</th>
+                      <th>{isFa ? "قیمت ورود" : "Entry"}</th>
+                      <th>{isFa ? "قیمت فعلی" : "Current"}</th>
+                      <th>{isFa ? "سرمایه درگیر" : "Capital"}</th>
+                      <th>{isFa ? "حد ضرر فعال" : "Active SL"}</th>
                       <th>Trailing Stop</th>
-                      <th>{isFa ? 'فروش پله‌ای (TP 1/2/3)' : 'Stepped TP'}</th>
-                      <th>{isFa ? 'سود/زیان باز' : 'Unrealized PnL'}</th>
+                      <th>{isFa ? "فروش پله‌ای (TP 1/2/3)" : "Stepped TP"}</th>
+                      <th>{isFa ? "سود/زیان باز" : "Unrealized PnL"}</th>
+                      <th>{isFa ? "فروش آزمایشی" : "Demo sell"}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -407,21 +449,36 @@ export const App: React.FC = () => {
                         <td>
                           {p.trailingStopActive
                             ? `ON (${formatIrt(p.trailingStopPriceIrt || 0, lang)})`
-                            : 'Waiting (+8%)'}
+                            : "Waiting (+8%)"}
                         </td>
                         <td>
-                          {p.tpStage1Filled ? '✓30%' : '○30%'} |{' '}
-                          {p.tpStage2Filled ? '✓30%' : '○30%'} |{' '}
-                          {p.tpStage3Filled ? '✓40%' : '○40%'}
+                          {p.tpStage1Filled ? "✓30%" : "○30%"} |{" "}
+                          {p.tpStage2Filled ? "✓30%" : "○30%"} |{" "}
+                          {p.tpStage3Filled ? "✓40%" : "○40%"}
                         </td>
                         <td
                           className={
-                            p.unrealizedPnlIrt >= 0 ? 'text-pos' : 'text-neg'
+                            p.unrealizedPnlIrt >= 0 ? "text-pos" : "text-neg"
                           }
                         >
                           <strong>
-                            {formatIrt(p.unrealizedPnlIrt, lang)} ({p.unrealizedPnlPct}%)
+                            {formatIrt(p.unrealizedPnlIrt, lang)} (
+                            {p.unrealizedPnlPct}%)
                           </strong>
+                        </td>
+                        <td>
+                          <button
+                            className="cmd-btn"
+                            disabled={
+                              !ctrl.backendConnected ||
+                              Boolean(ctrl.busyAction) ||
+                              Boolean(ctrl.uncertainWrite) ||
+                              p.mode !== "DEMO"
+                            }
+                            onClick={() => ctrl.manualDemoSell(p.symbol)}
+                          >
+                            {isFa ? "بستن Demo" : "Close Demo"}
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -437,8 +494,8 @@ export const App: React.FC = () => {
               <span>🚀 {t.topOpportunitiesTitle}</span>
               <span className="badge badge-gold">
                 {isFa
-                  ? '۰–۵۹ رد | ۶۰–۷۴ هشدار | ۷۵–۸۴ بررسی | ۸۵–۱۰۰ سیگنال قوی آزمایش'
-                  : '<60 Reject | 60–74 Alert | 75–84 Review | 85–100 Strong Test Signal'}
+                  ? "۰–۵۹ رد | ۶۰–۷۴ هشدار | ۷۵–۸۴ بررسی | ۸۵–۱۰۰ سیگنال قوی آزمایش"
+                  : "<60 Reject | 60–74 Alert | 75–84 Review | 85–100 Strong Test Signal"}
               </span>
             </h2>
 
@@ -449,11 +506,11 @@ export const App: React.FC = () => {
                   <div key={sig.symbol} className="opp-card">
                     <div className="opp-header">
                       <div>
-                        <strong style={{ fontSize: '1.03rem' }}>
+                        <strong style={{ fontSize: "1.03rem" }}>
                           {sig.symbol}
                         </strong>
-                        <div style={{ fontSize: '0.78rem', color: '#9db4c8' }}>
-                          {isFa ? sig.faName : sig.enName} •{' '}
+                        <div style={{ fontSize: "0.78rem", color: "#9db4c8" }}>
+                          {isFa ? sig.faName : sig.enName} •{" "}
                           {formatIrt(sig.priceIrt, lang)}
                         </div>
                       </div>
@@ -464,7 +521,7 @@ export const App: React.FC = () => {
 
                     <div
                       style={{
-                        fontSize: '0.77rem',
+                        fontSize: "0.77rem",
                         marginBottom: 6,
                         fontWeight: 700,
                       }}
@@ -489,7 +546,7 @@ export const App: React.FC = () => {
                         <div className="metric-label">24h</div>
                         <strong
                           className={
-                            sig.change24hPct >= 0 ? 'text-pos' : 'text-neg'
+                            sig.change24hPct >= 0 ? "text-pos" : "text-neg"
                           }
                         >
                           {sig.change24hPct}%
@@ -497,13 +554,13 @@ export const App: React.FC = () => {
                       </div>
                       <div>
                         <div className="metric-label">
-                          {isFa ? 'قدرت خریدار' : 'Buyer Power'}
+                          {isFa ? "قدرت خریدار" : "Buyer Power"}
                         </div>
                         <strong>{sig.indicators.buyerPowerPct}%</strong>
                       </div>
                       <div>
                         <div className="metric-label">
-                          {isFa ? 'رشد حجم' : 'Vol Surge'}
+                          {isFa ? "رشد حجم" : "Vol Surge"}
                         </div>
                         <strong>{sig.indicators.volumeSurgeRatio}x</strong>
                       </div>
@@ -538,16 +595,26 @@ export const App: React.FC = () => {
                     <button
                       type="button"
                       className="cmd-btn cmd-btn-start"
-                      style={{ width: '100%', marginTop: 6 }}
+                      style={{ width: "100%", marginTop: 6 }}
                       disabled={
-                        sig.opportunityScore < 60 || snap.emergencyStopped
+                        sig.opportunityScore < 60 ||
+                        snap.emergencyStopped ||
+                        snap.demo.daily.halted ||
+                        !ctrl.backendConnected ||
+                        Boolean(ctrl.busyAction) ||
+                        Boolean(ctrl.uncertainWrite) ||
+                        snap.openPositions.some(
+                          (p) => p.symbol === sig.symbol,
+                        ) ||
+                        snap.capitalSecurity.openTradesCount >=
+                          snap.capitalConfig.maxConcurrentTrades
                       }
                       onClick={() => ctrl.manualDemoBuy(sig.symbol)}
                     >
                       {sig.opportunityScore < 60
                         ? isFa
-                          ? 'رد شده توسط شکارچی پامپ / SMART SECURITY'
-                          : 'Blocked by Pump Hunter / SMART SECURITY'
+                          ? "رد شده توسط شکارچی پامپ / SMART SECURITY"
+                          : "Blocked by Pump Hunter / SMART SECURITY"
                         : `${t.demoBuyNow} (${sig.symbol})`}
                     </button>
                   </div>
@@ -560,14 +627,16 @@ export const App: React.FC = () => {
           <section className="section-card">
             <h2 className="section-title">{t.securityRejectionsTitle}</h2>
             {snap.recentRejections.length === 0 ? (
-              <div style={{ fontSize: '0.84rem', color: '#9db4c8' }}>
+              <div style={{ fontSize: "0.84rem", color: "#9db4c8" }}>
                 {t.noRejectionsYet}
               </div>
             ) : (
               <ul className="warn-list">
                 {snap.recentRejections.slice(0, 10).map((rej) => (
                   <li key={rej.id}>
-                    <strong>[{rej.symbol} • {rej.code}]</strong>{' '}
+                    <strong>
+                      [{rej.symbol} • {rej.code}]
+                    </strong>{" "}
                     {isFa ? rej.reasonFa : rej.reasonEn}
                   </li>
                 ))}

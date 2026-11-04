@@ -2,8 +2,8 @@ import {
   Bit24TickerMarket,
   CandleBar,
   OrderBookDepth,
-} from '../shared/contracts.js';
-import { computeMultiTimeframeChanges } from './mathIndicators.js';
+} from "../shared/contracts.js";
+import { computeMultiTimeframeChanges } from "./mathIndicators.js";
 
 export function roundIrtPrice(price: number): number {
   if (!Number.isFinite(price) || price <= 0) return 0;
@@ -17,192 +17,198 @@ interface CatalogSeed {
   baseCoin: string;
   faName: string;
   enName: string;
-  segment: 'CRYPTO' | 'GOLD';
+  segment: "CRYPTO" | "GOLD";
   basePriceIrt: number;
   change24hPct: number;
   volume24hIrt: number;
-  pattern: 'PRE_PUMP_ACCUMULATION' | 'PULLBACK_BOUNCE' | 'OVERPUMPED_TRAP' | 'STEADY_GOLD' | 'LOW_VOLUME_NOISE';
+  pattern:
+    | "PRE_PUMP_ACCUMULATION"
+    | "PULLBACK_BOUNCE"
+    | "OVERPUMPED_TRAP"
+    | "STEADY_GOLD"
+    | "LOW_VOLUME_NOISE";
 }
 
+// Entire catalogue is synthetic, not downloaded or verified against an exchange.
 const BIT24_OFFICIAL_SEEDS: CatalogSeed[] = [
   // ==================== CRYPTO SPOT ON BIT24 ====================
   {
-    symbol: 'BTC/IRT',
-    baseCoin: 'BTC',
-    faName: 'بیت‌کوین',
-    enName: 'Bitcoin',
-    segment: 'CRYPTO',
+    symbol: "BTC/IRT",
+    baseCoin: "BTC",
+    faName: "بیت‌کوین",
+    enName: "Bitcoin",
+    segment: "CRYPTO",
     basePriceIrt: 8_535_000_000,
     change24hPct: 3.15,
     volume24hIrt: 192_000_000_000,
-    pattern: 'PRE_PUMP_ACCUMULATION',
+    pattern: "PRE_PUMP_ACCUMULATION",
   },
   {
-    symbol: 'ETH/IRT',
-    baseCoin: 'ETH',
-    faName: 'اتریوم',
-    enName: 'Ethereum',
-    segment: 'CRYPTO',
+    symbol: "ETH/IRT",
+    baseCoin: "ETH",
+    faName: "اتریوم",
+    enName: "Ethereum",
+    segment: "CRYPTO",
     basePriceIrt: 282_400_000,
     change24hPct: 4.1,
     volume24hIrt: 118_000_000_000,
-    pattern: 'PRE_PUMP_ACCUMULATION',
+    pattern: "PRE_PUMP_ACCUMULATION",
   },
   {
-    symbol: 'TRX/IRT',
-    baseCoin: 'TRX',
-    faName: 'ترون',
-    enName: 'TRON',
-    segment: 'CRYPTO',
+    symbol: "TRX/IRT",
+    baseCoin: "TRX",
+    faName: "ترون",
+    enName: "TRON",
+    segment: "CRYPTO",
     basePriceIrt: 21_650,
     change24hPct: 2.45,
     volume24hIrt: 64_500_000_000,
-    pattern: 'PULLBACK_BOUNCE',
+    pattern: "PULLBACK_BOUNCE",
   },
   {
-    symbol: 'XRP/IRT',
-    baseCoin: 'XRP',
-    faName: 'ریپل',
-    enName: 'Ripple',
-    segment: 'CRYPTO',
+    symbol: "XRP/IRT",
+    baseCoin: "XRP",
+    faName: "ریپل",
+    enName: "Ripple",
+    segment: "CRYPTO",
     basePriceIrt: 218_900,
     change24hPct: 5.2,
     volume24hIrt: 88_200_000_000,
-    pattern: 'PRE_PUMP_ACCUMULATION',
+    pattern: "PRE_PUMP_ACCUMULATION",
   },
   {
-    symbol: 'ADA/IRT',
-    baseCoin: 'ADA',
-    faName: 'کاردانو',
-    enName: 'Cardano',
-    segment: 'CRYPTO',
+    symbol: "ADA/IRT",
+    baseCoin: "ADA",
+    faName: "کاردانو",
+    enName: "Cardano",
+    segment: "CRYPTO",
     basePriceIrt: 78_400,
     change24hPct: 2.9,
     volume24hIrt: 41_000_000_000,
-    pattern: 'PULLBACK_BOUNCE',
+    pattern: "PULLBACK_BOUNCE",
   },
   {
-    symbol: 'LINK/IRT',
-    baseCoin: 'LINK',
-    faName: 'چین‌لینک',
-    enName: 'Chainlink',
-    segment: 'CRYPTO',
+    symbol: "LINK/IRT",
+    baseCoin: "LINK",
+    faName: "چین‌لینک",
+    enName: "Chainlink",
+    segment: "CRYPTO",
     basePriceIrt: 1_645_000,
     change24hPct: 4.85,
     volume24hIrt: 36_800_000_000,
-    pattern: 'PRE_PUMP_ACCUMULATION',
+    pattern: "PRE_PUMP_ACCUMULATION",
   },
   {
-    symbol: 'AVAX/IRT',
-    baseCoin: 'AVAX',
-    faName: 'آوالانچ',
-    enName: 'Avalanche',
-    segment: 'CRYPTO',
+    symbol: "AVAX/IRT",
+    baseCoin: "AVAX",
+    faName: "آوالانچ",
+    enName: "Avalanche",
+    segment: "CRYPTO",
     basePriceIrt: 3_120_000,
     change24hPct: 3.4,
     volume24hIrt: 29_500_000_000,
-    pattern: 'PULLBACK_BOUNCE',
+    pattern: "PULLBACK_BOUNCE",
   },
   {
-    symbol: 'DOGE/IRT',
-    baseCoin: 'DOGE',
-    faName: 'دوج‌کوین',
-    enName: 'Dogecoin',
-    segment: 'CRYPTO',
+    symbol: "DOGE/IRT",
+    baseCoin: "DOGE",
+    faName: "دوج‌کوین",
+    enName: "Dogecoin",
+    segment: "CRYPTO",
     basePriceIrt: 25_140,
     change24hPct: 5.6,
     volume24hIrt: 74_000_000_000,
-    pattern: 'PRE_PUMP_ACCUMULATION',
+    pattern: "PRE_PUMP_ACCUMULATION",
   },
   {
-    symbol: 'SHIB/IRT',
-    baseCoin: 'SHIB',
-    faName: 'شیبا اینو',
-    enName: 'Shiba Inu',
-    segment: 'CRYPTO',
+    symbol: "SHIB/IRT",
+    baseCoin: "SHIB",
+    faName: "شیبا اینو",
+    enName: "Shiba Inu",
+    segment: "CRYPTO",
     basePriceIrt: 1.674,
     change24hPct: 3.2,
     volume24hIrt: 38_400_000_000,
-    pattern: 'PULLBACK_BOUNCE',
+    pattern: "PULLBACK_BOUNCE",
   },
   {
-    symbol: 'PEPE/IRT',
-    baseCoin: 'PEPE',
-    faName: 'پپه',
-    enName: 'Pepe',
-    segment: 'CRYPTO',
+    symbol: "PEPE/IRT",
+    baseCoin: "PEPE",
+    faName: "پپه",
+    enName: "Pepe",
+    segment: "CRYPTO",
     basePriceIrt: 1.045,
     change24hPct: 22.8, // قبلاً پامپ شده — برای نمایش جلوگیری از خرید کورکورانه در سقف!
     volume24hIrt: 51_000_000_000,
-    pattern: 'OVERPUMPED_TRAP',
+    pattern: "OVERPUMPED_TRAP",
   },
   {
-    symbol: 'TON/IRT',
-    baseCoin: 'TON',
-    faName: 'تون‌کوین',
-    enName: 'Toncoin',
-    segment: 'CRYPTO',
+    symbol: "TON/IRT",
+    baseCoin: "TON",
+    faName: "تون‌کوین",
+    enName: "Toncoin",
+    segment: "CRYPTO",
     basePriceIrt: 479_500,
     change24hPct: 1.95,
     volume24hIrt: 44_600_000_000,
-    pattern: 'PULLBACK_BOUNCE',
+    pattern: "PULLBACK_BOUNCE",
   },
   {
-    symbol: 'DOT/IRT',
-    baseCoin: 'DOT',
-    faName: 'پولکادات',
-    enName: 'Polkadot',
-    segment: 'CRYPTO',
+    symbol: "DOT/IRT",
+    baseCoin: "DOT",
+    faName: "پولکادات",
+    enName: "Polkadot",
+    segment: "CRYPTO",
     basePriceIrt: 592_000,
     change24hPct: -0.6,
     volume24hIrt: 19_200_000_000,
-    pattern: 'LOW_VOLUME_NOISE',
+    pattern: "LOW_VOLUME_NOISE",
   },
   {
-    symbol: 'LTC/IRT',
-    baseCoin: 'LTC',
-    faName: 'لایت‌کوین',
-    enName: 'Litecoin',
-    segment: 'CRYPTO',
+    symbol: "LTC/IRT",
+    baseCoin: "LTC",
+    faName: "لایت‌کوین",
+    enName: "Litecoin",
+    segment: "CRYPTO",
     basePriceIrt: 9_850_000,
     change24hPct: 2.1,
     volume24hIrt: 24_700_000_000,
-    pattern: 'PULLBACK_BOUNCE',
+    pattern: "PULLBACK_BOUNCE",
   },
   {
-    symbol: 'NEAR/IRT',
-    baseCoin: 'NEAR',
-    faName: 'نیر پروتکل',
-    enName: 'NEAR Protocol',
-    segment: 'CRYPTO',
+    symbol: "NEAR/IRT",
+    baseCoin: "NEAR",
+    faName: "نیر پروتکل",
+    enName: "NEAR Protocol",
+    segment: "CRYPTO",
     basePriceIrt: 458_000,
     change24hPct: 4.5,
     volume24hIrt: 27_900_000_000,
-    pattern: 'PRE_PUMP_ACCUMULATION',
+    pattern: "PRE_PUMP_ACCUMULATION",
   },
 
   // ==================== GOLD AI TRADER (SEPARATE SEGMENT) ====================
   {
-    symbol: 'PAXG/IRT',
-    baseCoin: 'PAXG',
-    faName: 'پکس گلد (طلای دیجیتال)',
-    enName: 'PAX Gold (1 oz)',
-    segment: 'GOLD',
+    symbol: "PAXG/IRT",
+    baseCoin: "PAXG",
+    faName: "پکس گلد (طلای دیجیتال)",
+    enName: "PAX Gold (1 oz)",
+    segment: "GOLD",
     basePriceIrt: 261_200_000,
     change24hPct: 1.48,
     volume24hIrt: 32_500_000_000,
-    pattern: 'STEADY_GOLD',
+    pattern: "STEADY_GOLD",
   },
   {
-    symbol: 'XAUT/IRT',
-    baseCoin: 'XAUT',
-    faName: 'تتر گلد (طلای دیجیتال)',
-    enName: 'Tether Gold (1 oz)',
-    segment: 'GOLD',
+    symbol: "XAUT/IRT",
+    baseCoin: "XAUT",
+    faName: "تتر گلد (طلای دیجیتال)",
+    enName: "Tether Gold (1 oz)",
+    segment: "GOLD",
     basePriceIrt: 260_650_000,
     change24hPct: 1.36,
     volume24hIrt: 26_800_000_000,
-    pattern: 'STEADY_GOLD',
+    pattern: "STEADY_GOLD",
   },
 ];
 
@@ -221,10 +227,10 @@ function deterministicHash(str: string): number {
 export function buildRealisticCandles1m(
   symbol: string,
   basePriceIrt: number,
-  count = 160
+  count = 160,
 ): CandleBar[] {
   const seed = BIT24_OFFICIAL_SEEDS.find((s) => s.symbol === symbol);
-  const pattern = seed?.pattern || 'PULLBACK_BOUNCE';
+  const pattern = seed?.pattern || "PULLBACK_BOUNCE";
   const hash = deterministicHash(symbol);
   const nowSec = Math.floor(Date.now() / 60) * 60;
   const startSec = nowSec - (count - 1) * 60;
@@ -241,16 +247,16 @@ export function buildRealisticCandles1m(
     let trendFactor = 1.0;
     let volMult = 1.0 + ((i * 7 + hash) % 10) * 0.06;
 
-    if (pattern === 'PRE_PUMP_ACCUMULATION') {
+    if (pattern === "PRE_PUMP_ACCUMULATION") {
       // Quiet accumulation followed by fresh breakout + buyer volume in final 8 bars
       if (progress < 0.88) {
         trendFactor = 0.982 + progress * 0.014 + wave;
       } else {
         const tail = (progress - 0.88) / 0.12;
-        trendFactor = 0.996 + tail * 0.022 + wave * 0.3;
+        trendFactor = 0.996 + tail * 0.012 + Math.sin(i * 1.7) * 0.0025;
         volMult = 2.35 + tail * 0.9;
       }
-    } else if (pattern === 'PULLBACK_BOUNCE') {
+    } else if (pattern === "PULLBACK_BOUNCE") {
       // Uptrend + healthy pullback near EMA20 + green reversal bounce at the end
       if (progress < 0.75) {
         trendFactor = 0.975 + progress * 0.032 + wave;
@@ -259,16 +265,16 @@ export function buildRealisticCandles1m(
         trendFactor = 0.999 - dip * 0.008 + wave * 0.25;
       } else {
         const bounce = (progress - 0.94) / 0.06;
-        trendFactor = 0.991 + bounce * 0.011;
+        trendFactor = 0.991 + bounce * 0.006 + Math.sin(i * 1.7) * 0.0025;
         volMult = 1.85;
       }
-    } else if (pattern === 'OVERPUMPED_TRAP') {
+    } else if (pattern === "OVERPUMPED_TRAP") {
       // Already pumped +14% with long upper wick exhaustion at top
-      trendFactor = 0.90 + progress * 0.125 + Math.abs(wave);
+      trendFactor = 0.9 + progress * 0.125 + Math.abs(wave);
       if (i >= count - 3) {
         volMult = 0.65; // Drying volume on spike = fake pump warning!
       }
-    } else if (pattern === 'STEADY_GOLD') {
+    } else if (pattern === "STEADY_GOLD") {
       trendFactor = 0.989 + progress * 0.012 + wave * 0.45;
       if (i >= count - 5) {
         volMult = 1.65;
@@ -283,11 +289,20 @@ export function buildRealisticCandles1m(
     const bodySpan = Math.abs(targetClose - open);
     const wickPad = Math.max(basePriceIrt * 0.0018, bodySpan * 0.55);
     const extraUpperWick =
-      pattern === 'OVERPUMPED_TRAP' && i === count - 1 ? basePriceIrt * 0.019 : 0;
+      pattern === "OVERPUMPED_TRAP" && i === count - 1
+        ? basePriceIrt * 0.019
+        : 0;
 
-    const high = roundIrtPrice(Math.max(open, targetClose) + wickPad + extraUpperWick);
-    const low = roundIrtPrice(Math.max(0.0001, Math.min(open, targetClose) - wickPad * 0.85));
-    const baseVol = Math.max(10, ((seed?.volume24hIrt || 20_000_000_000) / 1440) / Math.max(1, basePriceIrt));
+    const high = roundIrtPrice(
+      Math.max(open, targetClose) + wickPad + extraUpperWick,
+    );
+    const low = roundIrtPrice(
+      Math.max(0.0001, Math.min(open, targetClose) - wickPad * 0.85),
+    );
+    const baseVol = Math.max(
+      10,
+      (seed?.volume24hIrt || 20_000_000_000) / 1440 / Math.max(1, basePriceIrt),
+    );
 
     bars.push({
       t: startSec + i * 60,
@@ -305,27 +320,42 @@ export function buildRealisticCandles1m(
 
 export function buildSimulatedOrderBook(
   market: Bit24TickerMarket,
-  candles: CandleBar[]
+  candles: CandleBar[],
 ): OrderBookDepth {
   const last = candles[candles.length - 1]?.c || market.priceIrt;
   const seed = BIT24_OFFICIAL_SEEDS.find((s) => s.symbol === market.symbol);
   const isStrongBuy =
-    seed?.pattern === 'PRE_PUMP_ACCUMULATION' || seed?.pattern === 'STEADY_GOLD';
-  const isTrap = seed?.pattern === 'OVERPUMPED_TRAP';
+    seed?.pattern === "PRE_PUMP_ACCUMULATION" ||
+    seed?.pattern === "STEADY_GOLD";
+  const isTrap = seed?.pattern === "OVERPUMPED_TRAP";
 
-  const halfSpreadRatio = market.segment === 'GOLD' ? 0.0009 : isTrap ? 0.0046 : 0.0013;
+  const halfSpreadRatio =
+    market.segment === "GOLD" ? 0.0009 : isTrap ? 0.0046 : 0.0013;
   const bestBid = roundIrtPrice(last * (1 - halfSpreadRatio));
   const bestAsk = roundIrtPrice(last * (1 + halfSpreadRatio));
   const spreadPct =
-    bestBid > 0 ? Number((((bestAsk - bestBid) / bestBid) * 100).toFixed(3)) : 0.25;
+    bestBid > 0
+      ? Number((((bestAsk - bestBid) / bestBid) * 100).toFixed(3))
+      : 0.25;
 
-  const bidDepthIrt = isStrongBuy ? 420_000_000 : isTrap ? 85_000_000 : 230_000_000;
-  const askDepthIrt = isStrongBuy ? 210_000_000 : isTrap ? 340_000_000 : 205_000_000;
+  const bidDepthIrt = isStrongBuy
+    ? 420_000_000
+    : isTrap
+      ? 85_000_000
+      : 230_000_000;
+  const askDepthIrt = isStrongBuy
+    ? 210_000_000
+    : isTrap
+      ? 340_000_000
+      : 205_000_000;
   const buyerPressurePct = Number(
-    ((bidDepthIrt / Math.max(1, bidDepthIrt + askDepthIrt)) * 100).toFixed(1)
+    ((bidDepthIrt / Math.max(1, bidDepthIrt + askDepthIrt)) * 100).toFixed(1),
   );
   const estimatedSlippagePct = Number(
-    Math.min(0.45, Math.max(0.04, (25_000_000 / Math.max(1, askDepthIrt)) * 0.35)).toFixed(3)
+    Math.min(
+      0.45,
+      Math.max(0.04, (25_000_000 / Math.max(1, askDepthIrt)) * 0.35),
+    ).toFixed(3),
   );
 
   return {
@@ -353,12 +383,14 @@ export function createInitialBit24Catalog(): {
     candlesBySymbol.set(s.symbol, candles);
     const lastPrice = candles[candles.length - 1].c;
     const mtf = computeMultiTimeframeChanges(candles);
-    const volBase = Number((s.volume24hIrt / Math.max(0.0001, lastPrice)).toFixed(3));
+    const volBase = Number(
+      (s.volume24hIrt / Math.max(0.0001, lastPrice)).toFixed(3),
+    );
 
     return {
       symbol: s.symbol,
       baseCoin: s.baseCoin,
-      quoteCoin: 'IRT',
+      quoteCoin: "IRT",
       faName: s.faName,
       enName: s.enName,
       segment: s.segment,
@@ -376,7 +408,7 @@ export function createInitialBit24Catalog(): {
       minOrderIrt: 250_000,
       feePctPerSide: 0.2,
       updatedAt: now,
-      dataFeedType: 'SIMULATED_MARKET_FEED',
+      dataFeedType: "SIMULATED_MARKET_FEED",
     };
   });
 

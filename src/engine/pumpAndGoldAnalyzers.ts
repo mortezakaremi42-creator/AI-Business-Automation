@@ -5,18 +5,18 @@ import {
   OrderBookDepth,
   PumpOpportunitySignal,
   SignalTier,
-} from '../shared/contracts.js';
-import { roundIrtPrice } from './bit24Catalog.js';
+} from "../shared/contracts.js";
+import { roundIrtPrice } from "./bit24Catalog.js";
 import {
   computeMultiTimeframeChanges,
   evaluateFullTechnicals,
-} from './mathIndicators.js';
+} from "./mathIndicators.js";
 
 export function classifyOpportunityTier(score: number): SignalTier {
-  if (score >= 85) return 'STRONG_TEST_SIGNAL';
-  if (score >= 75) return 'REVIEW_OPPORTUNITY';
-  if (score >= 60) return 'ALERT_ONLY';
-  return 'REJECTED';
+  if (score >= 85) return "STRONG_TEST_SIGNAL";
+  if (score >= 75) return "REVIEW_OPPORTUNITY";
+  if (score >= 60) return "ALERT_ONLY";
+  return "REJECTED";
 }
 
 /**
@@ -26,7 +26,7 @@ export function classifyOpportunityTier(score: number): SignalTier {
 export function analyzeBit24CryptoPumpOpportunity(
   market: Bit24TickerMarket,
   candles: CandleBar[],
-  orderBook: OrderBookDepth
+  orderBook: OrderBookDepth,
 ): PumpOpportunitySignal {
   const mtf = computeMultiTimeframeChanges(candles);
   const tech = evaluateFullTechnicals(candles, orderBook, market.change24hPct);
@@ -41,7 +41,9 @@ export function analyzeBit24CryptoPumpOpportunity(
   // 1. Volume Surge & Abnormal Buying Volume (max 20 pts)
   if (tech.volumeSurgeRatio >= 2.1) {
     rawScore += 20;
-    reasonsFa.push(`رشد حجم معاملات قدرتمند (${tech.volumeSurgeRatio}x میانگین)`);
+    reasonsFa.push(
+      `رشد حجم معاملات قدرتمند (${tech.volumeSurgeRatio}x میانگین)`,
+    );
     reasonsEn.push(`Strong volume surge (${tech.volumeSurgeRatio}x baseline)`);
   } else if (tech.volumeSurgeRatio >= 1.45) {
     rawScore += 14;
@@ -50,7 +52,9 @@ export function analyzeBit24CryptoPumpOpportunity(
   } else if (tech.volumeSurgeRatio >= 1.1) {
     rawScore += 7;
   } else {
-    warningsFa.push(`حجم معاملات پایین‌تر از میانگین (${tech.volumeSurgeRatio}x)`);
+    warningsFa.push(
+      `حجم معاملات پایین‌تر از میانگین (${tech.volumeSurgeRatio}x)`,
+    );
     warningsEn.push(`Sub-average trading volume (${tech.volumeSurgeRatio}x)`);
   }
 
@@ -77,10 +81,10 @@ export function analyzeBit24CryptoPumpOpportunity(
   if (healthyShortImpulse) {
     rawScore += 12;
     reasonsFa.push(
-      `شتاب سالم چندبازه (5m: +${mtf.change5mPct}% | 15m: +${mtf.change15mPct}% | 60m: +${mtf.change60mPct}%)`
+      `شتاب سالم چندبازه (5m: +${mtf.change5mPct}% | 15m: +${mtf.change15mPct}% | 60m: +${mtf.change60mPct}%)`,
     );
     reasonsEn.push(
-      `Healthy multi-timeframe momentum (5m: +${mtf.change5mPct}% | 15m: +${mtf.change15mPct}% | 60m: +${mtf.change60mPct}%)`
+      `Healthy multi-timeframe momentum (5m: +${mtf.change5mPct}% | 15m: +${mtf.change15mPct}% | 60m: +${mtf.change60mPct}%)`,
     );
   } else if (mtf.change15mPct > 0 && mtf.change60mPct > 0) {
     rawScore += 7;
@@ -95,16 +99,16 @@ export function analyzeBit24CryptoPumpOpportunity(
   // 4. EMA20 & EMA50 Structure + MACD + RSI (max 24 pts)
   if (market.priceIrt >= tech.ema20 && tech.ema20 >= tech.ema50) {
     rawScore += 10;
-    reasonsFa.push('ساختار صعودی قیمت بالای EMA20 و EMA50');
-    reasonsEn.push('Bullish alignment: Price > EMA20 > EMA50');
+    reasonsFa.push("ساختار صعودی قیمت بالای EMA20 و EMA50");
+    reasonsEn.push("Bullish alignment: Price > EMA20 > EMA50");
   } else if (tech.ema20 >= tech.ema50 * 0.997) {
     rawScore += 5;
   }
 
   if (tech.macdHistogram > 0 && tech.macdLine >= tech.macdSignal) {
     rawScore += 7;
-    reasonsFa.push('تأیید مومنتوم مثبت در MACD');
-    reasonsEn.push('Bullish MACD histogram expansion');
+    reasonsFa.push("تأیید مومنتوم مثبت در MACD");
+    reasonsEn.push("Bullish MACD histogram expansion");
   }
 
   if (tech.rsi14 >= 46 && tech.rsi14 <= 68) {
@@ -117,17 +121,17 @@ export function analyzeBit24CryptoPumpOpportunity(
   }
 
   // 5. Resistance Breakout OR Healthy Pullback to Key Support + ATR Volatility (max 22 pts)
-  let entryStyle: PumpOpportunitySignal['entryStyle'] = 'NO_ENTRY';
+  let entryStyle: PumpOpportunitySignal["entryStyle"] = "NO_ENTRY";
   if (tech.resistanceBreakout) {
     rawScore += 16;
-    entryStyle = 'BREAKOUT';
-    reasonsFa.push('شکست معتبر مقاومت کلیدی همراه با حجم');
-    reasonsEn.push('Confirmed resistance breakout with volume');
+    entryStyle = "BREAKOUT";
+    reasonsFa.push("شکست معتبر مقاومت کلیدی همراه با حجم");
+    reasonsEn.push("Confirmed resistance breakout with volume");
   } else if (tech.healthyPullbackToSupport) {
     rawScore += 15;
-    entryStyle = 'PULLBACK';
-    reasonsFa.push('پولبک سالم روی حمایت معتبر / EMA20 و بازگشت خریدار');
-    reasonsEn.push('Healthy pullback bounce off support / EMA20');
+    entryStyle = "PULLBACK";
+    reasonsFa.push("پولبک سالم روی حمایت معتبر / EMA20 و بازگشت خریدار");
+    reasonsEn.push("Healthy pullback bounce off support / EMA20");
   } else {
     rawScore += 4;
   }
@@ -142,20 +146,24 @@ export function analyzeBit24CryptoPumpOpportunity(
   // 6. Anti-Blind-Chasing & Anti-Pump-and-Dump Hard Penalties
   if (tech.alreadyOverPumped) {
     rawScore = Math.min(rawScore, 44);
-    entryStyle = 'NO_ENTRY';
+    entryStyle = "NO_ENTRY";
     warningsFa.push(
-      `ممنوعیت خرید کورکورانه: ارز قبلاً رشد شدید کرده است (24h: ${market.change24hPct}%, RSI: ${tech.rsi14})`
+      `ممنوعیت خرید کورکورانه: ارز قبلاً رشد شدید کرده است (24h: ${market.change24hPct}%, RSI: ${tech.rsi14})`,
     );
     warningsEn.push(
-      `Blind-chase blocked: Coin already over-pumped (24h: ${market.change24hPct}%, RSI: ${tech.rsi14})`
+      `Blind-chase blocked: Coin already over-pumped (24h: ${market.change24hPct}%, RSI: ${tech.rsi14})`,
     );
   }
 
   if (tech.pumpAndDumpRisk) {
     rawScore = Math.min(rawScore, 35);
-    entryStyle = 'NO_ENTRY';
-    warningsFa.push('هشدار تله پامپ و دامپ (شدو بالایی سنگین / افت حجم در جهش)');
-    warningsEn.push('Pump-and-Dump trap risk detected (exhaustion wick / weak volume)');
+    entryStyle = "NO_ENTRY";
+    warningsFa.push(
+      "هشدار تله پامپ و دامپ (شدو بالایی سنگین / افت حجم در جهش)",
+    );
+    warningsEn.push(
+      "Pump-and-Dump trap risk detected (exhaustion wick / weak volume)",
+    );
   }
 
   if (orderBook.spreadPct > 0.75) {
@@ -175,7 +183,7 @@ export function analyzeBit24CryptoPumpOpportunity(
     priceIrt: market.priceIrt,
     opportunityScore,
     tier,
-    entryStyle: opportunityScore >= 75 ? entryStyle : 'NO_ENTRY',
+    entryStyle: opportunityScore >= 75 ? entryStyle : "NO_ENTRY",
     change1mPct: mtf.change1mPct,
     change5mPct: mtf.change5mPct,
     change15mPct: mtf.change15mPct,
@@ -190,9 +198,9 @@ export function analyzeBit24CryptoPumpOpportunity(
     warningsFa,
     warningsEn,
     noProfitGuaranteeDisclaimerFa:
-      'سلب مسئولیت قطعی: هیچ امتیاز یا سیگنالی سود قطعی را تضمین نمی‌کند و بازار رمزارز همواره دارای ریسک است.',
+      "سلب مسئولیت قطعی: هیچ امتیاز یا سیگنالی سود قطعی را تضمین نمی‌کند و بازار رمزارز همواره دارای ریسک است.",
     noProfitGuaranteeDisclaimerEn:
-      'Strict Disclaimer: No score or signal guarantees profit; cryptocurrency markets carry inherent risk.',
+      "Strict Disclaimer: No score or signal guarantees profit; cryptocurrency markets carry inherent risk.",
     evaluatedAt: Date.now(),
   };
 }
@@ -202,18 +210,16 @@ export function analyzeBit24CryptoPumpOpportunity(
  * Completely independent from Crypto/Meme coins. Never fakes tradability!
  */
 export function analyzeGoldAiMarket(
-  symbol: 'PAXG/IRT' | 'XAUT/IRT',
-  baseCoin: 'PAXG' | 'XAUT',
+  symbol: "PAXG/IRT" | "XAUT/IRT",
+  baseCoin: "PAXG" | "XAUT",
   market: Bit24TickerMarket | undefined,
   candles: CandleBar[],
   orderBook: OrderBookDepth | undefined,
   goldStopLossPct = 2.5,
-  goldTakeProfitPct = 6.0
+  goldTakeProfitPct = 6.0,
 ): GoldMarketSignal {
-  const faName =
-    baseCoin === 'PAXG' ? 'پکس گلد (PAXG)' : 'تتر گلد (XAUT)';
-  const enName =
-    baseCoin === 'PAXG' ? 'PAX Gold (PAXG)' : 'Tether Gold (XAUT)';
+  const faName = baseCoin === "PAXG" ? "پکس گلد (PAXG)" : "تتر گلد (XAUT)";
+  const enName = baseCoin === "PAXG" ? "PAX Gold (PAXG)" : "Tether Gold (XAUT)";
 
   if (!market || !market.tradableOnBit24 || !orderBook || candles.length < 20) {
     return {
@@ -222,10 +228,10 @@ export function analyzeGoldAiMarket(
       faName,
       enName,
       verifiedTradableOnBit24: false,
-      tradabilityNoteFa: `نماد ${symbol} در حال حاضر در لیست بازارهای قابل معامله دریافتی از Bit24 تأیید نشد؛ معامله غیرفعال است.`,
+      tradabilityNoteFa: `نماد ${symbol} در کاتالوگ فرضی موجود نیست؛ معاملهٔ کاغذی غیرفعال است.`,
       tradabilityNoteEn: `${symbol} is not currently verified as tradable in the Bit24 market list; trading is disabled.`,
       priceIrt: 0,
-      shortTermTrend: 'NEUTRAL',
+      shortTermTrend: "NEUTRAL",
       supportIrt: 0,
       resistanceIrt: 0,
       rsi14: 50,
@@ -235,25 +241,26 @@ export function analyzeGoldAiMarket(
       suggestedStopLossIrt: 0,
       suggestedTakeProfitIrt: 0,
       goldScore: 0,
-      action: 'NOT_TRADABLE',
-      rationaleFa: 'عدم تأیید قابلیت معامله در صرافی Bit24 (نمایش واقعی بدون شبیه‌سازی جعلی).',
-      rationaleEn: 'Not verified as tradable on Bit24 (strict honest reporting).',
+      action: "NOT_TRADABLE",
+      rationaleFa: "اطلاعات فرضی — دادهٔ آزمایشی این نماد موجود نیست.",
+      rationaleEn:
+        "Not verified as tradable on Bit24 (strict honest reporting).",
       evaluatedAt: Date.now(),
     };
   }
 
   const tech = evaluateFullTechnicals(candles, orderBook, market.change24hPct);
-  const shortTermTrend: GoldMarketSignal['shortTermTrend'] =
+  const shortTermTrend: GoldMarketSignal["shortTermTrend"] =
     market.priceIrt >= tech.ema20 && tech.ema20 >= tech.ema50
-      ? 'BULLISH'
+      ? "BULLISH"
       : market.priceIrt < tech.ema20 && tech.ema20 < tech.ema50
-      ? 'BEARISH'
-      : 'NEUTRAL';
+        ? "BEARISH"
+        : "NEUTRAL";
 
   const roundTripFeePct = Number((market.feePctPerSide * 2).toFixed(2));
   let goldScore = 40;
 
-  if (shortTermTrend === 'BULLISH') goldScore += 22;
+  if (shortTermTrend === "BULLISH") goldScore += 22;
   if (tech.rsi14 >= 42 && tech.rsi14 <= 66) goldScore += 14;
   if (tech.macdHistogram >= 0) goldScore += 12;
   if (tech.volumeSurgeRatio >= 1.2) goldScore += 10;
@@ -262,18 +269,19 @@ export function analyzeGoldAiMarket(
 
   goldScore = Math.max(0, Math.min(100, Math.round(goldScore)));
 
-  let action: GoldMarketSignal['action'] = 'HOLD_WATCH';
-  let rationaleFa = `روند کوتاه‌مدت ${shortTermTrend === 'BULLISH' ? 'صعودی' : 'خنثی'} با RSI=${tech.rsi14} و کارمزد رفت‌وبرگشت ${roundTripFeePct}%؛ در حال پایش نقطه ورود کم‌ریسک.`;
+  let action: GoldMarketSignal["action"] = "HOLD_WATCH";
+  let rationaleFa = `روند کوتاه‌مدت ${shortTermTrend === "BULLISH" ? "صعودی" : "خنثی"} با RSI=${tech.rsi14} و کارمزد رفت‌وبرگشت ${roundTripFeePct}%؛ در حال پایش نقطه ورود کم‌ریسک.`;
   let rationaleEn = `Short-term ${shortTermTrend} structure (RSI=${tech.rsi14}, round-trip fee ${roundTripFeePct}%); monitoring low-risk gold entry.`;
 
-  if (goldScore >= 76 && shortTermTrend === 'BULLISH') {
-    action = 'GOLD_BUY_CANDIDATE';
+  if (goldScore >= 76 && shortTermTrend === "BULLISH") {
+    action = "GOLD_BUY_CANDIDATE";
     rationaleFa = `تأیید روند صعودی طلای دیجیتال بالای EMA20/EMA50 با مکدی مثبت، حجم مناسب و پوشش کامل کارمزد ${roundTripFeePct}% صرافی Bit24.`;
     rationaleEn = `Confirmed digital gold uptrend above EMA20/EMA50 with positive MACD, healthy liquidity, and net edge exceeding ${roundTripFeePct}% Bit24 fee.`;
-  } else if (tech.rsi14 > 73 || shortTermTrend === 'BEARISH') {
-    action = 'AVOID_HIGH_SPREAD_OR_OVERBOUGHT';
-    rationaleFa = 'پرهیز از خرید طلا در اشباع خرید یا روند نزولی کوتاه‌مدت.';
-    rationaleEn = 'Avoiding gold entry due to short-term weakness or overbought RSI.';
+  } else if (tech.rsi14 > 73 || shortTermTrend === "BEARISH") {
+    action = "AVOID_HIGH_SPREAD_OR_OVERBOUGHT";
+    rationaleFa = "پرهیز از خرید طلا در اشباع خرید یا روند نزولی کوتاه‌مدت.";
+    rationaleEn =
+      "Avoiding gold entry due to short-term weakness or overbought RSI.";
   }
 
   return {
@@ -282,14 +290,8 @@ export function analyzeGoldAiMarket(
     faName,
     enName,
     verifiedTradableOnBit24: true,
-    tradabilityNoteFa:
-      market.dataFeedType === 'LIVE_BIT24_API'
-        ? `تأیید مستقیم از API رسمی Bit24 (${symbol} فعال و قابل معامله)`
-        : `تأیید در کاتالوگ رسمی Bit24 (${symbol}) — فید فعلی: شبیه‌ساز دمو`,
-    tradabilityNoteEn:
-      market.dataFeedType === 'LIVE_BIT24_API'
-        ? `Verified directly via live Bit24 API (${symbol} active)`
-        : `Verified in official Bit24 catalog (${symbol}) — active feed: Demo simulator`,
+    tradabilityNoteFa: `اطلاعات فرضی — ${symbol} فقط در کاتالوگ آزمایشی موجود است؛ قابلیت معامله در صرافی بررسی نشده است.`,
+    tradabilityNoteEn: `SIMULATED catalogue entry ${symbol}; no live tradability verification.`,
     priceIrt: market.priceIrt,
     shortTermTrend,
     supportIrt: tech.supportLevel,
@@ -298,12 +300,16 @@ export function analyzeGoldAiMarket(
     macdHistogram: tech.macdHistogram,
     volume24hIrt: market.volume24hIrt,
     roundTripFeePct,
-    suggestedStopLossIrt: roundIrtPrice(market.priceIrt * (1 - goldStopLossPct / 100)),
-    suggestedTakeProfitIrt: roundIrtPrice(market.priceIrt * (1 + goldTakeProfitPct / 100)),
+    suggestedStopLossIrt: roundIrtPrice(
+      market.priceIrt * (1 - goldStopLossPct / 100),
+    ),
+    suggestedTakeProfitIrt: roundIrtPrice(
+      market.priceIrt * (1 + goldTakeProfitPct / 100),
+    ),
     goldScore,
     action,
-    rationaleFa,
-    rationaleEn,
+    rationaleFa: "اطلاعات فرضی — " + rationaleFa,
+    rationaleEn: "SIMULATED — " + rationaleEn,
     evaluatedAt: Date.now(),
   };
 }
