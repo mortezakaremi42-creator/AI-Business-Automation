@@ -1,4 +1,38 @@
-import { CandleBar, OrderBookDepth, TechnicalIndicators } from '../shared/contracts.js';
+import {
+  CandleBar,
+  OrderBookDepth,
+  TechnicalIndicators,
+} from "../shared/contracts.js";
+
+export interface CandleClock {
+  nowMs?: number;
+  intervalSeconds?: number;
+}
+/** t is candle OPEN time in Unix seconds. Reject duplicate/out-of-order or malformed input. */
+export function closedCandles(
+  bars: CandleBar[],
+  clock: CandleClock = {},
+): CandleBar[] {
+  const now = clock.nowMs ?? Date.now(),
+    interval = clock.intervalSeconds ?? 60;
+  if (!Number.isFinite(now) || !Number.isFinite(interval) || interval <= 0)
+    throw Error("INVALID_CANDLE_CLOCK");
+  let previous = -Infinity;
+  for (const b of bars) {
+    if (
+      ![b.t, b.o, b.h, b.l, b.c, b.v].every(Number.isFinite) ||
+      b.t <= previous ||
+      b.t < 0 ||
+      Math.min(b.o, b.h, b.l, b.c) <= 0 ||
+      b.v < 0 ||
+      b.h < Math.max(b.o, b.c) ||
+      b.l > Math.min(b.o, b.c)
+    )
+      throw Error("INVALID_CANDLE_SEQUENCE");
+    previous = b.t;
+  }
+  return bars.filter((b) => (b.t + interval) * 1000 <= now);
+}
 
 export function computeEmaSeries(values: number[], period: number): number[] {
   if (values.length === 0) return [];
@@ -34,7 +68,7 @@ export function computeRsi14(closes: number[]): number {
     avgGain = (avgGain * (period - 1) + g) / period;
     avgLoss = (avgLoss * (period - 1) + l) / period;
   }
-  if (avgLoss === 0) return 100;
+  if (avgLoss === 0) return avgGain === 0 ? 50 : 100;
   const rs = avgGain / avgLoss;
   return Number((100 - 100 / (1 + rs)).toFixed(2));
 }
@@ -61,7 +95,10 @@ export function computeMacd(closes: number[]): {
   };
 }
 
-export function computeAtr14(candles: CandleBar[]): { atr14: number; atrPct: number } {
+export function computeAtr14(candles: CandleBar[]): {
+  atr14: number;
+  atrPct: number;
+} {
   if (candles.length < 2) return { atr14: 0, atrPct: 0 };
   const trs: number[] = [];
   for (let i = 1; i < candles.length; i++) {
@@ -70,7 +107,7 @@ export function computeAtr14(candles: CandleBar[]): { atr14: number; atrPct: num
     const tr = Math.max(
       cur.h - cur.l,
       Math.abs(cur.h - prevClose),
-      Math.abs(cur.l - prevClose)
+      Math.abs(cur.l - prevClose),
     );
     trs.push(tr);
   }
@@ -78,7 +115,8 @@ export function computeAtr14(candles: CandleBar[]): { atr14: number; atrPct: num
   const slice = trs.slice(-period);
   const atr14 = slice.reduce((a, b) => a + b, 0) / Math.max(1, slice.length);
   const lastClose = candles[candles.length - 1].c;
-  const atrPct = lastClose > 0 ? Number(((atr14 / lastClose) * 100).toFixed(2)) : 0;
+  const atrPct =
+    lastClose > 0 ? Number(((atr14 / lastClose) * 100).toFixed(2)) : 0;
   return { atr14, atrPct };
 }
 
@@ -109,8 +147,10 @@ export function computeMultiTimeframeChanges(candles1m: CandleBar[]): {
 export function evaluateFullTechnicals(
   candles: CandleBar[],
   orderBook: OrderBookDepth,
-  change24hPct: number
+  change24hPct: number,
+  clock: CandleClock = {},
 ): TechnicalIndicators {
+  candles = closedCandles(candles, clock);
   const closes = candles.map((c) => c.c);
   const lastCandle = candles[candles.length - 1] || {
     t: 0,
@@ -130,8 +170,10 @@ export function evaluateFullTechnicals(
 
   // Support & Resistance over prior 25 bars (excluding current bar to prevent self-masking)
   const lookback = candles.slice(-26, -1);
-  const priorHighs = lookback.length > 0 ? lookback.map((c) => c.h) : [lastPrice * 1.02];
-  const priorLows = lookback.length > 0 ? lookback.map((c) => c.l) : [lastPrice * 0.98];
+  const priorHighs =
+    lookback.length > 0 ? lookback.map((c) => c.h) : [lastPrice * 1.02];
+  const priorLows =
+    lookback.length > 0 ? lookback.map((c) => c.l) : [lastPrice * 0.98];
   const resistanceLevel = Math.max(...priorHighs);
   const supportLevel = Math.min(...priorLows);
 
@@ -141,7 +183,8 @@ export function evaluateFullTechnicals(
     volBaselineSlice.length > 0
       ? volBaselineSlice.reduce((s, c) => s + c.v, 0) / volBaselineSlice.length
       : Math.max(1, lastCandle.v);
-  const volumeSurgeRatio = avgVol > 0 ? Number((lastCandle.v / avgVol).toFixed(2)) : 1;
+  const volumeSurgeRatio =
+    avgVol > 0 ? Number((lastCandle.v / avgVol).toFixed(2)) : 1;
   const abnormalVolumeDetected = volumeSurgeRatio >= 2.1;
 
   // Buyer Power % combining OrderBook bid pressure + recent green-bar volume share
@@ -152,7 +195,7 @@ export function evaluateFullTechnicals(
   const totalVol10 = recent10.reduce((acc, c) => acc + c.v, 0);
   const candleBuyerPct = totalVol10 > 0 ? (greenVol / totalVol10) * 100 : 50;
   const buyerPowerPct = Number(
-    (orderBook.buyerPressurePct * 0.55 + candleBuyerPct * 0.45).toFixed(1)
+    (orderBook.buyerPressurePct * 0.55 + candleBuyerPct * 0.45).toFixed(1),
   );
 
   // Breakout vs Healthy Pullback
@@ -163,7 +206,8 @@ export function evaluateFullTechnicals(
 
   const distToSupportPct =
     supportLevel > 0 ? ((lastPrice - supportLevel) / supportLevel) * 100 : 5;
-  const distToEma20Pct = ema20 > 0 ? Math.abs((lastPrice - ema20) / ema20) * 100 : 5;
+  const distToEma20Pct =
+    ema20 > 0 ? Math.abs((lastPrice - ema20) / ema20) * 100 : 5;
   const healthyPullbackToSupport =
     ema20 >= ema50 * 0.996 &&
     (distToSupportPct <= 2.4 || distToEma20Pct <= 1.1) &&
@@ -177,7 +221,8 @@ export function evaluateFullTechnicals(
     change24hPct >= 17.5 || change60mPct >= 9.5 || rsi14 >= 74;
 
   const candleRange = Math.max(1e-9, lastCandle.h - lastCandle.l);
-  const upperWickRatio = (lastCandle.h - Math.max(lastCandle.o, lastCandle.c)) / candleRange;
+  const upperWickRatio =
+    (lastCandle.h - Math.max(lastCandle.o, lastCandle.c)) / candleRange;
   const pumpAndDumpRisk =
     (change15mPct >= 5.5 && volumeSurgeRatio < 0.9) ||
     (change60mPct >= 7.0 && upperWickRatio > 0.58) ||

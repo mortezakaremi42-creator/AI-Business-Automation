@@ -1,13 +1,13 @@
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
-import { describe, expect, it } from 'vitest';
-import { createInitialBit24Catalog } from '../src/engine/bit24Catalog.js';
-import { runProfessionalPreLiveVerification } from '../src/engine/proVerificationSuite.js';
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { describe, expect, it, vi, afterEach } from "vitest";
+import { createInitialBit24Catalog } from "../src/engine/bit24Catalog.js";
+import { runProfessionalPreLiveVerification } from "../src/engine/proVerificationSuite.js";
 import {
   analyzeGoldAiMarket,
   classifyOpportunityTier,
-} from '../src/engine/pumpAndGoldAnalyzers.js';
+} from "../src/engine/pumpAndGoldAnalyzers.js";
 import {
   calculateSafePositionCapitalIrt,
   DEFAULT_CAPITAL_RISK_CONFIG,
@@ -15,15 +15,17 @@ import {
   evaluatePositionStepExit,
   runSmartSecurityGate,
   sanitizeCapitalRiskConfig,
-} from '../src/engine/smartSecurityAndCapital.js';
-import { Bit24AiTraderOrchestrator } from '../src/engine/traderOrchestrator.js';
+} from "../src/engine/smartSecurityAndCapital.js";
+import { Bit24AiTraderOrchestrator } from "../src/engine/traderOrchestrator.js";
 import {
   assertNoWithdrawalEndpoint,
   createBit24HmacSignature,
-} from '../src/server/bit24OfficialClient.js';
-import { EncryptedSecretVault } from '../src/server/encryptedVault.js';
-import { scrubSecretsFromTelegramText } from '../src/server/telegramService.js';
-import { ActivePosition } from '../src/shared/contracts.js';
+} from "../src/server/bit24OfficialClient.js";
+import { EncryptedSecretVault } from "../src/server/encryptedVault.js";
+import { scrubSecretsFromTelegramText } from "../src/server/telegramService.js";
+import { ActivePosition } from "../src/shared/contracts.js";
+
+afterEach(() => vi.unstubAllEnvs());
 
 function collectSourceFiles(dir: string): string[] {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -39,12 +41,12 @@ function collectSourceFiles(dir: string): string[] {
   return files;
 }
 
-describe('BIT24 AI TRADER PRO — Clean-Room & Full 12-Section Specification Suite', () => {
-  it('1. Enforces 100% clean-room Bit24 exclusivity (ZERO Phantom, Solana, or external exchanges in source)', () => {
+describe("BIT24 AI TRADER PRO — Clean-Room & Full 12-Section Specification Suite", () => {
+  it("1. Enforces 100% clean-room Bit24 exclusivity (ZERO Phantom, Solana, or external exchanges in source)", () => {
     const files = [
-      ...collectSourceFiles(path.resolve(process.cwd(), 'src')),
-      ...collectSourceFiles(path.resolve(process.cwd(), 'public')),
-      path.resolve(process.cwd(), 'index.html'),
+      ...collectSourceFiles(path.resolve(process.cwd(), "src")),
+      ...collectSourceFiles(path.resolve(process.cwd(), "public")),
+      path.resolve(process.cwd(), "index.html"),
     ];
     const forbiddenPatterns = [
       /phantom/i,
@@ -58,68 +60,75 @@ describe('BIT24 AI TRADER PRO — Clean-Room & Full 12-Section Specification Sui
     ];
 
     for (const file of files) {
-      const content = fs.readFileSync(file, 'utf8');
+      const content = fs.readFileSync(file, "utf8");
       for (const rx of forbiddenPatterns) {
         expect(
           rx.test(content),
-          `Forbidden legacy/external reference ${rx} found in ${file}`
+          `Forbidden legacy/external reference ${rx} found in ${file}`,
         ).toBe(false);
       }
     }
   });
 
-  it('2. Permanently blocks Bit24 withdrawal endpoints & signs trade requests with HMAC-SHA256 + AES-256-GCM vault', () => {
+  it("2. Blocks withdrawal endpoints, checks generic HMAC utility (not Bit24 auth proof) and encrypts the vault", () => {
     expect(() =>
-      assertNoWithdrawalEndpoint('/lite/capi/v1/withdraw/submit')
+      assertNoWithdrawalEndpoint("/lite/capi/v1/withdraw/submit"),
     ).toThrow(/BIT24_WITHDRAWAL_FORBIDDEN/);
     expect(() =>
-      assertNoWithdrawalEndpoint('/pro/capi/v2/markets')
+      assertNoWithdrawalEndpoint("/pro/capi/v2/markets"),
     ).not.toThrow();
 
     const sig = createBit24HmacSignature(
-      'amount=0.01&base_coin_symbol=BTC&price=8500000000&quote_coin_symbol=IRT&side=1&type=0',
-      'test_secret_key_bit24'
+      "amount=0.01&base_coin_symbol=BTC&price=8500000000&quote_coin_symbol=IRT&side=1&type=0",
+      "test_secret_key_bit24",
     );
     expect(sig).toMatch(/^[a-f0-9]{64}$/);
 
     const tmpVaultPath = path.join(
       os.tmpdir(),
-      `bit24-test-vault-${Date.now()}.enc`
+      `bit24-test-vault-${Date.now()}.enc`,
+    );
+    vi.stubEnv(
+      "BIT24_VAULT_PASSPHRASE",
+      "fixture-only-high-entropy-vault-key-32-plus",
     );
     const vault = new EncryptedSecretVault(tmpVaultPath);
-    vault.updateBit24Credentials('BIT24_TOKEN_ABCDEF123456', 'SECRET_XYZ_987654');
-    const rawOnDisk = fs.readFileSync(tmpVaultPath, 'utf8');
-    expect(rawOnDisk).not.toContain('BIT24_TOKEN_ABCDEF123456');
-    expect(rawOnDisk).not.toContain('SECRET_XYZ_987654');
+    vault.updateBit24Credentials(
+      "BIT24_TOKEN_ABCDEF123456",
+      "SECRET_XYZ_987654",
+    );
+    const rawOnDisk = fs.readFileSync(tmpVaultPath, "utf8");
+    expect(rawOnDisk).not.toContain("BIT24_TOKEN_ABCDEF123456");
+    expect(rawOnDisk).not.toContain("SECRET_XYZ_987654");
 
     const reloaded = new EncryptedSecretVault(tmpVaultPath);
     expect(reloaded.getSecretsInternal().bit24ApiKey).toBe(
-      'BIT24_TOKEN_ABCDEF123456'
+      "BIT24_TOKEN_ABCDEF123456",
     );
     expect(reloaded.getPublicSafeSummary().maskedBit24ApiKey).toBe(
-      'BIT2••••3456'
+      "BIT2••••3456",
     );
     fs.unlinkSync(tmpVaultPath);
   });
 
-  it('3. Evaluates AI Pump Hunter tiers (0-100) and blocks blind chasing of already over-pumped coins', () => {
-    expect(classifyOpportunityTier(45)).toBe('REJECTED');
-    expect(classifyOpportunityTier(68)).toBe('ALERT_ONLY');
-    expect(classifyOpportunityTier(79)).toBe('REVIEW_OPPORTUNITY');
-    expect(classifyOpportunityTier(90)).toBe('STRONG_TEST_SIGNAL');
+  it("3. Evaluates AI Pump Hunter tiers (0-100) and blocks blind chasing of already over-pumped coins", () => {
+    expect(classifyOpportunityTier(45)).toBe("REJECTED");
+    expect(classifyOpportunityTier(68)).toBe("ALERT_ONLY");
+    expect(classifyOpportunityTier(79)).toBe("REVIEW_OPPORTUNITY");
+    expect(classifyOpportunityTier(90)).toBe("STRONG_TEST_SIGNAL");
 
     const orch = new Bit24AiTraderOrchestrator();
     const snap = orch.getSnapshot();
-    const pepe = snap.topOpportunities.find((s) => s.symbol === 'PEPE/IRT');
+    const pepe = snap.topOpportunities.find((s) => s.symbol === "PEPE/IRT");
     expect(pepe).toBeDefined();
     // PEPE/IRT is seeded as already +22.8% over-pumped — must be rejected (< 60)!
     expect(pepe!.indicators.alreadyOverPumped).toBe(true);
     expect(pepe!.opportunityScore).toBeLessThan(60);
-    expect(pepe!.tier).toBe('REJECTED');
-    expect(pepe!.noProfitGuaranteeDisclaimerFa).toContain('سود قطعی');
+    expect(pepe!.tier).toBe("REJECTED");
+    expect(pepe!.noProfitGuaranteeDisclaimerFa).toContain("سود قطعی");
   });
 
-  it('4. Enforces Capital Management defaults (1% risk, 10% max per trade, 3 concurrent, 3% daily loss, NEVER 100%)', () => {
+  it("4. Enforces Capital Management defaults (1% risk, 10% max per trade, 3 concurrent, 3% daily loss, NEVER 100%)", () => {
     expect(DEFAULT_CAPITAL_RISK_CONFIG.riskPerTradePct).toBe(1);
     expect(DEFAULT_CAPITAL_RISK_CONFIG.maxCapitalPerTradePct).toBe(10);
     expect(DEFAULT_CAPITAL_RISK_CONFIG.maxConcurrentTrades).toBe(3);
@@ -140,13 +149,13 @@ describe('BIT24 AI TRADER PRO — Clean-Room & Full 12-Section Specification Sui
     expect(posCap).toBe(10_000_000);
   });
 
-  it('5. Executes Initial SL (-5%), Trailing Stop (+8% activation / 3% trail), and Stepped TP (30%@10%, 30%@20%, 40%@35%)', () => {
+  it("5. Executes Initial SL (-5%), Trailing Stop (+8% activation / 3% trail), and Stepped TP (30%@10%, 30%@20%, 40%@35%)", () => {
     const makeDummyPos = (): ActivePosition => ({
-      id: 'p1',
-      symbol: 'BTC/IRT',
-      baseCoin: 'BTC',
-      segment: 'CRYPTO',
-      mode: 'DEMO',
+      id: "p1",
+      symbol: "BTC/IRT",
+      baseCoin: "BTC",
+      segment: "CRYPTO",
+      mode: "DEMO",
       entryPriceIrt: 1_000_000,
       currentPriceIrt: 1_000_000,
       highestPriceIrt: 1_000_000,
@@ -164,8 +173,8 @@ describe('BIT24 AI TRADER PRO — Clean-Room & Full 12-Section Specification Sui
       tpStage3Filled: false,
       unrealizedPnlIrt: 0,
       unrealizedPnlPct: 0,
-      buyReasonFa: 'تست',
-      buyReasonEn: 'Test',
+      buyReasonFa: "تست",
+      buyReasonEn: "Test",
       openedAt: Date.now(),
     });
 
@@ -177,7 +186,7 @@ describe('BIT24 AI TRADER PRO — Clean-Room & Full 12-Section Specification Sui
       1_085_000,
       1_070_000,
       1_085_000,
-      DEFAULT_EXIT_STRATEGY_CONFIG
+      DEFAULT_EXIT_STRATEGY_CONFIG,
     );
     expect(noExitYet).toBeNull();
     expect(pos.trailingStopActive).toBe(true);
@@ -189,7 +198,7 @@ describe('BIT24 AI TRADER PRO — Clean-Room & Full 12-Section Specification Sui
       1_105_000,
       1_090_000,
       1_105_000,
-      DEFAULT_EXIT_STRATEGY_CONFIG
+      DEFAULT_EXIT_STRATEGY_CONFIG,
     );
     expect(tp1?.stageTriggered).toBe(1);
     expect(tp1?.sellQuantity).toBeCloseTo(3, 5);
@@ -202,7 +211,7 @@ describe('BIT24 AI TRADER PRO — Clean-Room & Full 12-Section Specification Sui
       1_205_000,
       1_190_000,
       1_205_000,
-      DEFAULT_EXIT_STRATEGY_CONFIG
+      DEFAULT_EXIT_STRATEGY_CONFIG,
     );
     expect(tp2?.stageTriggered).toBe(2);
     expect(tp2?.sellQuantity).toBeCloseTo(3, 5);
@@ -215,16 +224,16 @@ describe('BIT24 AI TRADER PRO — Clean-Room & Full 12-Section Specification Sui
       1_355_000,
       1_340_000,
       1_355_000,
-      DEFAULT_EXIT_STRATEGY_CONFIG
+      DEFAULT_EXIT_STRATEGY_CONFIG,
     );
     expect(tp3?.stageTriggered).toBe(3);
     expect(tp3?.closeEntirePosition).toBe(true);
     expect(tp3?.sellQuantity).toBeCloseTo(4, 5);
   });
 
-  it('6. Isolates GOLD AI TRADER (PAXG & XAUT) from Crypto and honestly reports unavailable Gold markets as NOT_TRADABLE', () => {
+  it("6. Isolates GOLD AI TRADER (PAXG & XAUT) from Crypto and honestly reports unavailable Gold markets as NOT_TRADABLE", () => {
     const orch = new Bit24AiTraderOrchestrator();
-    const res = orch.tryOpenGoldDemoPosition('PAXG/IRT');
+    const res = orch.tryOpenGoldDemoPosition("PAXG/IRT");
     return res.then((r) => {
       expect(r.ok).toBe(true);
       const snap = orch.getSnapshot();
@@ -236,63 +245,75 @@ describe('BIT24 AI TRADER PRO — Clean-Room & Full 12-Section Specification Sui
 
       // Verify honest non-tradable handling when Bit24 marks a gold pair untradable
       const untradableSig = analyzeGoldAiMarket(
-        'XAUT/IRT',
-        'XAUT',
+        "XAUT/IRT",
+        "XAUT",
         undefined,
         [],
-        undefined
+        undefined,
       );
       expect(untradableSig.verifiedTradableOnBit24).toBe(false);
-      expect(untradableSig.action).toBe('NOT_TRADABLE');
+      expect(untradableSig.action).toBe("NOT_TRADABLE");
     });
   });
 
-  it('7. Keeps Live Trading OFF by default and scrubs secrets from all Telegram alerts', () => {
+  it("7. Keeps Live Trading OFF by default and scrubs secrets from all Telegram alerts", () => {
     const orch = new Bit24AiTraderOrchestrator();
     expect(orch.getSnapshot().liveTradingUserConfirmed).toBe(false);
-    expect(orch.getSnapshot().tradingMode).toBe('STOPPED');
+    expect(orch.getSnapshot().tradingMode).toBe("STOPPED");
 
     // Attempt to enable Live without verified Bit24 connection must fail
-    const liveAttempt = orch.activateLiveTradingAfterUserApproval(
-      'CONFIRM_BIT24_LIVE'
-    );
+    const liveAttempt =
+      orch.activateLiveTradingAfterUserApproval("CONFIRM_BIT24_LIVE");
     expect(liveAttempt.ok).toBe(false);
     expect(orch.getSnapshot().liveTradingUserConfirmed).toBe(false);
 
     const scrubbed = scrubSecretsFromTelegramText(
-      'Alert key=MY_SUPER_SECRET_BIT24_KEY_123456789 token=123456789:AAH_secret_telegram_bot_token_xyz123',
-      ['MY_SUPER_SECRET_BIT24_KEY_123456789']
+      "Alert key=MY_SUPER_SECRET_BIT24_KEY_123456789 token=123456789:AAH_secret_telegram_bot_token_xyz123",
+      ["MY_SUPER_SECRET_BIT24_KEY_123456789"],
     );
-    expect(scrubbed).not.toContain('MY_SUPER_SECRET_BIT24_KEY_123456789');
-    expect(scrubbed).not.toContain('AAH_secret_telegram_bot_token_xyz123');
-    expect(scrubbed).toContain('[REDACTED');
+    expect(scrubbed).not.toContain("MY_SUPER_SECRET_BIT24_KEY_123456789");
+    expect(scrubbed).not.toContain("AAH_secret_telegram_bot_token_xyz123");
+    expect(scrubbed).toContain("[REDACTED");
   });
 
-  it('8. Executes 100+ zero-lookahead simulated trades with fees/slippage + 4 fault checks, AND reports exact count honestly on short data', () => {
+  it("8. Reports causal synthetic exit counts honestly (100 is a target, not fabricated) with fees/slippage + 4 fault checks, AND reports exact count honestly on short data", () => {
     const fullReport = runProfessionalPreLiveVerification();
-    expect(fullReport.simulatedTradesExecuted).toBeGreaterThanOrEqual(100);
+    expect(fullReport.simulatedTradesExecuted).toBeGreaterThan(0);
+    expect(fullReport.winningTrades + fullReport.losingTrades).toBe(
+      fullReport.simulatedTradesExecuted,
+    );
+    expect(fullReport.targetMinimumTrades).toBe(100);
+    if (fullReport.simulatedTradesExecuted < 100)
+      expect(fullReport.dataSufficiencyNoteFa).toContain("کمتر از ۱۰۰");
     expect(fullReport.totalFeesPaidIrt).toBeGreaterThan(0);
     expect(fullReport.totalSlippageCostIrt).toBeGreaterThan(0);
     expect(fullReport.faultInjectionChecks.feeAndSlippageApplied).toBe(true);
-    expect(fullReport.faultInjectionChecks.internetDisconnectTestPassed).toBe(true);
+    expect(fullReport.faultInjectionChecks.internetDisconnectTestPassed).toBe(
+      true,
+    );
     expect(fullReport.faultInjectionChecks.bit24ApiErrorTestPassed).toBe(true);
     expect(fullReport.faultInjectionChecks.emergencyStopTestPassed).toBe(true);
-    expect(fullReport.faultInjectionChecks.duplicateOrderPreventionPassed).toBe(true);
+    expect(fullReport.faultInjectionChecks.duplicateOrderPreventionPassed).toBe(
+      true,
+    );
 
     // Honest reporting check when given only 75 bars (insufficient for 100 trades -> never fabricates!)
     const { markets, candlesBySymbol } = createInitialBit24Catalog();
     const shortMap = new Map();
     for (const m of markets) {
-      shortMap.set(m.symbol, (candlesBySymbol.get(m.symbol) || []).slice(0, 75));
+      shortMap.set(
+        m.symbol,
+        (candlesBySymbol.get(m.symbol) || []).slice(0, 75),
+      );
     }
     const shortReport = runProfessionalPreLiveVerification({
       customCandlesBySymbol: shortMap,
     });
     expect(shortReport.simulatedTradesExecuted).toBeLessThan(100);
-    expect(shortReport.dataSufficiencyNoteFa).toContain('بدون آمارسازی جعلی');
+    expect(shortReport.dataSufficiencyNoteFa).toContain("بدون آمارسازی جعلی");
   });
 
-  it('9. Enforces SMART SECURITY rejection of stale feeds and high spreads', () => {
+  it("9. Enforces SMART SECURITY rejection of stale feeds and high spreads", () => {
     const { markets } = createInitialBit24Catalog();
     const btc = markets[0];
     const staleMarket = { ...btc, updatedAt: Date.now() - 180_000 };
@@ -311,7 +332,7 @@ describe('BIT24 AI TRADER PRO — Clean-Room & Full 12-Section Specification Sui
     const staleRes = runSmartSecurityGate({
       nowMs: Date.now(),
       symbol: btc.symbol,
-      mode: 'DEMO',
+      mode: "DEMO",
       market: staleMarket,
       orderBook: ob,
       openPositions: [],
@@ -326,6 +347,64 @@ describe('BIT24 AI TRADER PRO — Clean-Room & Full 12-Section Specification Sui
       atrPct: 1.0,
     });
     expect(staleRes.allowed).toBe(false);
-    expect(staleRes.rejection?.code).toBe('STALE_DATA');
+    expect(staleRes.rejection?.code).toBe("STALE_DATA");
   });
+});
+
+it("vault refuses persistence and reopening without an explicit encryption secret", () => {
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), "vault-key-"));
+  const file = path.join(d, "vault.enc");
+  try {
+    vi.stubEnv("BIT24_VAULT_PASSPHRASE", "");
+    const v = new EncryptedSecretVault(file);
+    expect(() =>
+      v.updateBit24Credentials("test-only-key", "test-only-secret"),
+    ).toThrow("VAULT_PASSPHRASE_REQUIRED");
+    expect(fs.existsSync(file)).toBe(false);
+    vi.stubEnv(
+      "BIT24_VAULT_PASSPHRASE",
+      "test-fixture-passphrase-not-real-12345678",
+    );
+    new EncryptedSecretVault(file).updateBit24Credentials(
+      "test-only-key",
+      "test-only-secret",
+    );
+    vi.stubEnv("BIT24_VAULT_PASSPHRASE", "");
+    expect(() => new EncryptedSecretVault(file)).toThrow(
+      "VAULT_PASSPHRASE_REQUIRED",
+    );
+  } finally {
+    fs.rmSync(d, { recursive: true, force: true });
+  }
+});
+it("vault detects tampering and wrong passphrases without silently resetting", () => {
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), "vault-tamper-"));
+  const file = path.join(d, "vault.enc");
+  try {
+    vi.stubEnv(
+      "BIT24_VAULT_PASSPHRASE",
+      "test-fixture-passphrase-not-real-12345678",
+    );
+    new EncryptedSecretVault(file).updateBit24Credentials(
+      "test-only-key",
+      "test-only-secret",
+    );
+    const original = fs.readFileSync(file, "utf8");
+    vi.stubEnv(
+      "BIT24_VAULT_PASSPHRASE",
+      "wrong-test-fixture-passphrase-12345678",
+    );
+    expect(() => new EncryptedSecretVault(file)).toThrow("VAULT_INVALID");
+    expect(fs.readFileSync(file, "utf8")).toBe(original);
+    vi.stubEnv(
+      "BIT24_VAULT_PASSPHRASE",
+      "test-fixture-passphrase-not-real-12345678",
+    );
+    const blob = JSON.parse(original);
+    blob.tag = "00".repeat(16);
+    fs.writeFileSync(file, JSON.stringify(blob));
+    expect(() => new EncryptedSecretVault(file)).toThrow("VAULT_INVALID");
+  } finally {
+    fs.rmSync(d, { recursive: true, force: true });
+  }
 });

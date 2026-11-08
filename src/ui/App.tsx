@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { ExecutionModePanel } from "./components/ExecutionModePanel.js";
 import { DemoWorkspace } from "./components/DemoWorkspace.js";
 import { BackendConnectionPanel } from "./components/BackendConnectionPanel.js";
 import { AppLanguage } from "../shared/contracts.js";
@@ -125,6 +126,39 @@ export const App: React.FC = () => {
         Live، اتصال بیت۲۴، واریز و برداشت غیرفعال‌اند. خرید فقط با تأیید دستی؛
         خروج حفاظتی خودکار است.
       </div>
+      <section className="panic-banner" aria-label="Panic control">
+        <button
+          type="button"
+          className="cmd-btn cmd-btn-stop panic-button"
+          disabled={
+            !ctrl.backendConnected || ctrl.busyAction === "emergencyStop"
+          }
+          onClick={() => {
+            if (
+              window.confirm(
+                isFa
+                  ? "تمام پوزیشن‌های همین ربات تسویه شوند و موتور متوقف شود؟ این حساب آزمایشی است."
+                  : "Liquidate this bot account and stop? Demo account only.",
+              )
+            )
+              void ctrl.emergencyStop();
+          }}
+        >
+          {isFa
+            ? "توقف اضطراری و نقد کردن کامل · PANIC"
+            : "PANIC — LIQUIDATE & HALT"}
+        </button>
+        <small>
+          {isFa
+            ? "توقف موتور + بستن همهٔ پوزیشن‌های دمو؛ بدون سفارش واقعی. قیمت خروج تضمین نیست."
+            : "Stop engine + liquidate all paper positions; no real orders. Fills are not guaranteed."}
+        </small>
+      </section>
+      <div className="scope-note">
+        {isFa
+          ? "آمار این بخش: حساب دمو، مجموع کریپتو و طلا. گزارش تست ۱۰۰+ مستقل است و وارد موجودی این حساب نمی‌شود."
+          : "Scope: Demo account, crypto + gold. Backtest results are isolated and never credited to this account."}
+      </div>
       {/* Strict Profit & Bit24-Only Disclaimer */}
       <div className="disclaimer-bar">{t.disclaimerBanner}</div>
 
@@ -137,7 +171,7 @@ export const App: React.FC = () => {
         <div className="metric-card">
           <div className="metric-label">{t.demoBalance}</div>
           <div className="metric-value text-gold">
-            {formatIrt(snap.demoBalanceIrt, lang)}
+            {formatIrt(snap.accounting.equityIrt, lang)}
           </div>
         </div>
 
@@ -156,26 +190,46 @@ export const App: React.FC = () => {
           <div className="metric-label">{t.totalPnl}</div>
           <div
             className={`metric-value ${
-              snap.totalPnlIrt >= 0 ? "text-pos" : "text-neg"
+              snap.accounting.totalPnlIrt >= 0 ? "text-pos" : "text-neg"
             }`}
           >
-            {formatIrt(snap.totalPnlIrt, lang)} ({snap.totalPnlPct}%)
+            {formatIrt(snap.accounting.totalPnlIrt, lang)} (
+            {(
+              (snap.accounting.totalPnlIrt /
+                snap.accounting.initialCapitalIrt) *
+              100
+            ).toFixed(2)}
+            %)
           </div>
         </div>
 
         <div className="metric-card">
-          <div className="metric-label">{t.winningTrades}</div>
-          <div className="metric-value text-pos">{snap.winningTrades}</div>
+          <div className="metric-label">
+            {isFa ? "خروج‌های بسته‌شدهٔ سودده" : "Profitable closed exits"}
+          </div>
+          <div className="metric-value text-pos">
+            {snap.accounting.closedExits.wins}
+          </div>
         </div>
 
         <div className="metric-card">
-          <div className="metric-label">{t.losingTrades}</div>
-          <div className="metric-value text-neg">{snap.losingTrades}</div>
+          <div className="metric-label">
+            {isFa ? "خروج‌های بسته‌شدهٔ زیان‌ده" : "Losing closed exits"}
+          </div>
+          <div className="metric-value text-neg">
+            {snap.accounting.closedExits.losses}
+          </div>
         </div>
 
         <div className="metric-card">
-          <div className="metric-label">{t.winRate}</div>
-          <div className="metric-value">{snap.winRatePct}%</div>
+          <div className="metric-label">
+            {isFa ? "نرخ برد خروج‌های بسته‌شده" : "Closed-exit win rate"}
+          </div>
+          <div className="metric-value">
+            {snap.accounting.closedExits.winRatePct === null
+              ? "—"
+              : `${snap.accounting.closedExits.winRatePct}%`}
+          </div>
         </div>
 
         <div className="metric-card">
@@ -228,6 +282,59 @@ export const App: React.FC = () => {
         </div>
       </section>
 
+      <section className="metrics-grid" aria-label="Ledger statistics">
+        <div className="metric-card">
+          <div className="metric-label">
+            {isFa ? "تعداد خروج / سر‌به‌سر" : "Closed exits / breakeven"}
+          </div>
+          <b>
+            {snap.accounting.closedExits.count} /{" "}
+            {snap.accounting.closedExits.breakeven}
+          </b>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">
+            {isFa
+              ? "پوزیشن کاملاً بسته / نرخ برد"
+              : "Fully closed positions / win rate"}
+          </div>
+          <b>
+            {snap.accounting.closedPositions.count} /{" "}
+            {snap.accounting.closedPositions.winRatePct === null
+              ? "—"
+              : `${snap.accounting.closedPositions.winRatePct}%`}
+          </b>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">
+            {isFa ? "سود تحقق‌یافته پس از کارمزد" : "Realized net P&L"}
+          </div>
+          <b
+            className={
+              snap.accounting.realizedPnlIrt >= 0 ? "text-pos" : "text-neg"
+            }
+          >
+            {formatIrt(snap.accounting.realizedPnlIrt, lang)}
+          </b>
+        </div>
+        <div className="metric-card">
+          <div className="metric-label">
+            {isFa
+              ? "سود باز پس از هزینهٔ خروج تخمینی"
+              : "Unrealized net liquidation P&L"}
+          </div>
+          <b>{formatIrt(snap.accounting.unrealizedPnlIrt, lang)}</b>
+        </div>
+      </section>
+      {snap.demo.daily.halted && (
+        <div className="demo-warning" role="alert">
+          توقف زیان سراسری تا{" "}
+          {new Date(snap.demo.daily.haltedUntil).toLocaleString(
+            isFa ? "fa-IR" : "en-US",
+          )}
+          ؛ ادامه فقط با شروع دستی پس از پایان مهلت.
+        </div>
+      )}
       {/* All 9 Required Control Buttons + Main/Pro100 Navigation */}
       <nav className="command-panel">
         <button
@@ -373,14 +480,12 @@ export const App: React.FC = () => {
       )}
 
       {activeSection === "API_SETTINGS" && (
-        <section className="section-card">
-          <h2>شبکهٔ خارجی غیرفعال</h2>
-          <p>
-            هیچ کلید صرافی یا تلگرام وارد نکنید. هیچ قیمت زنده‌ای دریافت
-            نمی‌شود. تمام پیام‌ها فقط در دفتر محلی آزمایش ثبت می‌شوند؛ Live و
-            انتقال وجه وجود ندارد.
-          </p>
-        </section>
+        <ExecutionModePanel
+          lang={lang}
+          busy={!!ctrl.busyAction}
+          connected={ctrl.backendConnected}
+          onModeRequest={ctrl.requestTradingMode}
+        />
       )}
 
       {activeSection === "PRO_TEST" && (
@@ -419,72 +524,136 @@ export const App: React.FC = () => {
                 {t.noOpenPositions}
               </div>
             ) : (
-              <div className="table-scroll">
-                <table className="pro-table">
-                  <thead>
-                    <tr>
-                      <th>{isFa ? "نماد" : "Symbol"}</th>
-                      <th>{isFa ? "قیمت ورود" : "Entry"}</th>
-                      <th>{isFa ? "قیمت فعلی" : "Current"}</th>
-                      <th>{isFa ? "سرمایه درگیر" : "Capital"}</th>
-                      <th>{isFa ? "حد ضرر فعال" : "Active SL"}</th>
-                      <th>Trailing Stop</th>
-                      <th>{isFa ? "فروش پله‌ای (TP 1/2/3)" : "Stepped TP"}</th>
-                      <th>{isFa ? "سود/زیان باز" : "Unrealized PnL"}</th>
-                      <th>{isFa ? "فروش آزمایشی" : "Demo sell"}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {snap.openPositions.map((p) => (
-                      <tr key={p.id}>
-                        <td>
-                          <strong>{p.symbol}</strong>
-                        </td>
-                        <td>{formatIrt(p.entryPriceIrt, lang)}</td>
-                        <td>{formatIrt(p.currentPriceIrt, lang)}</td>
-                        <td>{formatIrt(p.remainingCapitalIrt, lang)}</td>
-                        <td className="text-neg">
-                          {formatIrt(p.activeStopLossIrt, lang)}
-                        </td>
-                        <td>
+              <>
+                <div className="mobile-ledger-cards">
+                  {snap.openPositions.map((p) => (
+                    <article key={p.id} className="opp-card">
+                      <h3>
+                        <bdi>{p.symbol}</bdi>
+                      </h3>
+                      <dl>
+                        <dt>{isFa ? "قیمت ورود / فعلی" : "Entry / current"}</dt>
+                        <dd>
+                          {formatIrt(p.entryPriceIrt, lang)} /{" "}
+                          {formatIrt(p.currentPriceIrt, lang)}
+                        </dd>
+                        <dt>{isFa ? "سرمایه درگیر" : "Remaining cost"}</dt>
+                        <dd>{formatIrt(p.remainingCapitalIrt, lang)}</dd>
+                        <dt>
+                          {isFa
+                            ? "حد ضرر فعال / تریلینگ"
+                            : "Active stop / trailing"}
+                        </dt>
+                        <dd>
+                          {formatIrt(p.activeStopLossIrt, lang)} /{" "}
                           {p.trailingStopActive
-                            ? `ON (${formatIrt(p.trailingStopPriceIrt || 0, lang)})`
+                            ? formatIrt(p.trailingStopPriceIrt || 0, lang)
                             : "Waiting (+8%)"}
-                        </td>
-                        <td>
-                          {p.tpStage1Filled ? "✓30%" : "○30%"} |{" "}
-                          {p.tpStage2Filled ? "✓30%" : "○30%"} |{" "}
-                          {p.tpStage3Filled ? "✓40%" : "○40%"}
-                        </td>
-                        <td
+                        </dd>
+                        <dt>TP 1 / 2 / 3</dt>
+                        <dd>
+                          <bdi>
+                            {p.tpStage1Filled ? "✓30%" : "○30%"} |{" "}
+                            {p.tpStage2Filled ? "✓30%" : "○30%"} |{" "}
+                            {p.tpStage3Filled ? "✓40%" : "○40%"}
+                          </bdi>
+                        </dd>
+                        <dt>
+                          {isFa ? "سود و زیان باز خالص" : "Net unrealized P&L"}
+                        </dt>
+                        <dd
                           className={
                             p.unrealizedPnlIrt >= 0 ? "text-pos" : "text-neg"
                           }
                         >
-                          <strong>
-                            {formatIrt(p.unrealizedPnlIrt, lang)} (
-                            {p.unrealizedPnlPct}%)
-                          </strong>
-                        </td>
-                        <td>
-                          <button
-                            className="cmd-btn"
-                            disabled={
-                              !ctrl.backendConnected ||
-                              Boolean(ctrl.busyAction) ||
-                              Boolean(ctrl.uncertainWrite) ||
-                              p.mode !== "DEMO"
-                            }
-                            onClick={() => ctrl.manualDemoSell(p.symbol)}
-                          >
-                            {isFa ? "بستن Demo" : "Close Demo"}
-                          </button>
-                        </td>
+                          {formatIrt(p.unrealizedPnlIrt, lang)} (
+                          <bdi>{p.unrealizedPnlPct}%</bdi>)
+                        </dd>
+                      </dl>
+                      <button
+                        className="cmd-btn"
+                        disabled={
+                          !ctrl.backendConnected ||
+                          !!ctrl.busyAction ||
+                          !!ctrl.uncertainWrite ||
+                          p.mode !== "DEMO"
+                        }
+                        onClick={() => ctrl.manualDemoSell(p.symbol)}
+                      >
+                        {isFa ? "بستن Demo" : "Close Demo"}
+                      </button>
+                    </article>
+                  ))}
+                </div>
+                <div className="table-scroll desktop-ledger">
+                  <table className="pro-table">
+                    <thead>
+                      <tr>
+                        <th>{isFa ? "نماد" : "Symbol"}</th>
+                        <th>{isFa ? "قیمت ورود" : "Entry"}</th>
+                        <th>{isFa ? "قیمت فعلی" : "Current"}</th>
+                        <th>{isFa ? "سرمایه درگیر" : "Capital"}</th>
+                        <th>{isFa ? "حد ضرر فعال" : "Active SL"}</th>
+                        <th>Trailing Stop</th>
+                        <th>
+                          {isFa ? "فروش پله‌ای (TP 1/2/3)" : "Stepped TP"}
+                        </th>
+                        <th>{isFa ? "سود/زیان باز" : "Unrealized PnL"}</th>
+                        <th>{isFa ? "فروش آزمایشی" : "Demo sell"}</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {snap.openPositions.map((p) => (
+                        <tr key={p.id}>
+                          <td>
+                            <strong>{p.symbol}</strong>
+                          </td>
+                          <td>{formatIrt(p.entryPriceIrt, lang)}</td>
+                          <td>{formatIrt(p.currentPriceIrt, lang)}</td>
+                          <td>{formatIrt(p.remainingCapitalIrt, lang)}</td>
+                          <td className="text-neg">
+                            {formatIrt(p.activeStopLossIrt, lang)}
+                          </td>
+                          <td>
+                            {p.trailingStopActive
+                              ? `ON (${formatIrt(p.trailingStopPriceIrt || 0, lang)})`
+                              : "Waiting (+8%)"}
+                          </td>
+                          <td>
+                            {p.tpStage1Filled ? "✓30%" : "○30%"} |{" "}
+                            {p.tpStage2Filled ? "✓30%" : "○30%"} |{" "}
+                            {p.tpStage3Filled ? "✓40%" : "○40%"}
+                          </td>
+                          <td
+                            className={
+                              p.unrealizedPnlIrt >= 0 ? "text-pos" : "text-neg"
+                            }
+                          >
+                            <strong>
+                              {formatIrt(p.unrealizedPnlIrt, lang)} (
+                              {p.unrealizedPnlPct}%)
+                            </strong>
+                          </td>
+                          <td>
+                            <button
+                              className="cmd-btn"
+                              disabled={
+                                !ctrl.backendConnected ||
+                                Boolean(ctrl.busyAction) ||
+                                Boolean(ctrl.uncertainWrite) ||
+                                p.mode !== "DEMO"
+                              }
+                              onClick={() => ctrl.manualDemoSell(p.symbol)}
+                            >
+                              {isFa ? "بستن Demo" : "Close Demo"}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </section>
 

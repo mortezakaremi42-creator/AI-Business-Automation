@@ -263,11 +263,34 @@ export function useBit24Controller() {
     stopScanner: () => call("stopScanner", "/api/scanner/stop"),
     startDemoTrading: () => call("startDemo", "/api/trading/start-demo"),
     stopTrading: () => call("stopTrading", "/api/trading/stop"),
-    emergencyStop: () => call("emergencyStop", "/api/trading/emergency-stop"),
+    // Panic is allowed even while a previous financial response is uncertain. It only reduces exposure.
+    emergencyStop: async () => {
+      try {
+        const result = await client.request("/api/trading/emergency-stop", {});
+        if (result?.snapshot) accept(result.snapshot);
+        showToast("توقف اضطراری تأیید شد؛ حساب دمو تسویه شد.");
+        return result;
+      } catch {
+        showToast(
+          "نتیجهٔ توقف اضطراری تأیید نشد؛ وضعیت سرور را بررسی کنید. نقدشدن را فرض نکنید.",
+        );
+        return { ok: false };
+      }
+    },
     clearEmergencyStop: () =>
       call("clearEmergency", "/api/trading/clear-emergency"),
     manualDemoBuy: (symbol: string) =>
-      call("خرید کاغذی " + symbol, "/api/buy", { symbol }, true),
+      call(
+        "خرید کاغذی " + symbol,
+        "/api/buy",
+        {
+          symbol,
+          referencePriceIrt: snapshot?.topOpportunities.find(
+            (s) => s.symbol === symbol,
+          )?.priceIrt,
+        },
+        true,
+      ),
     manualDemoSell: (symbol: string) =>
       call("فروش کاغذی " + symbol, "/api/sell", { symbol }, true),
     adjustDemoCash: (amountIrt: number) =>
@@ -275,11 +298,23 @@ export function useBit24Controller() {
     toggleGoldAutoDemo: (enabled: boolean) =>
       call("goldAuto", "/api/gold/toggle-auto", { enabled }),
     manualGoldDemoBuy: (symbol: "PAXG/IRT" | "XAUT/IRT") =>
-      call("خرید کاغذی طلا " + symbol, "/api/gold/demo-buy", { symbol }, true),
+      call(
+        "خرید کاغذی طلا " + symbol,
+        "/api/gold/demo-buy",
+        {
+          symbol,
+          referencePriceIrt: snapshot?.goldReport.goldSignals.find(
+            (s) => s.symbol === symbol,
+          )?.priceIrt,
+        },
+        true,
+      ),
     updateRiskSettings: (params: {
       capital?: Partial<CapitalRiskConfig>;
       exit?: Partial<ExitStrategyConfig>;
     }) => call("riskUpdate", "/api/risk/update", params),
+    requestTradingMode: (mode: "DEMO" | "LIVE") =>
+      call("executionMode", "/api/execution/mode", { mode }),
     saveBit24Credentials: (_apiKey: string, _secretKey: string) => disabled(),
     verifyBit24Connection: disabled,
     clearBit24Credentials: disabled,

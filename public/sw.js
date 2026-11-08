@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bit24-demo-v2';
+const CACHE_NAME = 'bit24-quant-v3';
 const CORE_ASSETS = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
@@ -13,7 +13,7 @@ self.addEventListener('activate', (event) => {
     caches
       .keys()
       .then((keys) =>
-        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+        Promise.all(keys.filter((k) => k.startsWith("bit24-") && k !== CACHE_NAME).map((k) => caches.delete(k)))
       )
       .then(() => self.clients.claim())
   );

@@ -188,6 +188,35 @@ try {
     ),
   );
   check("320px narrow mobile has no page-level horizontal overflow");
+  await page.getByRole("button", { name: /API SETTINGS/ }).click();
+  expectedNetworkFailure = true; // This explicit readiness rejection intentionally returns HTTP 400.
+  const liveResponse = page.waitForResponse(
+    (r) => r.url() === base + "/api/execution/mode",
+  );
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("switch", { name: "درخواست حالت واقعی" }).click();
+  await page.getByText(/حالت واقعی فعال نشد:/).waitFor();
+  assert.equal((await liveResponse).status(), 400);
+  expectedNetworkFailure = false;
+  assert.equal(await page.getByRole("switch").isChecked(), false);
+  assert.equal(
+    (await fetch(base + "/api/execution/status").then((r) => r.json())).mode,
+    "DEMO",
+  );
+  check(
+    "REAL readiness request stays locked and never changes actual execution mode",
+  );
+  page.once("dialog", (d) => d.accept());
+  await page
+    .getByRole("button", { name: /توقف اضطراری و نقد کردن کامل/ })
+    .click();
+  await page.waitForFunction(() =>
+    document.querySelector(".toast-banner")?.textContent?.includes("اضطراری"),
+  );
+  assert.equal((await snapshot()).openPositions.length, 0);
+  assert.equal((await snapshot()).emergencyStopped, true);
+  check("Top Panic liquidates the open Demo position and latches the halt");
+  await page.getByRole("button", { name: /MAIN PANEL/ }).click();
   const desktop = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
   });

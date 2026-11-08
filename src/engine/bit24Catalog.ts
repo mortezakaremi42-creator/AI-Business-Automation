@@ -232,8 +232,8 @@ export function buildRealisticCandles1m(
   const seed = BIT24_OFFICIAL_SEEDS.find((s) => s.symbol === symbol);
   const pattern = seed?.pattern || "PULLBACK_BOUNCE";
   const hash = deterministicHash(symbol);
-  const nowSec = Math.floor(Date.now() / 60) * 60;
-  const startSec = nowSec - (count - 1) * 60;
+  const nowSec = Math.floor(Date.now() / 60_000) * 60;
+  const startSec = Math.floor(nowSec / 60) * 60 - (count - 1) * 60;
 
   const bars: CandleBar[] = [];
   let prevClose = basePriceIrt * 0.985;

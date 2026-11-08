@@ -123,7 +123,11 @@ export class BackendClient {
       !Array.isArray(snapshot.topOpportunities) ||
       !Number.isFinite(snapshot.serverTimestamp) ||
       !Number.isFinite(snapshot.demoAvailableCashIrt) ||
-      !Array.isArray(snapshot.goldReport?.goldOpenPositions)
+      !Array.isArray(snapshot.goldReport?.goldOpenPositions) ||
+      snapshot.accounting?.scope !== 'DEMO:ALL' ||
+      !Number.isFinite(snapshot.accounting?.equityIrt) ||
+      !Number.isFinite(snapshot.accounting?.closedExits?.count) ||
+      !snapshot.accounting?.closedPositions
     )
       throw new BackendError("ساختار پاسخ با پنل Bit24 سازگار نیست.");
     if (snapshot.storage?.healthy === false)

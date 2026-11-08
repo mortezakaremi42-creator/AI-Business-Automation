@@ -40,6 +40,27 @@ const headers = {
   "Content-Type": "application/json",
 };
 describe("mobile backend integration", () => {
+  it("exposes Demo readiness and refuses LIVE without any guessed adapter", async () => {
+    const status = await fetch(base + "/api/execution/status", {
+      headers,
+    }).then((r) => r.json());
+    expect(status.liveAvailable).toBe(false);
+    expect(status.mode).toBe("DEMO");
+    const r = await fetch(base + "/api/execution/mode", {
+      method: "POST",
+      headers: { ...headers, "Idempotency-Key": randomUUID() },
+      body: JSON.stringify({ mode: "LIVE" }),
+    });
+    const result = await r.json();
+    expect(result.ok).toBe(false);
+    expect(
+      (
+        await fetch(base + "/api/execution/status", { headers }).then((r) =>
+          r.json(),
+        )
+      ).mode,
+    ).toBe("DEMO");
+  });
   it("protects status, writes and report without a token", async () => {
     for (const path of ["/api/status", "/api/reports/trades.csv"])
       expect((await fetch(base + path)).status).toBe(401);

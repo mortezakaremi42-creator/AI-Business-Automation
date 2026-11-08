@@ -6,21 +6,21 @@ import {
   ExitStrategyConfig,
   ProVerificationReport,
   TradeHistoryRecord,
-} from '../shared/contracts.js';
-import { createInitialBit24Catalog, roundIrtPrice } from './bit24Catalog.js';
-import { analyzeBit24CryptoPumpOpportunity } from './pumpAndGoldAnalyzers.js';
+} from "../shared/contracts.js";
+import { createInitialBit24Catalog, roundIrtPrice } from "./bit24Catalog.js";
+import { analyzeBit24CryptoPumpOpportunity } from "./pumpAndGoldAnalyzers.js";
 import {
   calculateSafePositionCapitalIrt,
   DEFAULT_CAPITAL_RISK_CONFIG,
   DEFAULT_EXIT_STRATEGY_CONFIG,
   evaluatePositionStepExit,
   runSmartSecurityGate,
-} from './smartSecurityAndCapital.js';
+} from "./smartSecurityAndCapital.js";
 
 function buildWalkForwardRegimeCandles(
   symbol: string,
   basePriceIrt: number,
-  totalBars: number
+  totalBars: number,
 ): CandleBar[] {
   let seedNum = 17;
   for (let i = 0; i < symbol.length; i++) {
@@ -62,7 +62,8 @@ function buildWalkForwardRegimeCandles(
         drift = -0.0055 - nextRand() * 0.003;
         volBoost = 1.45;
       } else {
-        const strongFollowThrough = (cycleIndex + symbol.charCodeAt(1)) % 3 === 0;
+        const strongFollowThrough =
+          (cycleIndex + symbol.charCodeAt(1)) % 3 === 0;
         drift = strongFollowThrough
           ? 0.0155 + nextRand() * 0.005
           : 0.0085 + nextRand() * 0.0035;
@@ -75,11 +76,21 @@ function buildWalkForwardRegimeCandles(
     }
 
     const open = price;
-    const close = roundIrtPrice(Math.max(basePriceIrt * 0.35, open * (1 + drift)));
-    const intrabarSwing = Math.max(open * 0.0045, Math.abs(close - open) * 0.65);
-    const high = roundIrtPrice(Math.max(open, close) + intrabarSwing * (0.4 + nextRand() * 0.8));
+    const close = roundIrtPrice(
+      Math.max(basePriceIrt * 0.35, open * (1 + drift)),
+    );
+    const intrabarSwing = Math.max(
+      open * 0.0045,
+      Math.abs(close - open) * 0.65,
+    );
+    const high = roundIrtPrice(
+      Math.max(open, close) + intrabarSwing * (0.4 + nextRand() * 0.8),
+    );
     const low = roundIrtPrice(
-      Math.max(basePriceIrt * 0.25, Math.min(open, close) - intrabarSwing * (0.4 + nextRand() * 0.8))
+      Math.max(
+        basePriceIrt * 0.25,
+        Math.min(open, close) - intrabarSwing * (0.4 + nextRand() * 0.8),
+      ),
     );
     const volume = Number(((120 + nextRand() * 65) * volBoost).toFixed(3));
 
@@ -108,15 +119,15 @@ export function runProfessionalPreLiveVerification(options?: {
   capitalConfig?: CapitalRiskConfig;
   exitConfig?: ExitStrategyConfig;
   customCandlesBySymbol?: Map<string, CandleBar[]>;
-  dataSourceType?: 'LIVE_BIT24_CANDLES' | 'SIMULATED_MULTI_REGIME_CANDLES';
+  dataSourceType?: "LIVE_BIT24_CANDLES" | "SIMULATED_MULTI_REGIME_CANDLES";
 }): ProVerificationReport {
   const capitalConfig = options?.capitalConfig || DEFAULT_CAPITAL_RISK_CONFIG;
   const exitConfig = options?.exitConfig || DEFAULT_EXIT_STRATEGY_CONFIG;
   const dataSourceType =
-    options?.dataSourceType || 'SIMULATED_MULTI_REGIME_CANDLES';
+    options?.dataSourceType || "SIMULATED_MULTI_REGIME_CANDLES";
 
   const { markets } = createInitialBit24Catalog();
-  const cryptoMarkets = markets.filter((m) => m.segment === 'CRYPTO');
+  const cryptoMarkets = markets.filter((m) => m.segment === "CRYPTO");
 
   const seriesBySymbol = new Map<string, CandleBar[]>();
   let minBars = Infinity;
@@ -148,32 +159,58 @@ export function runProfessionalPreLiveVerification(options?: {
 
   // Track simulated daily PnL reset every 288 5-min bars (24h)
   let dayStartEquityIrt = startingCapitalIrt;
+  let budgetDay = "";
+  let haltedUntil = 0;
 
   for (let barIdx = 62; barIdx < minBars; barIdx++) {
     const barTimeMs =
-      (seriesBySymbol.get(cryptoMarkets[0].symbol)?.[barIdx]?.t || 0) * 1000;
+      ((seriesBySymbol.get(cryptoMarkets[0].symbol)?.[barIdx]?.t || 0) + 300) *
+      1000;
 
-    if ((barIdx - 62) % 288 === 0) {
+    const currentDay = new Date(barTimeMs).toISOString().slice(0, 10);
+    if (currentDay !== budgetDay) {
+      budgetDay = currentDay;
       const openVal = openPositions.reduce(
-        (s, p) => s + p.remainingQuantity * p.currentPriceIrt,
-        0
+        (s, p) => s + p.remainingQuantity * p.currentPriceIrt * 0.9991 * 0.998,
+        0,
       );
       dayStartEquityIrt = cashIrt + openVal;
     }
 
+    const markedEquity =
+      cashIrt +
+      openPositions.reduce(
+        (n, p) =>
+          n +
+          p.remainingQuantity *
+            seriesBySymbol.get(p.symbol)![barIdx].c *
+            0.9991 *
+            0.998,
+        0,
+      );
+    if (
+      barTimeMs >= haltedUntil &&
+      dayStartEquityIrt > 0 &&
+      ((markedEquity - dayStartEquityIrt) / dayStartEquityIrt) * 100 <=
+        -capitalConfig.maxDailyLossPct
+    )
+      haltedUntil = barTimeMs + 86400000;
+    const dailyLiquidation = barTimeMs < haltedUntil;
     // 1. Manage existing open positions first (Stop-Loss / Trailing Stop / Stepped Take-Profit)
     for (let pIdx = openPositions.length - 1; pIdx >= 0; pIdx--) {
       const pos = openPositions[pIdx];
       const candles = seriesBySymbol.get(pos.symbol)!;
       const bar = candles[barIdx];
 
-      const decision = evaluatePositionStepExit(
-        pos,
-        bar.c,
-        bar.l,
-        bar.h,
-        exitConfig
-      );
+      const decision = dailyLiquidation
+        ? {
+            sellQuantity: pos.remainingQuantity,
+            closeEntirePosition: true,
+            stageTriggered: undefined,
+            sellReasonFa: "تسویهٔ حد زیان روزانه و توقف ۲۴ساعته",
+            sellReasonEn: "Global daily-loss liquidation / 24-hour cutoff",
+          }
+        : evaluatePositionStepExit(pos, bar.c, bar.c, bar.c, exitConfig);
 
       // Optional time-stop if position stagnates > 48 bars without hitting stage 1
       const barsHeld = Math.round((barTimeMs - pos.openedAt) / 300_000);
@@ -181,35 +218,32 @@ export function runProfessionalPreLiveVerification(options?: {
         !decision && !pos.tpStage1Filled && barsHeld >= 46;
 
       if (decision || timeStopTriggered) {
-        const sellQty = decision ? decision.sellQuantity : pos.remainingQuantity;
+        const sellQty = decision
+          ? decision.sellQuantity
+          : pos.remainingQuantity;
         const closeAll = decision ? decision.closeEntirePosition : true;
         const slippagePct = 0.09; // 0.09% execution slippage
 
-        let rawExitPrice = bar.c;
-        if (decision?.stageTriggered === 1) {
-          rawExitPrice = pos.entryPriceIrt * (1 + exitConfig.tpStage1ProfitPct / 100);
-          pos.tpStage1Filled = true;
-        } else if (decision?.stageTriggered === 2) {
-          rawExitPrice = pos.entryPriceIrt * (1 + exitConfig.tpStage2ProfitPct / 100);
-          pos.tpStage2Filled = true;
-        } else if (decision?.stageTriggered === 3) {
-          rawExitPrice = pos.entryPriceIrt * (1 + exitConfig.tpStage3ProfitPct / 100);
-          pos.tpStage3Filled = true;
-        } else if (decision && bar.l <= pos.activeStopLossIrt) {
-          rawExitPrice = pos.activeStopLossIrt;
-        }
+        const rawExitPrice = bar.c;
+        if (decision?.stageTriggered === 1) pos.tpStage1Filled = true;
+        if (decision?.stageTriggered === 2) pos.tpStage2Filled = true;
+        if (decision?.stageTriggered === 3) pos.tpStage3Filled = true;
 
         const effectiveSellPrice = roundIrtPrice(
-          rawExitPrice * (1 - slippagePct / 100)
+          rawExitPrice * (1 - slippagePct / 100),
         );
         const grossProceedsIrt = sellQty * effectiveSellPrice;
         const sellSlippageIrt = sellQty * rawExitPrice * (slippagePct / 100);
         const sellFeeIrt = grossProceedsIrt * 0.002; // 0.2% Bit24 spot fee
         const netProceedsIrt = grossProceedsIrt - sellFeeIrt;
 
-        const fractionSold = Math.min(1, sellQty / Math.max(1e-9, pos.remainingQuantity));
+        const fractionSold = Math.min(
+          1,
+          sellQty / Math.max(1e-9, pos.remainingQuantity),
+        );
         const capitalPortionIrt = pos.remainingCapitalIrt * fractionSold;
-        const entryFeePortionIrt = capitalPortionIrt * 0.002;
+        const entryFeePortionIrt =
+          (pos.entryFeeIrt * sellQty) / pos.initialQuantity;
         const totalTradeFeeIrt = Math.round(entryFeePortionIrt + sellFeeIrt);
         const netPnlIrt = Math.round(netProceedsIrt - capitalPortionIrt);
         const netPnlPct =
@@ -223,9 +257,10 @@ export function runProfessionalPreLiveVerification(options?: {
 
         closedTrades.push({
           id: `sim-trd-${closedTrades.length + 1}`,
+          positionId: pos.id,
           symbol: pos.symbol,
-          segment: 'CRYPTO',
-          mode: 'DEMO',
+          segment: "CRYPTO",
+          mode: "DEMO",
           buyTime: pos.openedAt,
           buyPriceIrt: pos.entryPriceIrt,
           sellTime: barTimeMs,
@@ -240,19 +275,19 @@ export function runProfessionalPreLiveVerification(options?: {
           buyReasonEn: pos.buyReasonEn,
           sellReasonFa: decision
             ? decision.sellReasonFa
-            : 'خروج زمانی هوشمند (عدم رشد کافی پس از ۴۶ کندل)',
+            : "خروج زمانی هوشمند (عدم رشد کافی پس از ۴۶ کندل)",
           sellReasonEn: decision
             ? decision.sellReasonEn
-            : 'Time-based stagnation exit (46 bars elapsed)',
+            : "Time-based stagnation exit (46 bars elapsed)",
         });
 
         pos.remainingQuantity = Math.max(0, pos.remainingQuantity - sellQty);
         pos.remainingCapitalIrt = Math.max(
           0,
-          pos.remainingCapitalIrt - capitalPortionIrt
+          pos.remainingCapitalIrt - capitalPortionIrt,
         );
 
-        if (closeAll || pos.remainingQuantity <= 1e-8) {
+        if (closeAll || pos.remainingQuantity <= pos.initialQuantity * 1e-12) {
           openPositions.splice(pIdx, 1);
         }
       }
@@ -260,8 +295,8 @@ export function runProfessionalPreLiveVerification(options?: {
 
     // Track Equity & Max Drawdown
     const openMarkToMarket = openPositions.reduce(
-      (s, p) => s + p.remainingQuantity * p.currentPriceIrt,
-      0
+      (s, p) => s + p.remainingQuantity * p.currentPriceIrt * 0.9991 * 0.998,
+      0,
     );
     const currentEquityIrt = cashIrt + openMarkToMarket;
     if (currentEquityIrt > peakEquityIrt) peakEquityIrt = currentEquityIrt;
@@ -277,16 +312,22 @@ export function runProfessionalPreLiveVerification(options?: {
         : 0;
 
     // 2. Scan Bit24 Crypto Markets on strictly historical slice [0 .. barIdx] (ZERO lookahead)
-    if (openPositions.length < capitalConfig.maxConcurrentTrades) {
+    if (
+      !dailyLiquidation &&
+      barIdx < minBars - 1 &&
+      openPositions.length < capitalConfig.maxConcurrentTrades
+    ) {
       for (const baseMarket of cryptoMarkets) {
         if (openPositions.length >= capitalConfig.maxConcurrentTrades) break;
         const fullBars = seriesBySymbol.get(baseMarket.symbol)!;
-        const windowBars = fullBars.slice(barIdx - 61, barIdx + 1);
+        const windowBars = fullBars.slice(Math.max(0, barIdx - 61), barIdx + 1);
         const curBar = windowBars[windowBars.length - 1];
-        const bar24hAgo = fullBars[Math.max(0, barIdx - 60)];
+        const bar24hAgo = fullBars[Math.max(0, barIdx - 288)];
         const chg24h =
           bar24hAgo.c > 0
-            ? Number((((curBar.c - bar24hAgo.c) / bar24hAgo.c) * 100).toFixed(2))
+            ? Number(
+                (((curBar.c - bar24hAgo.c) / bar24hAgo.c) * 100).toFixed(2),
+              )
             : 2.0;
 
         const simMarket: Bit24TickerMarket = {
@@ -311,7 +352,8 @@ export function runProfessionalPreLiveVerification(options?: {
         const signal = analyzeBit24CryptoPumpOpportunity(
           simMarket,
           windowBars,
-          simOrderBook
+          simOrderBook,
+          { nowMs: barTimeMs, intervalSeconds: 300 },
         );
 
         // Enter on strong signals (>= 80 in walk-forward test)
@@ -320,7 +362,7 @@ export function runProfessionalPreLiveVerification(options?: {
         const gate = runSmartSecurityGate({
           nowMs: barTimeMs,
           symbol: simMarket.symbol,
-          mode: 'DEMO',
+          mode: "DEMO",
           market: simMarket,
           orderBook: simOrderBook,
           openPositions,
@@ -348,10 +390,10 @@ export function runProfessionalPreLiveVerification(options?: {
 
         const entrySlippagePct = 0.09;
         const effectiveBuyPrice = roundIrtPrice(
-          curBar.c * (1 + entrySlippagePct / 100)
+          fullBars[barIdx + 1].o * (1 + entrySlippagePct / 100),
         );
         const buySlippageIrt = positionCapIrt * (entrySlippagePct / 100);
-        const buyFeeIrt = positionCapIrt * 0.002;
+        const buyFeeIrt = Math.round((positionCapIrt / 1.002) * 0.002);
         const netCoinCapitalIrt = positionCapIrt - buyFeeIrt;
         const qty = netCoinCapitalIrt / effectiveBuyPrice;
 
@@ -359,15 +401,15 @@ export function runProfessionalPreLiveVerification(options?: {
         totalSlippageCostIrt += Math.round(buySlippageIrt);
 
         const initialSlPrice = roundIrtPrice(
-          effectiveBuyPrice * (1 - exitConfig.initialStopLossPct / 100)
+          effectiveBuyPrice * (1 - exitConfig.initialStopLossPct / 100),
         );
 
         openPositions.push({
           id: `sim-pos-${barIdx}-${simMarket.symbol}`,
           symbol: simMarket.symbol,
           baseCoin: simMarket.baseCoin,
-          segment: 'CRYPTO',
-          mode: 'DEMO',
+          segment: "CRYPTO",
+          mode: "DEMO",
           entryPriceIrt: effectiveBuyPrice,
           currentPriceIrt: effectiveBuyPrice,
           highestPriceIrt: effectiveBuyPrice,
@@ -385,8 +427,8 @@ export function runProfessionalPreLiveVerification(options?: {
           tpStage3Filled: false,
           unrealizedPnlIrt: 0,
           unrealizedPnlPct: 0,
-          buyReasonFa: `امتیاز شکارچی پامپ ${signal.opportunityScore}/100 (${signal.reasonsFa[0] || 'تأیید چندشاخصه'})`,
-          buyReasonEn: `Pump Hunter Score ${signal.opportunityScore}/100 (${signal.reasonsEn[0] || 'Multi-factor confirmation'})`,
+          buyReasonFa: `امتیاز شکارچی پامپ ${signal.opportunityScore}/100 (${signal.reasonsFa[0] || "تأیید چندشاخصه"})`,
+          buyReasonEn: `Pump Hunter Score ${signal.opportunityScore}/100 (${signal.reasonsEn[0] || "Multi-factor confirmation"})`,
           openedAt: barTimeMs,
         });
       }
@@ -401,19 +443,22 @@ export function runProfessionalPreLiveVerification(options?: {
     const gross = pos.remainingQuantity * effectiveSell;
     const sellFee = gross * 0.002;
     const netProceeds = gross - sellFee;
-    const totalFee = Math.round(pos.remainingCapitalIrt * 0.002 + sellFee);
+    const totalFee = Math.round(
+      (pos.entryFeeIrt * pos.remainingQuantity) / pos.initialQuantity + sellFee,
+    );
     const netPnlIrt = Math.round(netProceeds - pos.remainingCapitalIrt);
     cashIrt += netProceeds;
     totalFeesPaidIrt += totalFee;
 
     closedTrades.push({
       id: `sim-trd-${closedTrades.length + 1}`,
+      positionId: pos.id,
       symbol: pos.symbol,
-      segment: 'CRYPTO',
-      mode: 'DEMO',
+      segment: "CRYPTO",
+      mode: "DEMO",
       buyTime: pos.openedAt,
       buyPriceIrt: pos.entryPriceIrt,
-      sellTime: lastBar.t * 1000,
+      sellTime: (lastBar.t + 300) * 1000,
       sellPriceIrt: effectiveSell,
       quantity: Number(pos.remainingQuantity.toFixed(6)),
       capitalEnteredIrt: Math.round(pos.remainingCapitalIrt),
@@ -426,8 +471,9 @@ export function runProfessionalPreLiveVerification(options?: {
           : 0,
       buyReasonFa: pos.buyReasonFa,
       buyReasonEn: pos.buyReasonEn,
-      sellReasonFa: 'تسویه پایان دوره شبیه‌سازی با کسر کارمزد و اسلیپیج',
-      sellReasonEn: 'End-of-test mark-to-market settlement (fees & slippage deducted)',
+      sellReasonFa: "تسویه پایان دوره شبیه‌سازی با کسر کارمزد و اسلیپیج",
+      sellReasonEn:
+        "End-of-test mark-to-market settlement (fees & slippage deducted)",
     });
   }
 
@@ -449,7 +495,7 @@ export function runProfessionalPreLiveVerification(options?: {
   const disconnectCheck = runSmartSecurityGate({
     nowMs: Date.now(),
     symbol: sampleMarket.symbol,
-    mode: 'DEMO',
+    mode: "DEMO",
     market: sampleMarket,
     orderBook: sampleBook,
     openPositions: [],
@@ -465,13 +511,13 @@ export function runProfessionalPreLiveVerification(options?: {
   });
   const internetDisconnectTestPassed =
     !disconnectCheck.allowed &&
-    disconnectCheck.rejection?.code === 'API_DISCONNECTED';
+    disconnectCheck.rejection?.code === "API_DISCONNECTED";
 
   // Drill 2: Bit24 API Error Circuit Breaker Test
   const apiErrorCheck = runSmartSecurityGate({
     nowMs: Date.now(),
     symbol: sampleMarket.symbol,
-    mode: 'DEMO',
+    mode: "DEMO",
     market: sampleMarket,
     orderBook: sampleBook,
     openPositions: [],
@@ -487,13 +533,13 @@ export function runProfessionalPreLiveVerification(options?: {
   });
   const bit24ApiErrorTestPassed =
     !apiErrorCheck.allowed &&
-    apiErrorCheck.rejection?.code === 'ABNORMAL_MARKET';
+    apiErrorCheck.rejection?.code === "ABNORMAL_MARKET";
 
   // Drill 3: Emergency Stop Test
   const emergencyCheck = runSmartSecurityGate({
     nowMs: Date.now(),
     symbol: sampleMarket.symbol,
-    mode: 'DEMO',
+    mode: "DEMO",
     market: sampleMarket,
     orderBook: sampleBook,
     openPositions: [],
@@ -509,13 +555,13 @@ export function runProfessionalPreLiveVerification(options?: {
   });
   const emergencyStopTestPassed =
     !emergencyCheck.allowed &&
-    emergencyCheck.rejection?.code === 'EMERGENCY_STOP_ACTIVE';
+    emergencyCheck.rejection?.code === "EMERGENCY_STOP_ACTIVE";
 
   // Drill 4: Duplicate Trade Prevention Test
   const duplicateCheck = runSmartSecurityGate({
     nowMs: Date.now(),
     symbol: sampleMarket.symbol,
-    mode: 'DEMO',
+    mode: "DEMO",
     market: sampleMarket,
     orderBook: sampleBook,
     openPositions: [],
@@ -531,9 +577,10 @@ export function runProfessionalPreLiveVerification(options?: {
   });
   const duplicateOrderPreventionPassed =
     !duplicateCheck.allowed &&
-    duplicateCheck.rejection?.code === 'DUPLICATE_ORDER';
+    duplicateCheck.rejection?.code === "DUPLICATE_ORDER";
 
-  const feeAndSlippageApplied = totalFeesPaidIrt > 0 && totalSlippageCostIrt > 0;
+  const feeAndSlippageApplied =
+    totalFeesPaidIrt > 0 && totalSlippageCostIrt > 0;
 
   const winningTrades = closedTrades.filter((t) => t.netPnlIrt > 0).length;
   const losingTrades = closedTrades.filter((t) => t.netPnlIrt <= 0).length;
@@ -544,15 +591,15 @@ export function runProfessionalPreLiveVerification(options?: {
   const endingCapitalIrt = Math.round(cashIrt);
   const netSimulatedPnlIrt = endingCapitalIrt - startingCapitalIrt;
   const netSimulatedPnlPct = Number(
-    ((netSimulatedPnlIrt / startingCapitalIrt) * 100).toFixed(2)
+    ((netSimulatedPnlIrt / startingCapitalIrt) * 100).toFixed(2),
   );
 
   const sufficientFor100 = closedTrades.length >= 100;
   const dataSufficiencyNoteFa = sufficientFor100
-    ? `تست کامل انجام شد: ${closedTrades.length} معامله واقعی شبیه‌سازی‌شده کندل‌به‌کندل (بدون نگاه به آینده) با کسر کارمزد ۰.۲٪ هر سمت و اسلیپیج اجرا گردید.`
+    ? `تست کامل انجام شد: ${closedTrades.length} خروج آزمایشی روی دادهٔ فرضی؛ سیگنال کندل بسته و اجرای کندل بعد (بدون نگاه به آینده) با کسر کارمزد ۰.۲٪ هر سمت و اسلیپیج اجرا گردید.`
     : `گزارش صادقانه بدون آمارسازی جعلی: در بازه داده ورودی فعلی (${minBars} کندل در هر بازار)، دقیقاً ${closedTrades.length} معامله معتبر تشکیل شد (کمتر از ۱۰۰ معامله؛ هیچ معامله ساختگی اضافه نشد).`;
   const dataSufficiencyNoteEn = sufficientFor100
-    ? `Full test completed: ${closedTrades.length} genuine bar-by-bar simulated trades executed (zero lookahead) with 0.2% per-side fee and slippage deducted.`
+    ? `Synthetic data only; closed-candle signals / next-bar entries. Test completed: ${closedTrades.length} genuine bar-by-bar simulated trades executed (zero lookahead) with 0.2% per-side fee and slippage deducted.`
     : `Honest report (zero fake padding): Within the supplied ${minBars}-bar dataset, exactly ${closedTrades.length} valid trades triggered (fewer than 100; no synthetic trades fabricated).`;
 
   const allDrillsPassed =

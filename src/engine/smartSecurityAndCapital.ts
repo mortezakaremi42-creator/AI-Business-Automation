@@ -386,7 +386,7 @@ export function evaluatePositionStepExit(
     );
     return {
       sellQuantity: qty,
-      closeEntirePosition: qty >= pos.remainingQuantity * 0.999,
+      closeEntirePosition: qty >= pos.remainingQuantity,
       stageTriggered: 1,
       sellReasonFa: `حد سود پله اول (+${exitConfig.tpStage1ProfitPct}%): فروش ${exitConfig.tpStage1SellRatioPct}% حجم معامله`,
       sellReasonEn: `Stepped Take-Profit Stage 1 (+${exitConfig.tpStage1ProfitPct}%): sold ${exitConfig.tpStage1SellRatioPct}%`,
@@ -400,7 +400,7 @@ export function evaluatePositionStepExit(
     );
     return {
       sellQuantity: qty,
-      closeEntirePosition: qty >= pos.remainingQuantity * 0.999,
+      closeEntirePosition: qty >= pos.remainingQuantity,
       stageTriggered: 2,
       sellReasonFa: `حد سود پله دوم (+${exitConfig.tpStage2ProfitPct}%): فروش ${exitConfig.tpStage2SellRatioPct}% حجم معامله`,
       sellReasonEn: `Stepped Take-Profit Stage 2 (+${exitConfig.tpStage2ProfitPct}%): sold ${exitConfig.tpStage2SellRatioPct}%`,

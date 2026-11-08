@@ -12,6 +12,8 @@
     "PWA service worker installs with same-origin assets",
     "Offline PWA shell has no local trading fallback",
     "320px narrow mobile has no page-level horizontal overflow",
+    "REAL readiness request stays locked and never changes actual execution mode",
+    "Top Panic liquidates the open Demo position and latches the halt",
     "Desktop layout loads without horizontal overflow",
     "No unexpected console errors, JS exceptions, or external requests"
   ],

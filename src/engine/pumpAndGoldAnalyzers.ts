@@ -9,6 +9,8 @@ import {
 import { roundIrtPrice } from "./bit24Catalog.js";
 import {
   computeMultiTimeframeChanges,
+  closedCandles,
+  type CandleClock,
   evaluateFullTechnicals,
 } from "./mathIndicators.js";
 
@@ -27,9 +29,16 @@ export function analyzeBit24CryptoPumpOpportunity(
   market: Bit24TickerMarket,
   candles: CandleBar[],
   orderBook: OrderBookDepth,
+  clock: CandleClock = {},
 ): PumpOpportunitySignal {
+  candles = closedCandles(candles, clock);
   const mtf = computeMultiTimeframeChanges(candles);
-  const tech = evaluateFullTechnicals(candles, orderBook, market.change24hPct);
+  const tech = evaluateFullTechnicals(
+    candles,
+    orderBook,
+    market.change24hPct,
+    clock,
+  );
 
   const reasonsFa: string[] = [];
   const reasonsEn: string[] = [];
@@ -172,6 +181,11 @@ export function analyzeBit24CryptoPumpOpportunity(
     warningsEn.push(`Wide bid-ask spread (${orderBook.spreadPct}%)`);
   }
 
+  if (candles.length < 50) {
+    rawScore = 0;
+    warningsFa.push("حداقل ۵۰ کندل بسته برای تحلیل لازم است.");
+    warningsEn.push("At least 50 closed bars required.");
+  }
   const opportunityScore = Math.max(0, Math.min(100, Math.round(rawScore)));
   const tier = classifyOpportunityTier(opportunityScore);
 
@@ -218,10 +232,11 @@ export function analyzeGoldAiMarket(
   goldStopLossPct = 2.5,
   goldTakeProfitPct = 6.0,
 ): GoldMarketSignal {
+  candles = closedCandles(candles);
   const faName = baseCoin === "PAXG" ? "پکس گلد (PAXG)" : "تتر گلد (XAUT)";
   const enName = baseCoin === "PAXG" ? "PAX Gold (PAXG)" : "Tether Gold (XAUT)";
 
-  if (!market || !market.tradableOnBit24 || !orderBook || candles.length < 20) {
+  if (!market || !market.tradableOnBit24 || !orderBook || candles.length < 50) {
     return {
       symbol,
       baseCoin,

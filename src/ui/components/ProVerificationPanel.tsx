@@ -41,6 +41,11 @@ export const ProVerificationPanel: React.FC<Props> = ({
         </button>
       </div>
 
+      <div className="scope-note">
+        {isFa
+          ? "گزارش آزمایش مستقل روی دادهٔ فرضی؛ نتیجهٔ این جدول نباید نرخ برد یا موجودی داشبورد حساب را تغییر دهد. هر ردیف یک خروج است و ممکن است بخشی از یک پوزیشن باشد."
+          : "Isolated synthetic backtest. Rows are exits, including partial fills; they are not dashboard account trades."}
+      </div>
       <p style={{ fontSize: "0.83rem", color: "#cbd5e1", marginTop: 0 }}>
         {isFa
           ? "این آزمون روی کندل‌های چندرژیمی کاملاً فرضی بدون نگاه به آینده (Zero-Lookahead)، با کسر کارمزد فرضی ۰.۲٪ هر سمت، اسلیپیج، حد ضرر ۵٪، Trailing Stop و فروش پله‌ای اجرا می‌شود و هم‌زمان قطع اینترنت، خطای API، توقف اضطراری و سفارش تکراری را آزمایش می‌کند."
@@ -209,8 +214,40 @@ export const ProVerificationPanel: React.FC<Props> = ({
             </div>
           </div>
 
+          <div className="mobile-ledger-cards">
+            {report.sampleTrades.slice(0, 12).map((t) => (
+              <article key={t.id} className="metric-card">
+                <h3>{t.symbol} · DEMO</h3>
+                <dl>
+                  <dt>{isFa ? "قیمت ورود / خروج" : "Entry / exit"}</dt>
+                  <dd>
+                    {formatIrt(t.buyPriceIrt, lang)} /{" "}
+                    {formatIrt(t.sellPriceIrt, lang)}
+                  </dd>
+                  <dt>
+                    {isFa
+                      ? "سرمایه / کارمزد تخصیص‌یافته"
+                      : "Cost basis / allocated fees"}
+                  </dt>
+                  <dd>
+                    {formatIrt(t.capitalEnteredIrt, lang)} /{" "}
+                    {formatIrt(t.totalFeeIrt, lang)}
+                  </dd>
+                  <dt>{isFa ? "سود خالص" : "Net P&L"}</dt>
+                  <dd className={t.netPnlIrt >= 0 ? "text-pos" : "text-neg"}>
+                    {formatIrt(t.netPnlIrt, lang)} (<bdi>{t.netPnlPct}%</bdi>)
+                  </dd>
+                  <dt>{isFa ? "علت خروج" : "Exit reason"}</dt>
+                  <dd>{isFa ? t.sellReasonFa : t.sellReasonEn}</dd>
+                </dl>
+              </article>
+            ))}
+          </div>
           {/* Sample Recent Simulated Trades */}
-          <div className="table-scroll" style={{ marginTop: 12 }}>
+          <div
+            className="table-scroll desktop-ledger"
+            style={{ marginTop: 12 }}
+          >
             <table className="pro-table">
               <thead>
                 <tr>

@@ -1,3 +1,5 @@
+> v3 additions and current limitations: see [BIT24-REMEDIATION-FA.md](BIT24-REMEDIATION-FA.md). Live remains disconnected; the independently tested Spot kernel is not an official Bit24 adapter.
+
 # Demo architecture / developer notes
 
 ## Reviewed scope

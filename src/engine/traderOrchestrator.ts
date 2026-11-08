@@ -1,3 +1,5 @@
+import { enforcePriceDeviation } from "../shared/priceDeviation.js";
+import { ledgerAnalytics } from "./ledgerAnalytics.js";
 import { newRequestId } from "../shared/identifiers.js";
 import {
   ActivePosition,
@@ -129,6 +131,7 @@ export class Bit24AiTraderOrchestrator {
     baseline: 150_000_000,
     cashFlow: 0,
     halted: false,
+    haltedUntil: 0,
   };
   private cycleBusy = false;
   private onTelegramDispatch?: TelegramAlertDispatcher;
@@ -236,7 +239,10 @@ export class Bit24AiTraderOrchestrator {
         const volMult = jitter > 0.001 ? 1.55 : 0.98;
 
         const bar: CandleBar = {
-          t: Math.floor(now / 60_000) * 60,
+          t: Math.max(
+            Math.floor(now / 60_000) * 60,
+            bars[bars.length - 1]?.t ?? 0,
+          ),
           o: prev,
           h: high,
           l: low,
@@ -274,6 +280,7 @@ export class Bit24AiTraderOrchestrator {
     // Latch observed drawdown before exits can reduce exposure or realize gains.
     this.enforceDailyLimit();
     // Existing protective exits continue even while new entries are halted.
+    await this.enforceDailyLiquidation();
     await this.manageOpenPositions(now);
 
     this.enforceDailyLimit();
@@ -323,7 +330,17 @@ export class Bit24AiTraderOrchestrator {
       );
       const gCandles = this.candlesBySymbol.get(sym) || [];
       const gBook = gm ? this.orderBooksBySymbol.get(sym) : undefined;
-      nextGold.push(analyzeGoldAiMarket(sym, goldCoin, gm, gCandles, gBook));
+      nextGold.push(
+        analyzeGoldAiMarket(
+          sym,
+          goldCoin,
+          gm,
+          gCandles,
+          gBook,
+          this.exitConfig.initialStopLossPct,
+          this.exitConfig.tpStage1ProfitPct,
+        ),
+      );
     }
 
     nextCrypto.sort((a, b) => b.opportunityScore - a.opportunityScore);
@@ -493,6 +510,7 @@ export class Bit24AiTraderOrchestrator {
   public async tryOpenCryptoPosition(
     sig: PumpOpportunitySignal,
     nowMs = Date.now(),
+    referencePriceIrt?: number,
   ): Promise<{
     ok: boolean;
     code?: string;
@@ -571,7 +589,20 @@ export class Bit24AiTraderOrchestrator {
       let filledPriceIrt = roundIrtPrice(
         market.priceIrt * (1 + slippagePct / 100),
       );
-      let entryFeeIrt = Math.round(capitalIrt * 0.002);
+      try {
+        enforcePriceDeviation(
+          (referencePriceIrt ?? market.priceIrt).toFixed(12),
+          filledPriceIrt.toFixed(12),
+        );
+      } catch {
+        return {
+          ok: false,
+          code: "SLIPPAGE_ABOVE_0_3_PERCENT",
+          messageFa: "انحراف قیمت بیش از ۰٫۳٪؛ سفارش لغو شد.",
+          messageEn: "Entry quote deviation exceeds 0.3%; no order.",
+        };
+      }
+      let entryFeeIrt = Math.round((capitalIrt / 1.002) * 0.002);
       const estQty = (capitalIrt - entryFeeIrt) / filledPriceIrt;
 
       this.demoCashIrt -= capitalIrt;
@@ -648,6 +679,7 @@ export class Bit24AiTraderOrchestrator {
   public async tryOpenGoldDemoPosition(
     symbol: "PAXG/IRT" | "XAUT/IRT",
     nowMs = Date.now(),
+    referencePriceIrt?: number,
   ): Promise<{
     ok: boolean;
     code?: string;
@@ -708,11 +740,24 @@ export class Bit24AiTraderOrchestrator {
     }
 
     const filledPrice = roundIrtPrice(market.priceIrt * 1.0008);
-    const feeIrt = Math.round(goldNotionalIrt * 0.002);
+    try {
+      enforcePriceDeviation(
+        (referencePriceIrt ?? market.priceIrt).toFixed(12),
+        filledPrice.toFixed(12),
+      );
+    } catch {
+      return {
+        ok: false,
+        code: "SLIPPAGE_ABOVE_0_3_PERCENT",
+        messageFa: "انحراف قیمت بیش از ۰٫۳٪؛ سفارش لغو شد.",
+        messageEn: "Entry quote deviation exceeds 0.3%; no order.",
+      };
+    }
+    const feeIrt = Math.round((goldNotionalIrt / 1.002) * 0.002);
     const qty = (goldNotionalIrt - feeIrt) / filledPrice;
     const slIrt = roundIrtPrice(
       filledPrice * (1 - this.exitConfig.initialStopLossPct / 100),
-    ); // 2.5% Gold Stop-Loss
+    ); // Uses the same configured protective stop as the execution engine.
 
     this.goldDedicatedCashIrt -= goldNotionalIrt;
 
@@ -845,6 +890,7 @@ export class Bit24AiTraderOrchestrator {
 
   public async triggerEmergencyStop(liquidateDemoOpen = true): Promise<void> {
     this.emergencyStopped = true;
+    this.scannerRunning = false;
     this.tradingMode = "STOPPED";
 
     if (liquidateDemoOpen) {
@@ -941,14 +987,26 @@ export class Bit24AiTraderOrchestrator {
   }
 
   private rollDay(): void {
-    const day = new Date().toISOString().slice(0, 10);
-    if (day !== this.daily.day)
+    const now = Date.now(),
+      day = new Date(now).toISOString().slice(0, 10);
+    // A midnight rollover must NEVER bypass the 24-hour safety cooldown.
+    if (this.daily.halted && now >= this.daily.haltedUntil) {
       this.daily = {
         day,
         baseline: this.totalLiquidationEquity(),
         cashFlow: 0,
         halted: false,
+        haltedUntil: 0,
       };
+    } else if (day !== this.daily.day) {
+      this.daily = {
+        day,
+        baseline: this.totalLiquidationEquity(),
+        cashFlow: 0,
+        halted: this.daily.halted,
+        haltedUntil: this.daily.haltedUntil,
+      };
+    }
   }
   private totalLiquidationEquity(): number {
     return (
@@ -977,9 +1035,33 @@ export class Bit24AiTraderOrchestrator {
   private enforceDailyLimit(): void {
     this.rollDay();
     this.markPositions();
-    if (this.getCryptoDailyPnlPct() <= -this.capitalConfig.maxDailyLossPct)
+    if (
+      !this.daily.halted &&
+      this.getCryptoDailyPnlPct() <= -this.capitalConfig.maxDailyLossPct
+    ) {
       this.daily.halted = true;
+      this.daily.haltedUntil = Date.now() + 24 * 3600_000;
+    }
     if (this.daily.halted) this.tradingMode = "STOPPED";
+  }
+  /** Called inside the durable server transaction; closes ALL segments after a global loss breach. */
+  public async enforceDailyLiquidation(): Promise<void> {
+    this.enforceDailyLimit();
+    if (!this.daily.halted) return;
+    for (let i = this.openPositions.length - 1; i >= 0; i--) {
+      const p = this.openPositions[i];
+      await this.executeExitOrder(
+        p,
+        i,
+        p.remainingQuantity,
+        true,
+        undefined,
+        "تسویهٔ حد زیان سراسری؛ توقف حداقل ۲۴ ساعت",
+        "Global daily-loss liquidation; 24h cooldown",
+        Date.now(),
+      );
+    }
+    this.markPositions();
   }
   public adjustDemoCash(amountIrt: number): { ok: boolean; messageFa: string } {
     this.rollDay();
@@ -1010,6 +1092,7 @@ export class Bit24AiTraderOrchestrator {
     market.priceIrt = price;
     market.updatedAt = Date.now();
     this.enforceDailyLimit();
+    await this.enforceDailyLiquidation();
     await this.manageOpenPositions(Date.now());
     this.markPositions();
     this.enforceDailyLimit();
@@ -1056,8 +1139,22 @@ export class Bit24AiTraderOrchestrator {
     this.tradeHistory = x.tradeHistory;
     this.paperOrders = x.paperOrders;
     this.cashAdjustments = x.cashAdjustments;
-    this.daily = x.daily;
+    this.daily = {
+      ...x.daily,
+      haltedUntil:
+        x.daily.haltedUntil ?? (x.daily.halted ? Date.now() + 86400000 : 0),
+    };
     this.markets = x.markets;
+    // v2 synthetic candles accidentally used millisecond-like OPEN times with 60-unit steps.
+    // Rebase ONLY that recognizable Demo fixture clock; never rewrite trade execution timestamps.
+    const endSecond = Math.floor(Date.now() / 60000) * 60;
+    for (const [, bars] of x.candles) {
+      if (bars.length && bars.every((b) => b.t >= 100_000_000_000)) {
+        bars.forEach((b, i) => {
+          b.t = endSecond - (bars.length - 1 - i) * 60;
+        });
+      }
+    }
     this.candlesBySymbol = new Map(x.candles);
     this.orderBooksBySymbol = new Map(x.books);
     this.emergencyStopped = x.emergencyStopped;
@@ -1241,6 +1338,16 @@ export class Bit24AiTraderOrchestrator {
   }
 
   public getSnapshot(): AppStatusSnapshot {
+    this.enforceDailyLimit();
+    const ledger = ledgerAnalytics(
+      this.tradeHistory,
+      this.openPositions,
+      "DEMO",
+    );
+    const allUnrealized = this.openPositions.reduce(
+      (n, p) => n + p.unrealizedPnlIrt,
+      0,
+    );
     const cryptoTrades = this.tradeHistory.filter(
       (t) => t.segment === "CRYPTO",
     );
@@ -1281,6 +1388,14 @@ export class Bit24AiTraderOrchestrator {
     }
 
     return {
+      accounting: {
+        ...ledger,
+        unrealizedPnlIrt: allUnrealized,
+        totalPnlIrt: ledger.realizedPnlIrt + allUnrealized,
+        equityIrt: this.totalLiquidationEquity(),
+        initialCapitalIrt:
+          this.capitalConfig.initialDemoBalanceIrt + 50_000_000,
+      },
       appName: "BIT24 AI TRADER PRO",
       subtitleFa:
         "آزمایشگاه معاملات کاغذی — تمام قیمت‌ها و تحلیل‌ها اطلاعات فرضی هستند",
@@ -1333,9 +1448,9 @@ export class Bit24AiTraderOrchestrator {
         goldCashIrt: this.goldDedicatedCashIrt,
       },
       periodReports: {
-        daily: this.buildPeriodSummary("DAILY", "CRYPTO"),
-        weekly: this.buildPeriodSummary("WEEKLY", "CRYPTO"),
-        monthly: this.buildPeriodSummary("MONTHLY", "CRYPTO"),
+        daily: this.buildPeriodSummary("DAILY", "ALL"),
+        weekly: this.buildPeriodSummary("WEEKLY", "ALL"),
+        monthly: this.buildPeriodSummary("MONTHLY", "ALL"),
       },
       telegram: {
         ...this.telegramState,

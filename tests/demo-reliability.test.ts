@@ -32,7 +32,8 @@ describe("paper accounting and protective risk", () => {
       p = await buy(e);
     expect(e.getSnapshot().demoAvailableCashIrt).toBe(90_000_000);
     expect(p.initialCapitalIrt).toBe(10_000_000);
-    expect(p.entryFeeIrt).toBe(20_000);
+    // Budget includes entry fees; 0.2% is charged on executed notional, rounded to IRT.
+    expect(p.entryFeeIrt).toBe(19_960);
     const before = e.getSnapshot();
     expect(before.demoBalanceIrt - 100_000_000).toBeCloseTo(
       before.totalPnlIrt,

@@ -333,6 +333,8 @@ export interface ProVerificationReport {
 }
 
 export interface AppStatusSnapshot {
+  accounting: ReturnType<typeof import('../engine/ledgerAnalytics.js').ledgerAnalytics> & { unrealizedPnlIrt: number; totalPnlIrt: number; equityIrt: number; initialCapitalIrt: number };
+
   demo: {
     paperOrders: PaperOrder[];
     cashAdjustments: { id: string; amountIrt: number; at: number }[];
@@ -341,6 +343,7 @@ export interface AppStatusSnapshot {
       baseline: number;
       cashFlow: number;
       halted: boolean;
+      haltedUntil: number;
       pnlIrt: number;
       pnlPct: number;
     };

@@ -143,8 +143,12 @@ export const GoldTraderPanel: React.FC<Props> = ({
               <div>
                 <div className="metric-label">RSI / MACD</div>
                 <strong>
-                  {g.rsi14} / {g.macdHistogram >= 0 ? "+" : ""}
-                  {g.macdHistogram.toFixed(1)}
+                  <bdi>{g.rsi14}</bdi>
+                  <br />
+                  <bdi>
+                    {g.macdHistogram >= 0 ? "+" : ""}
+                    {g.macdHistogram.toFixed(1)}
+                  </bdi>
                 </strong>
               </div>
               <div>

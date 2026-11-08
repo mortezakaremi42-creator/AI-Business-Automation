@@ -483,3 +483,23 @@ button:disabled {
     font-size: 1.3rem;
   }
 }
+
+/* Mobile financial values must not spill into neighbouring cards or reverse signs in RTL. */
+.metric-card { min-width:0; overflow-wrap:anywhere; }
+.metric-value { font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.scope-note { border-inline-start:3px solid #38bdf8; background:#102839; padding:12px; margin:12px 0; color:#b9d9ed; line-height:1.9; }
+.panic-banner { margin:14px 0; padding:14px; border:2px solid #ef4444; border-radius:14px; background:#381821; }
+.panic-button { width:100%; background:#c92335 !important; color:white; font-weight:800; min-height:58px; }
+.panic-banner small { display:block; margin-top:8px; line-height:1.8; }
+.mobile-ledger-cards { display:none; }
+.mobile-ledger-cards dl { margin:0; }
+.mobile-ledger-cards dt { margin-top:10px; font-size:.78rem; color:#9db4c8; }
+.mobile-ledger-cards dd { margin:4px 0 0; line-height:1.9; overflow-wrap:anywhere; }
+.pro-table td:last-child { white-space:normal; min-width:210px; max-width:400px; }
+@media(max-width:700px) {
+ .mobile-ledger-cards { display:grid; gap:12px; margin-top:14px; }
+ .desktop-ledger { display:none; }
+ .mini-stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .mini-stats>div { min-width:0; overflow-wrap:anywhere; }
+ .metric-value { font-size:1.05rem; }
+}

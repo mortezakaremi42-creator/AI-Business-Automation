@@ -5,11 +5,11 @@ import json
 import zipfile
 
 root = Path(__file__).resolve().parent.parent
-name = 'BIT24-DEMO-RELIABLE-v2'
+name = 'BIT24-QUANT-SAFETY-v3'
 out = root / (name + '.zip')
 files = [
     'README.md', 'ANDROID-BACKEND-FA.md', 'DEMO-ARCHITECTURE.md',
-    'DEMO-TEST-REPORT-FA.md', 'package.json', 'package-lock.json',
+    'DEMO-TEST-REPORT-FA.md', 'BIT24-REMEDIATION-FA.md', 'Dockerfile', 'docker-compose.yml', 'package.json', 'package-lock.json',
     'index.html', 'capacitor.config.json', 'vite.config.ts', 'vitest.config.ts',
     'tsconfig.json', 'tsconfig.server.json', 'postcss.config.js',
     'tailwind.config.js', '.env.example', '.gitignore',
@@ -33,7 +33,8 @@ with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
     z.writestr(name + '/PACKAGE-MANIFEST.json', json.dumps(manifest, ensure_ascii=False, indent=2))
     z.writestr(name + '/START-HERE-FA.txt', '''نسخهٔ کامل آزمایشگاه معاملات کاغذی — فقط Demo
 
-فایل README.md و ANDROID-BACKEND-FA.md را بخوانید.
+ابتدا BIT24-REMEDIATION-FA.md، سپس README.md و ANDROID-BACKEND-FA.md را بخوانید.
+کلید REAL فقط درخواست بررسی آمادگی است؛ صرافی واقعی متصل نیست.
 اجرای خروجی آماده: npm ci --omit=dev سپس node scripts/setup-demo-env.cjs سپس npm start
 توکن پنل از فایل خصوصی .env خوانده می‌شود؛ آن را منتشر نکنید.
 راهنمای اجرا فقط با گوشی/Termux نیز داخل فایل راهنماست.

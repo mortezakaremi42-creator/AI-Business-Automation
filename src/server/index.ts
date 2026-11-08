@@ -80,6 +80,13 @@ export function createBit24ProAppServer(options: Options = {}) {
   let committed = structuredClone(orchestrator.getSnapshot()),
     storageFault = false,
     stopped = false;
+  // Persist clock migration / day rollover BEFORE exposing the initial snapshot.
+  try {
+    store.save(orchestrator.exportDemoState(), receipts);
+  } catch (error) {
+    store.close();
+    throw error;
+  }
   let tail: Promise<unknown> = Promise.resolve();
   function serialize<T>(fn: () => Promise<T>): Promise<T> {
     const result = tail.then(fn);
@@ -128,9 +135,11 @@ export function createBit24ProAppServer(options: Options = {}) {
       priorReceipts = [...receipts];
     try {
       const result = await action();
+      await orchestrator.enforceDailyLiquidation();
       if (receipt) receipts.push({ ...receipt, result, at: Date.now() });
+      const nextSnapshot = structuredClone(orchestrator.getSnapshot());
       store.save(orchestrator.exportDemoState(), receipts);
-      committed = structuredClone(orchestrator.getSnapshot());
+      committed = nextSnapshot;
       broadcast();
       return result;
     } catch (error) {
@@ -193,14 +202,12 @@ export function createBit24ProAppServer(options: Options = {}) {
         });
       } catch (error) {
         if (error instanceof z.ZodError) {
-          res
-            .status(422)
-            .json({
-              ok: false,
-              error: "INVALID_INPUT",
-              messageFa:
-                "ورودی معتبر نیست؛ نماد، شناسه درخواست و محدودهٔ اعداد را بررسی کنید.",
-            });
+          res.status(422).json({
+            ok: false,
+            error: "INVALID_INPUT",
+            messageFa:
+              "ورودی معتبر نیست؛ نماد، شناسه درخواست و محدودهٔ اعداد را بررسی کنید.",
+          });
           return;
         }
         const message = error instanceof Error ? error.message : "";
@@ -212,29 +219,25 @@ export function createBit24ProAppServer(options: Options = {}) {
           storageFault = true;
           orchestrator.stopTrading();
         }
-        res
-          .status(definite ? 409 : 503)
-          .json({
-            ok: false,
-            error: definite ? message : "DEMO_STORAGE_HALTED",
-            messageFa: definite
-              ? "توقف ایمنی فعال یا اصلاح موجودی نامعتبر است."
-              : "عملیات متوقف شد؛ ذخیره‌سازی سرور باید بررسی شود. درخواست را کورکورانه تکرار نکنید.",
-          });
+        res.status(definite ? 409 : 503).json({
+          ok: false,
+          error: definite ? message : "DEMO_STORAGE_HALTED",
+          messageFa: definite
+            ? "توقف ایمنی فعال یا اصلاح موجودی نامعتبر است."
+            : "عملیات متوقف شد؛ ذخیره‌سازی سرور باید بررسی شود. درخواست را کورکورانه تکرار نکنید.",
+        });
       }
     });
   }
   const ok = () => ({ ok: true });
   app.get("/api/health", (_req, res) =>
-    res
-      .status(storageFault ? 503 : 200)
-      .json({
-        ok: !storageFault,
-        demoOnly: true,
-        liveDisabled: true,
-        externalNetworkEnabled: false,
-        persistent: true,
-      }),
+    res.status(storageFault ? 503 : 200).json({
+      ok: !storageFault,
+      demoOnly: true,
+      liveDisabled: true,
+      externalNetworkEnabled: false,
+      persistent: true,
+    }),
   );
   app.get("/api/status", (_req, res) => res.json(snapshot()));
   app.get("/api/demo/receipts/:id", (req, res) => {
@@ -285,7 +288,16 @@ export function createBit24ProAppServer(options: Options = {}) {
         .getSnapshot()
         .topOpportunities.find((s) => s.symbol === symbol);
       return sig
-        ? orchestrator.tryOpenCryptoPosition(sig)
+        ? orchestrator.tryOpenCryptoPosition(
+            sig,
+            Date.now(),
+            z
+              .number()
+              .finite()
+              .positive()
+              .optional()
+              .parse(body.referencePriceIrt),
+          )
         : {
             ok: false,
             code: "UNKNOWN_SYMBOL",
@@ -317,6 +329,8 @@ export function createBit24ProAppServer(options: Options = {}) {
     (body) =>
       orchestrator.tryOpenGoldDemoPosition(
         z.enum(["PAXG/IRT", "XAUT/IRT"]).parse(body.symbol),
+        Date.now(),
+        z.number().finite().positive().optional().parse(body.referencePriceIrt),
       ),
     true,
   );
@@ -353,6 +367,33 @@ export function createBit24ProAppServer(options: Options = {}) {
     ok: true,
     report: orchestrator.runPro100Verification(),
   }));
+  app.get("/api/execution/status", (_req, res) =>
+    res.json({
+      mode: "DEMO",
+      liveAvailable: false,
+      permissionVerified: false,
+      contractVerified: false,
+      reason: "OFFICIAL_API_CONTRACT_UNVERIFIED",
+      maxSlippagePct: 0.3,
+    }),
+  );
+  mutate("/api/execution/mode", (body) => {
+    const mode = z.enum(["DEMO", "LIVE"]).parse(body.mode);
+    if (mode === "LIVE")
+      return {
+        ok: false,
+        error: "OFFICIAL_API_CONTRACT_UNVERIFIED",
+        messageFa:
+          "حالت واقعی فعال نشد: قرارداد رسمی API، دسترسی Spot-only بدون برداشت، journal واقعی و آزمون اتصال هنوز تأیید نشده‌اند. هیچ سفارش واقعی ارسال نشد.",
+      };
+    orchestrator.stopTrading();
+    orchestrator.stopScanner();
+    return {
+      ok: true,
+      mode: "DEMO",
+      messageFa: "حالت دمو انتخاب شد؛ شروع معامله همچنان دستی است.",
+    };
+  });
   app.post(
     [
       "/api/trading/activate-live",
@@ -363,14 +404,12 @@ export function createBit24ProAppServer(options: Options = {}) {
       "/api/settings/telegram/daily-report",
     ],
     (_req, res) =>
-      res
-        .status(403)
-        .json({
-          ok: false,
-          error: "DEMO_ONLY_EXTERNAL_NETWORK_DISABLED",
-          messageFa:
-            "اتصال زنده، کلید صرافی، تلگرام و معاملهٔ واقعی در این نسخه غیرفعال‌اند.",
-        }),
+      res.status(403).json({
+        ok: false,
+        error: "DEMO_ONLY_EXTERNAL_NETWORK_DISABLED",
+        messageFa:
+          "اتصال زنده، کلید صرافی، تلگرام و معاملهٔ واقعی در این نسخه غیرفعال‌اند.",
+      }),
   );
   app.all("/api/*withdraw*", (_req, res) =>
     res.status(403).json({ ok: false, error: "WITHDRAWAL_FORBIDDEN" }),

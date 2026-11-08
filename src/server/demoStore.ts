@@ -69,6 +69,8 @@ const stateSchema = z.object({
   tradeHistory: z.array(
     entity.extend({
       netPnlIrt: number,
+      totalFeeIrt: cash,
+      slippageCostIrt: cash,
       capitalEnteredIrt: positive,
       quantity: positive,
       sellTime: number,
@@ -91,6 +93,7 @@ const stateSchema = z.object({
     baseline: positive,
     cashFlow: number,
     halted: z.boolean(),
+    haltedUntil: number.nonnegative().optional(),
   }),
   markets: z
     .array(
