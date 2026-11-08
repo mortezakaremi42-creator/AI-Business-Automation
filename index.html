@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0d12" />
+  <meta name="description" content="پایانه موبایلی تحلیل بازار و معامله آزمایشی؛ بدون اتصال به صرافی." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <title>نُوا | پایانه هوشمند بازار</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#top" aria-label="نُوا"><span class="brand-mark">N</span><span>نُوا<span class="brand-sub">TRADE INTELLIGENCE</span></span></a>
+      <div class="side-label">فضای کاری</div>
+      <nav class="side-nav" aria-label="ناوبری اصلی">
+        <a class="nav-link active" href="#overview"><span class="nav-icon">◫</span>نمای کلی</a>
+        <a class="nav-link" href="#analysis"><span class="nav-icon">⌁</span>تحلیل بازار</a>
+        <a class="nav-link" href="#automation"><span class="nav-icon">⟳</span>ربات معامله‌گر</a>
+        <a class="nav-link" href="#activity"><span class="nav-icon">◷</span>تاریخچه معاملات</a>
+      </nav>
+      <div class="side-label account-label">حساب کاربری</div>
+      <nav class="side-nav">
+        <button class="nav-link" data-action="deposit"><span class="nav-icon">＋</span>واریز آزمایشی</button>
+        <button class="nav-link" data-action="withdraw"><span class="nav-icon">↗</span>برداشت آزمایشی</button>
+      </nav>
+      <div class="sidebar-bottom"><div class="secure-chip"><span class="pulse-dot"></span><span>حالت شبیه‌سازی فعال</span></div><div class="user-card"><div class="avatar">م</div><div><b>معامله‌گر</b><small>حساب دمو · سطح حرفه‌ای</small></div><span class="more">···</span></div></div>
+    </aside>
+
+    <main class="main" id="top">
+      <header class="topbar"><button class="mobile-brand" aria-label="منو"><span class="brand-mark">N</span><b>نُوا</b></button><div class="breadcrumb"><span>فضای کاری</span><span class="crumb-sep">/</span><b>نمای کلی</b></div><div class="top-actions"><span class="market-status"><i></i><span id="market-mode">دمو · فقط شبیه‌سازی</span></span><button class="panic-button" id="panic-button">■ توقف اضطراری</button><button class="icon-button" aria-label="اعلان‌ها">♧<em></em></button><div class="top-avatar">م</div></div></header>
+
+      <div class="page-content" id="overview">
+        <section class="welcome-row"><div><div class="eyebrow"><span class="eyebrow-line"></span>یک قدم جلوتر از بازار</div><h1>سلام، معامله‌گر <span class="wave">✳</span></h1><p>تحلیل را ببین، ریسک را بسنج، بعد تصمیم بگیر.</p></div><button class="date-button">◷ <span>امروز، ۱ آبان ۱۴۰۵</span><span class="chevron">⌄</span></button></section>
+
+        <section class="notice-bar"><span class="notice-icon">i</span><div><b>محیط دمو — بدون اتصال به صرافی</b><span>قیمت‌ها و معاملات این صفحه نمایشی‌اند. واریز، برداشت و خریدوفروش واقعی انجام نمی‌شود.</span></div><button class="notice-close" aria-label="بستن">×</button></section>
+
+        <section class="stats-grid" aria-label="خلاصه حساب">
+          <article class="stat-card balance-card"><div class="stat-top"><span>موجودی دمو</span><span class="stat-icon">▤</span></div><div class="stat-value"><strong id="balance">—</strong><span>USDT</span></div><div class="stat-footer"><span>حساب کاغذی</span><span class="up-text">● شبیه‌سازی</span></div></article>
+          <article class="stat-card"><div class="stat-top"><span>سود / زیان امروز</span><span class="stat-icon green-icon">↗</span></div><div class="stat-value"><strong id="pnl">—</strong><span>USDT</span></div><div class="stat-footer"><span>محاسبه بر اساس ارزش روز</span><span id="daily-return" class="neutral-text">—</span></div></article>
+          <article class="stat-card"><div class="stat-top"><span>موقعیت‌های باز</span><span class="stat-icon">◈</span></div><div class="stat-value"><strong id="open-count">۰</strong><span>موقعیت</span></div><div class="stat-footer"><span>Spot · خرید نقدی</span><span class="neutral-text">بدون اهرم</span></div></article>
+          <article class="stat-card"><div class="stat-top"><span>وضعیت ربات</span><span class="stat-icon purple-icon">⟳</span></div><div class="stat-value bot-stat"><strong id="bot-status">متوقف</strong><span class="status-dot"></span></div><div class="stat-footer"><span>فقط معامله کاغذی</span><button class="text-button" data-scroll="automation">مدیریت ربات ←</button></div></article>
+        </section>
+
+        <section class="content-grid" id="analysis">
+          <article class="panel chart-panel">
+            <div class="panel-heading chart-heading"><div><div class="title-row"><h2>تحلیل نمودار</h2><span class="demo-tag">داده نمونه</span></div><p>برای تحلیل واقعی، تصویر یا داده بازار را وارد کنید.</p></div><button class="upload-button" id="upload-trigger">↑ <span>بارگذاری تصویر</span></button><input id="chart-upload" type="file" accept="image/*" hidden /></div>
+            <div class="chart-toolbar"><button class="pair-select" id="pair-select"><span class="coin-icon">₿</span><b>BTC / USDT</b><span class="chevron">⌄</span></button><div class="timeframes"><button>۱۵د</button><button>۱س</button><button class="selected">۴س</button><button>۱روز</button></div><div class="chart-tools"><button title="تنظیمات">⚙</button><button title="تمام صفحه">⛶</button></div></div>
+            <div class="chart-summary"><strong>67,842.50</strong><span class="positive">+2.41% <small>۲۴ ساعت</small></span><span class="chart-meta">بیشینه <b>68,420</b></span><span class="chart-meta">کمینه <b>65,980</b></span></div>
+            <div class="chart-wrap" id="chart-wrap"><div class="chart-overlay-label label-resistance">مقاومت · 68,420</div><div class="chart-overlay-label label-liquidity">نقدینگی · 67,980</div><div class="chart-overlay-label label-support">حمایت · 66,200</div><svg id="price-chart" viewBox="0 0 900 310" preserveAspectRatio="none" role="img" aria-label="نمودار نمونه قیمت بیت‌کوین"><defs><linearGradient id="fillGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#39d9a5" stop-opacity=".18"/><stop offset="1" stop-color="#39d9a5" stop-opacity="0"/></linearGradient></defs><g class="grid-lines"><path d="M0 40H900 M0 95H900 M0 150H900 M0 205H900 M0 260H900"/></g><g class="y-labels"><text x="892" y="35">68,500</text><text x="892" y="90">68,000</text><text x="892" y="145">67,500</text><text x="892" y="200">67,000</text><text x="892" y="255">66,500</text></g><path class="liquidity-zone" d="M0 89H900V103H0Z"/><path class="resistance-line" d="M0 51H900"/><path class="support-line" d="M0 224H900"/><path class="chart-area" d="M0 252 L35 235 L68 245 L101 204 L134 216 L168 194 L201 208 L235 180 L268 190 L302 161 L335 170 L369 139 L402 161 L436 126 L469 143 L503 111 L536 127 L570 96 L603 119 L637 99 L670 114 L704 81 L737 102 L771 73 L804 90 L838 62 L871 77 L900 57 L900 310 L0 310Z"/><path class="price-line" d="M0 252 L35 235 L68 245 L101 204 L134 216 L168 194 L201 208 L235 180 L268 190 L302 161 L335 170 L369 139 L402 161 L436 126 L469 143 L503 111 L536 127 L570 96 L603 119 L637 99 L670 114 L704 81 L737 102 L771 73 L804 90 L838 62 L871 77 L900 57"/><circle class="current-marker" cx="900" cy="57" r="5"/><g class="x-labels"><text x="30" y="298">۰۸:۰۰</text><text x="230" y="298">۱۲:۰۰</text><text x="430" y="298">۱۶:۰۰</text><text x="630" y="298">۲۰:۰۰</text><text x="830" y="298">۰۰:۰۰</text></g></svg><div id="image-preview" class="image-preview hidden"><img alt="پیش‌نمایش تصویر نمودار" /><div class="image-overlay"><span>تصویر دریافت شد</span><button id="remove-image">حذف تصویر ×</button></div></div><div class="chart-watermark">NOVΛ · DEMO DATA</div></div>
+            <div id="upload-message" class="upload-message hidden"><span>!</span><div><b>تصویر بارگذاری شد؛ تحلیل خودکار در این نسخه فعال نیست.</b><small>برای جلوگیری از حدس، تا وقتی داده‌های قابل خواندن یا اتصال منبع بازار فراهم نشود، سطح و سناریوی تازه‌ای ارائه نمی‌کنیم.</small></div></div>
+            <div class="chart-footer"><span><i class="legend-price"></i>قیمت نمونه</span><span><i class="legend-zone"></i>ناحیه نقدینگی نمونه</span><span class="footer-disclaimer">اعداد صرفاً نمایشی‌اند</span></div>
+          </article>
+
+          <aside class="panel analysis-panel"><div class="panel-heading"><div><h2>خوانش ساختار بازار</h2><p>بر پایه نمودار نمونه · نه توصیه مالی</p></div><span class="analysis-score">نمونه</span></div><div class="structure-card"><div class="structure-icon">⌁</div><div><span class="micro-label">ساختار کوتاه‌مدت</span><strong>روند صعودیِ مشروط</strong></div><span class="trend-arrow">↗</span></div><div class="levels-list"><div class="level-row"><span class="level-symbol resistance-symbol">━</span><div><span class="micro-label">مقاومت مهم</span><b>68,420 <small>USDT</small></b></div><span class="level-distance">+0.85٪</span></div><div class="level-row"><span class="level-symbol liquidity-symbol">╌</span><div><span class="micro-label">استخر نقدینگی</span><b>67,980 <small>USDT</small></b></div><span class="level-distance">بالای قیمت</span></div><div class="level-row"><span class="level-symbol support-symbol">━</span><div><span class="micro-label">حمایت مهم</span><b>66,200 <small>USDT</small></b></div><span class="level-distance">−2.42٪</span></div></div><div class="scenario-block"><div class="scenario-head"><span class="scenario-dot bull"></span><b>سناریوی صعودی</b><span class="scenario-confidence">مشروط</span></div><p>تثبیت بالای 68,420 و بازآزمایی موفق می‌تواند راه را به ناحیه بالاتر باز کند.</p><div class="invalidation"><span>ابطال</span><b>بازگشت و تثبیت زیر 67,980</b></div></div><div class="scenario-block bear-block"><div class="scenario-head"><span class="scenario-dot bear"></span><b>سناریوی نزولی</b><span class="scenario-confidence">مشروط</span></div><p>رد قیمت از مقاومت و شکست حمایت کوتاه‌مدت، احتمال حرکت تا 66,200 را بالا می‌برد.</p><div class="invalidation"><span>ابطال</span><b>تثبیت بالای 68,420</b></div></div><div class="risk-note"><span>⚠</span><div><b>ریسک را جداگانه ببین</b><p>نوسان شدید، لغزش قیمت و داده ناقص می‌تواند نتیجه را عوض کند. اندازه موقعیت را محدود کن؛ هیچ سناریویی تضمین نیست.</p></div></div></aside>
+        </section>
+
+        <section class="lower-grid">
+          <article class="panel automation-panel" id="automation"><div class="panel-heading"><div><h2>ربات معامله‌گر</h2><p>ربات مستقل معامله نمی‌کند؛ در این نسخه فقط شبیه‌سازی است.</p></div><span class="bot-badge"><i></i>دمو</span></div><div class="mode-row"><div><b>حالت اجرا</b><small>کلید واقعی تا زمان تأیید API رسمی قفل است.</small></div><button class="mode-toggle" id="mode-toggle" aria-label="حالت دمو یا واقعی"><span>DEMO</span><i></i><span class="real-muted">REAL</span></button></div><div class="strategy-parameters"><div><small>حد ضرر محافظ</small><b>−۵٪ از ورود</b></div><div><small>حد ضرر متحرک</small><b>۳٪ از سقف پس از رشد</b></div><div><small>سود پله‌ای ۱</small><b>+۱۰٪ · فروش ۳۰٪</b></div><div><small>سود پله‌ای ۲</small><b>+۲۰٪ · فروش ۳۰٪</b></div><div><small>سقف زیان روزانه</small><b>۳٪ · توقف ۲۴ ساعته</b></div><div><small>کارمزد رفت‌وبرگشت</small><b>۰٫۲٪ هر سمت</b></div><div><small>سیگنال‌ها</small><b>RSI / MACD · کندل بسته</b></div><div><small>لغزش حداکثر</small><b>۰٫۳٪ · سفارش محدود IOC</b></div></div><div class="bot-warning"><span>ⓘ</span>این قواعد در موتور دمو اجرا می‌شوند. API واقعی Bit24 هنوز پیاده‌سازی و فعال نشده است.</div><div class="bot-actions"><button class="button button-primary" id="bot-toggle"><span>▶</span> شروع موتور دمو</button><button class="button button-secondary" id="manual-trade">＋ خرید آزمایشی</button><button class="button button-secondary hidden" id="reset-panic">بازنشانی توقف اضطراری</button></div></article>
+          <article class="panel positions-panel" id="activity"><div class="panel-heading"><div><h2>گزارش معاملات دمو</h2><p>Win Rate از موقعیت‌های کاملاً بسته؛ سود خالص شامل خروج پله‌ای تحقق‌یافته است.</p></div><button class="view-all" id="refresh-stats">بروزرسانی ↻</button></div><div class="trade-stat-grid"><div><small>معاملات بسته</small><b id="closed-count">۰</b></div><div><small>برنده / بازنده</small><b id="wins-losses">۰ / ۰</b></div><div><small>Win Rate</small><b id="win-rate">۰٪</b></div><div><small>سود خالص تحقق‌یافته</small><b id="net-profit">۰</b><small>USDT</small></div><div><small>کارمزد کل ثبت‌شده</small><b id="total-fees">۰</b><small>USDT</small></div></div><h3 class="subsection-title">موقعیت‌های باز <span id="open-label">۰</span></h3><div class="position-table"><div class="table-head"><span>دارایی</span><span>نوع</span><span>ورود</span><span>سود / زیان</span><span>عملیات</span></div><div id="position-rows"></div></div><div class="empty-state" id="empty-positions">هنوز موقعیت بازی وجود ندارد.</div><h3 class="subsection-title history-title">خروج‌های نهایی‌شده</h3><div class="history-table"><div class="history-head"><span>دارایی</span><span>ورود → خروج</span><span>خالص</span><span>علت خروج</span></div><div id="closed-rows"></div></div><div class="empty-state" id="empty-history">معامله بسته‌شده‌ای برای محاسبه نرخ برد ثبت نشده است.</div><div class="table-foot"><span><i class="pulse-dot"></i>محاسبات سمت سرور</span><span>دمو · کارمزد رفت‌وبرگشت ۰٫۴٪</span></div></article>
+        </section>
+        <footer class="page-footer"><span>© ۲۰۲۶ نُوا ترید</span><span>معاملات آزمایشی · بدون اتصال به صرافی</span><a href="#top">بازگشت به بالا ↑</a></footer>
+      </div>
+    </main>
+  </div>
+  <nav class="mobile-bottom" aria-label="ناوبری موبایل"><a href="#overview"><span>◫</span>خانه</a><a href="#analysis"><span>⌁</span>تحلیل</a><a href="#automation"><span>⟳</span>ربات</a><a href="#activity"><span>◷</span>معاملات</a></nav>
+  <div class="toast" id="toast" role="status"></div>
+  <dialog id="action-dialog"><form method="dialog"><button class="dialog-close" aria-label="بستن">×</button><div class="dialog-icon">◈</div><h3 id="dialog-title">حساب آزمایشی</h3><p id="dialog-copy"></p><label class="dialog-field"><span>مبلغ (USDT)</span><input id="amount-input" type="number" min="1" step="1" placeholder="مثلاً 250" /></label><label class="dialog-field hidden" id="side-field"><span>نوع سفارش</span><select id="trade-side"><option value="BUY">خرید نقدی (Spot) · فقط دمو</option></select></label><div class="dialog-buttons"><button class="button button-secondary" value="cancel">انصراف</button><button class="button button-primary" id="dialog-confirm" value="confirm">تأیید آزمایشی</button></div></form></dialog>
+  <script src="app.js"></script>
+</body>
+</html>
