@@ -1,0 +1,31 @@
+{
+  "durationSeconds": 545.53,
+  "width": 1920,
+  "height": 1080,
+  "fps": 24.0,
+  "videoCodec": "h264",
+  "audioCodec": "aac",
+  "audioStereo": true,
+  "fullDecodePassed": true,
+  "nativeRasterSize": "1920x1080",
+  "originalNarrationSeconds": 535.533,
+  "storyShots": 40,
+  "captionCues": 126,
+  "captionAlignment": "Estimated sentence-level; not word-accurate forced alignment",
+  "style": "Original simplified procedural 2D stickman animation",
+  "soundEffectsAndScore": "Original procedural synthesis actually mixed into exported audio",
+  "normalization": {
+    "input_i": "-18.16",
+    "input_tp": "-1.78",
+    "input_lra": "2.70",
+    "input_thresh": "-28.77",
+    "output_i": "-16.00",
+    "output_tp": "-1.50",
+    "output_lra": "2.70",
+    "output_thresh": "-26.61",
+    "normalization_type": "dynamic",
+    "target_offset": "0.00"
+  },
+  "bytes": 59222394,
+  "sha256": "5ac868950d838c2649c9138786829e6ce9b1f739500ed09de88133e930cc8550"
+}

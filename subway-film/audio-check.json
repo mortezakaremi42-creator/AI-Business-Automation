@@ -1,0 +1,10 @@
+{
+  "durationSeconds": 545.5334583333333,
+  "sampleRate": 24000,
+  "channels": 2,
+  "peakDbfs": -1.86,
+  "rmsDbfs": -20.84,
+  "narrationFiles": 10,
+  "soundEffects": "original procedural synthesis",
+  "subtitleTiming": "estimated sentence-level, snapped to acoustic pauses"
+}
