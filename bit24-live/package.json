@@ -1,0 +1,15 @@
+{
+  "name": "bit24-live-console",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "setup": "node setup.mjs",
+    "start": "node --env-file=.env server.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "description": "Real-source account console; order execution deliberately unavailable pending verified permissions and live integration."
+}

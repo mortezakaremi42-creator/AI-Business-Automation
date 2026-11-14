@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#091725" />
+    <meta
+      name="description"
+      content="کنسول مستقل حساب بیت۲۴؛ فقط دادهٔ دریافتی از API، بدون شبیه‌سازی. معامله تا تکمیل تأییدها قفل است."
+    />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icon.svg" />
+    <link rel="stylesheet" href="/style.css" />
+    <title>BIT24 AI TRADER PRO • حساب واقعی</title>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/" aria-label="BIT24 Home"
+        ><span class="brand-icon">B<span>24</span></span
+        ><span>BIT24 <small>AI TRADER PRO</small></span></a
+      ><button id="language" class="icon-button" type="button">
+        EN / فارسی
+      </button>
+    </header>
+    <main>
+      <section class="hero">
+        <div class="eyebrow">REAL-SOURCE ACCOUNT CONSOLE · 0.1</div>
+        <h1
+          data-fa="کنترل روشن. سرمایهٔ واقعی."
+          data-en="Clear control. Real capital."
+        ></h1>
+        <p
+          data-fa="اطلاعات فقط از حساب صرافی دریافت می‌شود. بدون موجودی آزمایشی و بدون سفارش ساختگی."
+          data-en="Account data comes only from the exchange. No simulated balance or fabricated orders."
+        ></p>
+        <div class="hero-bottom">
+          <span id="connection" class="pill">متصل نیست</span
+          ><span
+            class="pill muted"
+            data-fa="اجرای سفارش: قفل"
+            data-en="Order execution: locked"
+          ></span>
+        </div>
+      </section>
+      <section class="notice">
+        <span class="notice-icon">!</span>
+        <div>
+          <strong
+            data-fa="این نسخه هنوز ربات معامله‌گر عملیاتی نیست"
+            data-en="Not an operational trading robot yet"
+          ></strong>
+          <p
+            data-fa="خواندن حساب از API رسمی پیاده شده اما اتصال احراز هویت‌شده هنوز تست نشده است. موتور معامله، مجوزهای بدون برداشت و دفتر اجرای واقعی تکمیل نشده‌اند. واردکردن کلید، معامله را فعال نمی‌کند."
+            data-en="Official API account reads are implemented but not authenticated-live tested. Trading, permission verification and a live execution ledger remain incomplete. Adding a key does not enable orders."
+          ></p>
+        </div>
+      </section>
+      <section id="login" class="panel">
+        <div class="section-title">
+          <h2 data-fa="ورود مالک" data-en="Owner access"></h2>
+          <span class="subtle">01 / ACCESS</span>
+        </div>
+        <p
+          data-fa="رمز پنل را که روی سرور ساخته‌اید وارد کنید؛ اینجا محل کلید صرافی نیست."
+          data-en="Enter your server-generated dashboard password, NOT your exchange API key."
+        ></p>
+        <form id="login-form">
+          <label
+            for="password"
+            data-fa="رمز خصوصی پنل"
+            data-en="Dashboard password"
+          ></label>
+          <div class="input-row">
+            <input
+              id="password"
+              type="password"
+              autocomplete="current-password"
+              required
+              maxlength="256"
+              placeholder="••••••••••••"
+            /><button
+              class="gold"
+              type="submit"
+              data-fa="ورود امن"
+              data-en="Sign in"
+            ></button>
+          </div>
+        </form>
+      </section>
+      <div id="account" hidden>
+        <div class="toolbar">
+          <div>
+            <h2 data-fa="نمای حساب" data-en="Account overview"></h2>
+            <p id="last-sync" class="subtle">—</p>
+          </div>
+          <div class="actions">
+            <button
+              id="refresh"
+              type="button"
+              data-fa="همگام‌سازی"
+              data-en="Synchronize"
+            ></button
+            ><button
+              id="logout"
+              type="button"
+              data-fa="خروج"
+              data-en="Sign out"
+            ></button>
+          </div>
+        </div>
+        <div class="metrics">
+          <article class="metric">
+            <div class="metric-top">
+              <span
+                data-fa="ارزش کیف پول اصلی"
+                data-en="Main wallet valuation"
+              ></span
+              ><span>01</span>
+            </div>
+            <strong id="balance">—</strong
+            ><small
+              data-fa="تومان · فقط پس از پاسخ معتبر"
+              data-en="TOMAN · verified response only"
+            ></small>
+          </article>
+          <article class="metric">
+            <div class="metric-top">
+              <span
+                data-fa="ارزش دارایی‌های آزاد"
+                data-en="Available assets valuation"
+              ></span
+              ><span>02</span>
+            </div>
+            <strong id="available">—</strong
+            ><small
+              data-fa="معادل تومان؛ نه لزوماً نقد قابل خرید"
+              data-en="TOMAN equivalent; not necessarily spendable IRT"
+            ></small>
+          </article>
+          <article class="metric">
+            <div class="metric-top">
+              <span
+                data-fa="سود خالص / نرخ برد"
+                data-en="Net P&L / win rate"
+              ></span
+              ><span>03</span>
+            </div>
+            <strong>— / —</strong
+            ><small
+              data-fa="بدون دفتر fill و بهای تمام‌شده محاسبه نمی‌شود"
+              data-en="Unavailable without fill ledger and cost basis"
+            ></small>
+          </article>
+        </div>
+        <section class="panel">
+          <div class="section-title">
+            <h2 data-fa="بازارهای تومانی" data-en="TOMAN markets"></h2>
+            <span class="subtle">02 / MARKETS</span>
+          </div>
+          <p
+            class="subtle"
+            data-fa="دادهٔ آخرین دریافت از صرافی؛ قیمت قابل اجرا یا تضمین‌شده نیست."
+            data-en="Last received exchange data; not an executable price guarantee."
+          ></p>
+          <div id="markets" class="market-grid"></div>
+          <p
+            id="market-empty"
+            class="empty"
+            data-fa="دادهٔ تأییدشده‌ای دریافت نشده است."
+            data-en="No verified data received."
+          ></p>
+        </section>
+        <section class="panel">
+          <div class="section-title">
+            <h2
+              data-fa="سفارش‌های حساب در بازارهای تومانی"
+              data-en="Account IRT-market orders"
+            ></h2>
+            <span class="subtle">03 / ORDERS</span>
+          </div>
+          <p
+            class="subtle"
+            data-fa="این سفارش‌ها متعلق به حساب صرافی‌اند؛ ادعا نمی‌شود ربات آن‌ها را ثبت کرده است."
+            data-en="Exchange account orders; not claimed as bot-submitted trades."
+          ></p>
+          <div id="orders"></div>
+          <p
+            id="order-empty"
+            class="empty"
+            data-fa="هنوز دادهٔ سفارش دریافت نشده است."
+            data-en="Order data has not been received."
+          ></p>
+        </section>
+        <section class="panel settings">
+          <div class="section-title">
+            <h2
+              data-fa="محدودهٔ مجوز آینده"
+              data-en="Planned authorization limits"
+            ></h2>
+            <span class="subtle">04 / SAFETY</span>
+          </div>
+          <div class="limit">
+            <span
+              data-fa="سقف سرمایه، نه موجودی حساب"
+              data-en="Capital ceiling, NOT account balance"
+            ></span
+            ><b>۱٬۰۰۰٬۰۰۰ <small>تومان</small></b>
+          </div>
+          <div class="limit">
+            <span
+              data-fa="حداکثر بودجهٔ هر سفارش با هزینه‌ها"
+              data-en="Maximum fee-inclusive order budget"
+            ></span
+            ><b>۱۰۰٬۰۰۰ <small>تومان</small></b>
+          </div>
+          <p
+            class="subtle"
+            data-fa="این سقف‌ها خواستهٔ شما هستند؛ موتور اجرایی این نسخه وجود ندارد و اعمال آن‌ها روی معاملات واقعی هنوز پیاده نشده است."
+            data-en="These are your requested limits, not currently enforced execution limits. This build has no trading engine."
+          ></p>
+          <button
+            type="button"
+            class="locked"
+            disabled
+            data-fa="معاملهٔ خودکار · تا تکمیل اتصال قفل است"
+            data-en="Autonomous trading · locked pending integration"
+          ></button>
+          <p
+            data-fa="کلیدها فقط در تنظیمات امن سرور وارد می‌شوند. هیچ مجوز برداشت یا انتقال نباید داده شود."
+            data-en="Credentials belong only in secure server settings. Withdrawal and transfer permissions must not be granted."
+          ></p>
+        </section>
+      </div>
+      <p id="message" role="status" aria-live="polite"></p>
+      <section class="install panel">
+        <div>
+          <h2 data-fa="روی صفحهٔ اصلی گوشی" data-en="On your home screen"></h2>
+          <p
+            data-fa="نصب PWA فقط روی HTTPS یا localhost امکان‌پذیر است؛ نصب برنامه، سرور دائمی ایجاد نمی‌کند."
+            data-en="PWA installation requires HTTPS or localhost. Installing does not provide a permanent backend."
+          ></p>
+        </div>
+        <button
+          id="install"
+          type="button"
+          data-fa="نصب برنامه"
+          data-en="Install app"
+        ></button>
+      </section>
+      <footer>
+        BIT24 AI TRADER PRO
+        <span>INDEPENDENT SOFTWARE · NOT THE OFFICIAL BIT24 APP</span>
+        <p
+          data-fa="هیچ سود یا اجرای پیوسته‌ای تضمین نمی‌شود. این نسخه سفارش ارسال یا موجودی فرضی تولید نمی‌کند."
+          data-en="No profit or continuous operation is guaranteed. This build neither submits orders nor simulates funds."
+        ></p>
+      </footer>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

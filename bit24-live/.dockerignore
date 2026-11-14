@@ -1,0 +1,5 @@
+.env
+.env.*
+reports
+node_modules
+.git

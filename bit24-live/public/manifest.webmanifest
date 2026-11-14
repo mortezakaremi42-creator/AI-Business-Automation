@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "BIT24 AI TRADER PRO — Live Console",
+  "short_name": "BIT24 Live",
+  "description": "Real-source account console. Trading not enabled.",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#08131e",
+  "theme_color": "#091725",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

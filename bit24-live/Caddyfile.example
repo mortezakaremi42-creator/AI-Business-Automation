@@ -1,0 +1,5 @@
+# Replace domain and set identical PUBLIC_ORIGIN=https://your-domain.example .
+# This is not an existing deployment; HTTPS and DNS must actually be provisioned.
+your-domain.example {
+  reverse_proxy 127.0.0.1:3050
+}

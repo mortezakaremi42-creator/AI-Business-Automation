@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: parses exact decimal strings without float financial calculations
+ok 1 - parses exact decimal strings without float financial calculations
+  ---
+  duration_ms: 1.43478
+  type: 'test'
+  ...
+# Subtest: main wallet valuation is not mistaken for all-wallet margin funds or spendable IRT
+ok 2 - main wallet valuation is not mistaken for all-wallet margin funds or spendable IRT
+  ---
+  duration_ms: 0.86935
+  type: 'test'
+  ...
+# Subtest: validates documented market contract without fake signal scores
+ok 3 - validates documented market contract without fake signal scores
+  ---
+  duration_ms: 0.455649
+  type: 'test'
+  ...
+# Subtest: partial orders are not presented as completed trades or fee currencies assumed
+ok 4 - partial orders are not presented as completed trades or fee currencies assumed
+  ---
+  duration_ms: 0.283165
+  type: 'test'
+  ...
+# Subtest: missing API key never calls network
+ok 5 - missing API key never calls network
+  ---
+  duration_ms: 0.952014
+  type: 'test'
+  ...
+# Subtest: transport rejects withdrawal, transfer, arbitrary URLs and unreviewed endpoints
+ok 6 - transport rejects withdrawal, transfer, arbitrary URLs and unreviewed endpoints
+  ---
+  duration_ms: 0.241895
+  type: 'test'
+  ...
+# Subtest: only documented origin and header are used; API errors and keys never echoed
+ok 7 - only documented origin and header are used; API errors and keys never echoed
+  ---
+  duration_ms: 1.935831
+  type: 'test'
+  ...
+# Subtest: hard timeout terminates waiting even when transport ignores abort
+ok 8 - hard timeout terminates waiting even when transport ignores abort
+  ---
+  duration_ms: 15.190078
+  type: 'test'
+  ...
+# Subtest: 429 applies Retry-After cooldown without retrying requests
+ok 9 - 429 applies Retry-After cooldown without retrying requests
+  ---
+  duration_ms: 1.540041
+  type: 'test'
+  ...
+# Subtest: provider success false and malformed JSON cannot become a connected account
+ok 10 - provider success false and malformed JSON cannot become a connected account
+  ---
+  duration_ms: 2.718371
+  type: 'test'
+  ...
+# Subtest: fresh authenticated complete read produces no manufactured P&L and deduplicates concurrent sync
+ok 11 - fresh authenticated complete read produces no manufactured P&L and deduplicates concurrent sync
+  ---
+  duration_ms: 1.901704
+  type: 'test'
+  ...
+# Subtest: duplicate IDs and unexpected pagination reject the entire snapshot
+ok 12 - duplicate IDs and unexpected pagination reject the entire snapshot
+  ---
+  duration_ms: 4.070912
+  type: 'test'
+  ...
+# Subtest: partial snapshot failure never returns any financial snapshot
+ok 13 - partial snapshot failure never returns any financial snapshot
+  ---
+  duration_ms: 0.570727
+  type: 'test'
+  ...
+# Subtest: server rejects short owner passwords and insecure deployment origins
+ok 14 - server rejects short owner passwords and insecure deployment origins
+  ---
+  duration_ms: 0.399201
+  type: 'test'
+  ...
+# Subtest: private data requires owner login and no wildcard origin is allowed
+ok 15 - private data requires owner login and no wildcard origin is allowed
+  ---
+  duration_ms: 23.8732
+  type: 'test'
+  ...
+# Subtest: no key: null snapshot, explicit missing prerequisite, never a fabricated zero balance
+ok 16 - no key: null snapshot, explicit missing prerequisite, never a fabricated zero balance
+  ---
+  duration_ms: 6.15849
+  type: 'test'
+  ...
+# Subtest: all writes remain locked even after owner login, including panic/liquidation requests
+ok 17 - all writes remain locked even after owner login, including panic/liquidation requests
+  ---
+  duration_ms: 10.903163
+  type: 'test'
+  ...
+# Subtest: logout invalidates the session
+ok 18 - logout invalidates the session
+  ---
+  duration_ms: 6.452425
+  type: 'test'
+  ...
+# Subtest: login is rate limited
+ok 19 - login is rate limited
+  ---
+  duration_ms: 6.182772
+  type: 'test'
+  ...
+# Subtest: upstream loss clears earlier verified data; no stale connected account after failure
+ok 20 - upstream loss clears earlier verified data; no stale connected account after failure
+  ---
+  duration_ms: 5.289076
+  type: 'test'
+  ...
+# Subtest: frontend contains no demo bootstrap; security headers and PWA shell are served
+ok 21 - frontend contains no demo bootstrap; security headers and PWA shell are served
+  ---
+  duration_ms: 4.688672
+  type: 'test'
+  ...
+# Subtest: session expires after eight hours without authorizing another request
+ok 22 - session expires after eight hours without authorizing another request
+  ---
+  duration_ms: 2.632654
+  type: 'test'
+  ...
+# Subtest: slow multi-page synchronization cannot label old wallet data as newly fresh
+ok 23 - slow multi-page synchronization cannot label old wallet data as newly fresh
+  ---
+  duration_ms: 0.818132
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 201.678916

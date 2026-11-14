@@ -1,0 +1,17 @@
+{
+  "checks": [
+    "Persian RTL login; no public account data",
+    "Missing API key displays no balance, price, order or manufactured P&L",
+    "No owner-login bypass of order execution lock",
+    "No horizontal overflow at 320px, 393px and desktop",
+    "English language and LTR switch",
+    "Service worker and installable manifest assets load",
+    "Service worker never caches account, sessions or API data",
+    "Logout invalidates session and clears financial DOM",
+    "Offline shell has no fallback simulation or stale balance",
+    "No JS exceptions or external browser requests"
+  ],
+  "errors": [],
+  "physicalAndroidTested": false,
+  "authenticatedExchangeTested": false
+}
